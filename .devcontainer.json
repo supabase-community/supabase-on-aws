@@ -1,0 +1,10 @@
+{
+  "image": "ghcr.io/mats16/devcontainer-for-aws:latest",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "extensions": [
+    "dbaeumer.vscode-eslint",
+    "ms-azuretools.vscode-docker",
+  ]
+}
