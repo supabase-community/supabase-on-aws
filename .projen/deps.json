@@ -5,6 +5,10 @@
       "type": "build"
     },
     {
+      "name": "@types/jsonwebtoken",
+      "type": "build"
+    },
+    {
       "name": "@types/node",
       "version": "^14",
       "type": "build"
@@ -87,6 +91,11 @@
     {
       "name": "constructs",
       "version": "^10.0.5",
+      "type": "runtime"
+    },
+    {
+      "name": "jsonwebtoken",
+      "version": "^8.5.1",
       "type": "runtime"
     }
   ],

@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@types/jest": "^28.1.6",
+    "@types/jsonwebtoken": "^8.5.8",
     "@types/node": "^14",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
@@ -46,7 +47,8 @@
   },
   "dependencies": {
     "aws-cdk-lib": "^2.33.0",
-    "constructs": "^10.0.5"
+    "constructs": "^10.0.5",
+    "jsonwebtoken": "^8.5.1"
   },
   "license": "Apache-2.0",
   "version": "0.0.0",
