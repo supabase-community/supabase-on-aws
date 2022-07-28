@@ -1,14 +1,13 @@
 import { Stack, StackProps, SecretValue, CfnOutput } from 'aws-cdk-lib';
-import * as cf from 'aws-cdk-lib/aws-cloudfront';
-import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
+//import * as cf from 'aws-cdk-lib/aws-cloudfront';
+//import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Vpc, Port } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
-import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
-//import jwt from 'jsonwebtoken';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
+import { SupabaseJwtSecret } from './supabase-jwt-secret';
 import { SupabaseService } from './supabase-service';
 
 export class SupabaseStack extends Stack {
@@ -20,30 +19,7 @@ export class SupabaseStack extends Stack {
     const db = new SupabaseDatabase(this, 'DB', { vpc });
     const dbSecret = db.secret!;
 
-    //const jwtSecret = new Secret(this, 'SupabaseJwtSecret', { generateSecretString: { passwordLength: 64, excludePunctuation: true } });
-
-    const supabaseSecret = new Secret(this, 'SupabaseSecret', {
-      secretObjectValue: {
-        JWT_SECRET: SecretValue.unsafePlainText('your-super-secret-jwt-token-with-at-least-32-characters-long'),
-        ANON_KEY: SecretValue.unsafePlainText('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE'),
-        SERVICE_ROLE_KEY: SecretValue.unsafePlainText('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJzZXJ2aWNlX3JvbGUiLAogICAgImlzcyI6ICJzdXBhYmFzZS1kZW1vIiwKICAgICJpYXQiOiAxNjQxNzY5MjAwLAogICAgImV4cCI6IDE3OTk1MzU2MDAKfQ.DaYlNEoUrrEn2Ig7tqibS-PHK5vgusbcbo7X36XVt4Q'),
-        //JWT_SECRET: jwtSecret.secretValue,
-        //ANON_KEY: SecretValue.unsafePlainText(jwt.sign({
-        //  role: 'anon',
-        //  iss: 'supabase',
-        //  iat: 1658588400,
-        //  exp: 1816354800,
-        //}, jwtSecret.secretValue.toString())),
-        //SERVICE_ROLE_KEY: SecretValue.unsafePlainText(jwt.sign({
-        //  role: 'service_role',
-        //  iss: 'supabase',
-        //  iat: 1658588400,
-        //  exp: 1816354800,
-        //}, jwtSecret.secretValue.toString())),
-        GOTRUE_DB_DATABASE_URL: SecretValue.unsafePlainText(`postgres://${dbSecret.secretValueFromJson('username')}:${dbSecret.secretValueFromJson('password')}@${dbSecret.secretValueFromJson('host')}:${dbSecret.secretValueFromJson('port')}/${dbSecret.secretValueFromJson('dbname')}?search_path=auth`),
-        PGRST_DB_URI: SecretValue.unsafePlainText(`postgres://${dbSecret.secretValueFromJson('username')}:${dbSecret.secretValueFromJson('password')}@${dbSecret.secretValueFromJson('host')}:${dbSecret.secretValueFromJson('port')}/${dbSecret.secretValueFromJson('dbname')}`),
-      },
-    });
+    const jwtSecret = new SupabaseJwtSecret(this, 'SupabaseJwtSecret');
 
     const cluster = new ecs.Cluster(this, 'Cluster', {
       defaultCloudMapNamespace: { name: 'supabase.local' },
@@ -54,21 +30,18 @@ export class SupabaseStack extends Stack {
       cluster,
       containerDefinition: {
         containerName: 'supabase-kong',
-        //image: ecs.ContainerImage.fromRegistry('public.ecr.aws/docker/library/kong:2.7'),
+        //image: ecs.ContainerImage.fromRegistry('public.ecr.aws/docker/library/kong:2.8'),
         image: ecs.ContainerImage.fromAsset('./src/containers/kong', {
           platform: Platform.LINUX_ARM64,
         }),
         portMappings: [{ containerPort: 8000 }],
         environment: {
-          KONG_DATABASE: 'off',
-          KONG_DECLARATIVE_CONFIG: '/var/lib/kong/kong.yml',
           KONG_DNS_ORDER: 'LAST,A,CNAME',
           KONG_PLUGINS: 'request-transformer,cors,key-auth,acl',
-          KONG_VAULTS: 'bundled',
         },
         secrets: {
-          SUPABASE_ANON_KEY: ecs.Secret.fromSecretsManager(supabaseSecret, 'ANON_KEY'),
-          SUPABASE_SERVICE_KEY: ecs.Secret.fromSecretsManager(supabaseSecret, 'SERVICE_ROLE_KEY'),
+          ANON_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'anon_key'),
+          SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
         },
       },
       gateway: 'nlb',
@@ -113,8 +86,8 @@ export class SupabaseStack extends Stack {
           GOTRUE_SMS_AUTOCONFIRM: 'true',
         },
         secrets: {
-          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSecretsManager(supabaseSecret, 'GOTRUE_DB_DATABASE_URL'),
-          GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(supabaseSecret, 'JWT_SECRET'),
+          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url_auth'),
+          GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
         },
       },
     });
@@ -131,8 +104,8 @@ export class SupabaseStack extends Stack {
           PGRST_DB_USE_LEGACY_GUCS: 'false',
         },
         secrets: {
-          PGRST_DB_URI: ecs.Secret.fromSecretsManager(supabaseSecret, 'PGRST_DB_URI'),
-          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(supabaseSecret, 'JWT_SECRET'),
+          PGRST_DB_URI: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
+          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
         },
       },
     });
@@ -153,7 +126,7 @@ export class SupabaseStack extends Stack {
           TEMPORARY_SLOT: 'true',
         },
         secrets: {
-          JWT_SECRET: ecs.Secret.fromSecretsManager(supabaseSecret, 'JWT_SECRET'),
+          JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
           DB_HOST: ecs.Secret.fromSecretsManager(dbSecret, 'host'),
           DB_PORT: ecs.Secret.fromSecretsManager(dbSecret, 'port'),
           DB_NAME: ecs.Secret.fromSecretsManager(dbSecret, 'dbname'),
@@ -182,10 +155,10 @@ export class SupabaseStack extends Stack {
           GLOBAL_S3_BUCKET: 'stub',
         },
         secrets: {
-          ANON_KEY: ecs.Secret.fromSecretsManager(supabaseSecret, 'ANON_KEY'),
-          SERVICE_KEY: ecs.Secret.fromSecretsManager(supabaseSecret, 'SERVICE_ROLE_KEY'),
-          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(supabaseSecret, 'JWT_SECRET'),
-          DATABASE_URL: ecs.Secret.fromSecretsManager(supabaseSecret, 'PGRST_DB_URI'),
+          ANON_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'anon_key'),
+          SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
+          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
+          DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
         },
       },
     });
@@ -237,8 +210,8 @@ export class SupabaseStack extends Stack {
         },
         secrets: {
           POSTGRES_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
-          SUPABASE_ANON_KEY: ecs.Secret.fromSecretsManager(supabaseSecret, 'ANON_KEY'),
-          SUPABASE_SERVICE_KEY: ecs.Secret.fromSecretsManager(supabaseSecret, 'SERVICE_ROLE_KEY'),
+          SUPABASE_ANON_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'anon_key'),
+          SUPABASE_SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
         },
       },
       gateway: 'alb',

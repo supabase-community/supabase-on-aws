@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
@@ -56,6 +57,24 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       properties: {
         SecretId: this.secret?.secretArn,
         Version: '7',
+      },
+    });
+
+    const urlGeneratorFunction = new NodejsFunction(this, 'UrlGeneratorFunction', {
+      description: 'Supabase - Database URL Generator',
+      entry: './src/functions/db-url-generate.ts',
+      runtime: lambda.Runtime.NODEJS_16_X,
+    });
+    this.secret?.grantWrite(urlGeneratorFunction);
+    this.secret?.grantRead(urlGeneratorFunction);
+
+    const urlProvider = new cr.Provider(this, 'UrlProvider', { onEventHandler: urlGeneratorFunction });
+
+    new cdk.CustomResource(this, 'URL', {
+      serviceToken: urlProvider.serviceToken,
+      resourceType: 'Custom::SupabaseDatabaseUrl',
+      properties: {
+        SecretId: this.secret?.secretArn,
       },
     });
 

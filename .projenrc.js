@@ -5,6 +5,8 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   name: 'supabase-on-aws',
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
   deps: [
+    '@aws-sdk/client-secrets-manager',
+    '@types/aws-lambda',
     'jsonwebtoken@^8.5.1',
   ],
   devDeps: [

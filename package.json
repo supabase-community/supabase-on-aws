@@ -46,6 +46,8 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.137.0",
+    "@types/aws-lambda": "^8.10.101",
     "aws-cdk-lib": "^2.33.0",
     "constructs": "^10.0.5",
     "jsonwebtoken": "^8.5.1"
