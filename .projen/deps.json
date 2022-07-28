@@ -88,6 +88,10 @@
       "type": "runtime"
     },
     {
+      "name": "@databases/pg",
+      "type": "runtime"
+    },
+    {
       "name": "@types/aws-lambda",
       "type": "runtime"
     },

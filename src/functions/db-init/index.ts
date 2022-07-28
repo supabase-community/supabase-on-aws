@@ -51,18 +51,19 @@ const initialize = async (secretId: string) => {
 
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
   const secretId: string = event.ResourceProperties.SecretId;
+  const response: CdkCustomResourceResponse = {};
 
   switch (event.RequestType) {
     case 'Create': {
       await initialize(secretId);
-      return {} as CdkCustomResourceResponse;
+      return response;
     }
     case 'Update': {
       await initialize(secretId);
-      return {} as CdkCustomResourceResponse;
+      return response;
     }
     case 'Delete': {
-      return {} as CdkCustomResourceResponse;
+      return response;
     }
   };
 };

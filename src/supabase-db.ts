@@ -39,9 +39,44 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       defaultDatabaseName: 'postgres',
     });
 
-    const initFunction = new lambda.DockerImageFunction(this, 'InitFunction', {
+    const urlGeneratorFunction = new NodejsFunction(this, 'UrlGeneratorFunction', {
+      description: 'Supabase - Database URL generator function',
+      entry: './src/functions/db-url-generate.ts',
+      runtime: lambda.Runtime.NODEJS_16_X,
+    });
+    this.secret?.grantWrite(urlGeneratorFunction);
+    this.secret?.grantRead(urlGeneratorFunction);
+
+    const urlProvider = new cr.Provider(this, 'UrlProvider', { onEventHandler: urlGeneratorFunction });
+
+    new cdk.CustomResource(this, 'URL', {
+      serviceToken: urlProvider.serviceToken,
+      resourceType: 'Custom::SupabaseDatabaseUrl',
+      properties: {
+        SecretId: this.secret?.secretArn,
+      },
+    });
+
+    const initFunction = new NodejsFunction(this, 'InitFunction', {
       description: 'Supabase - Database init function',
-      code: lambda.DockerImageCode.fromImageAsset('./src/containers/db-init'),
+      entry: './src/functions/db-init/index.ts',
+      bundling: {
+        nodeModules: [
+          '@databases/pg',
+        ],
+        commandHooks: {
+          beforeInstall: (_inputDir, _outputDir) => {
+            return [];
+          },
+          beforeBundling: (_inputDir, _outputDir) => {
+            return [];
+          },
+          afterBundling: (inputDir, outputDir) => {
+            return [`cp ${inputDir}/src/functions/db-init/*.sql ${outputDir}`];
+          },
+        },
+      },
+      runtime: lambda.Runtime.NODEJS_16_X,
       timeout: cdk.Duration.seconds(60),
       vpc,
     });
@@ -57,24 +92,6 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       properties: {
         SecretId: this.secret?.secretArn,
         Version: '7',
-      },
-    });
-
-    const urlGeneratorFunction = new NodejsFunction(this, 'UrlGeneratorFunction', {
-      description: 'Supabase - Database URL Generator',
-      entry: './src/functions/db-url-generate.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
-    });
-    this.secret?.grantWrite(urlGeneratorFunction);
-    this.secret?.grantRead(urlGeneratorFunction);
-
-    const urlProvider = new cr.Provider(this, 'UrlProvider', { onEventHandler: urlGeneratorFunction });
-
-    new cdk.CustomResource(this, 'URL', {
-      serviceToken: urlProvider.serviceToken,
-      resourceType: 'Custom::SupabaseDatabaseUrl',
-      properties: {
-        SecretId: this.secret?.secretArn,
       },
     });
 
