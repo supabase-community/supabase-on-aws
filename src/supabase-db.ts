@@ -91,7 +91,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       resourceType: 'Custom::SupabaseDatabaseInit',
       properties: {
         SecretId: this.secret?.secretArn,
-        Version: '7',
+        Version: '4',
       },
     });
 

@@ -29,24 +29,31 @@ const getConfig = async (secretId: string): Promise<ConnectionPoolConfig> => {
   return config;
 };
 
+const listFile = (dir: string, suffix: string) => {
+  const files = fs.readdirSync(dir).filter(name => name.endsWith(suffix));
+  return files;
+};
+
 const initialize = async (secretId: string) => {
   const config = await getConfig(secretId);
   const db = createConnectionPool(config);
   console.log('Connected to PostgreSQL database');
 
-  try {
+  const files = listFile('./', '.sql');
 
-    await db.query(sql.file('./jwt-utils.sql'));
-    await db.query(sql.file('./00-initial-schema.sql'));
-    await db.query(sql.file('./01-auth-schema.sql'));
-    await db.query(sql.file('./02-storage-schema.sql'));
-    await db.query(sql.file('./03-post-setup.sql'));
-
-  } catch (err) {
-    console.error(err);
-  } finally {
-    await db.dispose();
+  for await (let file of files) {
+    console.log(`${file} ----- start query`);
+    try {
+      const result = await db.query(sql.file(file));
+      console.info(result);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      console.log(`${file} ----- end query`);
+    }
   }
+
+  await db.dispose();
 };
 
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
