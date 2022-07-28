@@ -4,6 +4,7 @@ import { Stack, StackProps, SecretValue, CfnOutput } from 'aws-cdk-lib';
 import { Vpc, Port } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
@@ -22,6 +23,7 @@ export class SupabaseStack extends Stack {
     const jwtSecret = new SupabaseJwtSecret(this, 'SupabaseJwtSecret');
 
     const cluster = new ecs.Cluster(this, 'Cluster', {
+      enableFargateCapacityProviders: true,
       defaultCloudMapNamespace: { name: 'supabase.local' },
       vpc,
     });
@@ -137,6 +139,11 @@ export class SupabaseStack extends Stack {
       },
     });
 
+    const bucket = new s3.Bucket(this, 'Bucket', {
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    });
+
     const storage = new SupabaseService(this, 'Storage', {
       cluster,
       containerDefinition: {
@@ -147,12 +154,12 @@ export class SupabaseStack extends Stack {
           POSTGREST_URL: 'http://rest.supabase.local:3000',
           PGOPTIONS: '-c search_path=storage,public',
           FILE_SIZE_LIMIT: '52428800',
-          STORAGE_BACKEND: 'file',
-          FILE_STORAGE_BACKEND_PATH: '/var/lib/storage',
+          STORAGE_BACKEND: 's3', // default: file
+          FILE_STORAGE_BACKEND_PATH: './data',
           TENANT_ID: 'stub',
           // TODO: https://github.com/supabase/storage-api/issues/55
-          REGION: 'stub',
-          GLOBAL_S3_BUCKET: 'stub',
+          REGION: bucket.env.region,
+          GLOBAL_S3_BUCKET: bucket.bucketName,
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'anon_key'),
@@ -162,6 +169,7 @@ export class SupabaseStack extends Stack {
         },
       },
     });
+    bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
 
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
@@ -185,11 +193,11 @@ export class SupabaseStack extends Stack {
     kong.service.connections.allowTo(auth.service, Port.tcp(9999));
     kong.service.connections.allowTo(rest.service, Port.tcp(3000));
     kong.service.connections.allowTo(realtime.service, Port.tcp(4000));
+    kong.service.connections.allowTo(storage.service, Port.tcp(8080));
     kong.service.connections.allowTo(meta.service, Port.tcp(8080));
 
-    auth.service.connections.allowTo(rest.service, Port.tcp(3000));
-
-    storage.service.connections.allowTo(rest.service, Port.tcp(3000));
+    rest.service.connections.allowFrom(auth.service, Port.tcp(3000));
+    rest.service.connections.allowFrom(storage.service, Port.tcp(3000));
 
     db.connections.allowDefaultPortFrom(auth.service);
     db.connections.allowDefaultPortFrom(rest.service);

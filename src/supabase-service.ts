@@ -31,7 +31,7 @@ export class SupabaseService extends Construct {
       ...containerDefinition,
       logging: new ecs.AwsLogDriver({ streamPrefix: 'ecs' }),
     });
-    container.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 4096, hardLimit: 65536 });
+    container.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 65536, hardLimit: 65536 });
 
     const cloudMapOptions: ecs.CloudMapOptions = {
       dnsTtl: cdk.Duration.seconds(10),
@@ -51,7 +51,7 @@ export class SupabaseService extends Construct {
       });
       nlbService.targetGroup.configureHealthCheck({ interval: cdk.Duration.seconds(10) });
       nlbService.service.connections.allowFrom(vpcInternal, containerPort, 'NLB healthcheck');
-      nlbService.service.connections.allowFromAnyIpv4(containerPort, 'internet traffic');
+      nlbService.service.connections.allowFrom(ec2.Peer.prefixList('pl-82a045eb'), containerPort, 'CloudFront');
       this.service = nlbService.service;
       this.loadBalancer = nlbService.loadBalancer;
     } else if (props.gateway == 'alb') {
