@@ -1,6 +1,5 @@
-import { Stack, StackProps, SecretValue, CfnOutput } from 'aws-cdk-lib';
-//import * as cf from 'aws-cdk-lib/aws-cloudfront';
-//import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
+import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import { Vpc, Port } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
@@ -17,10 +16,10 @@ export class SupabaseStack extends Stack {
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
-    const db = new SupabaseDatabase(this, 'DB', { vpc });
-    const dbSecret = db.secret!;
-
-    const jwtSecret = new SupabaseJwtSecret(this, 'SupabaseJwtSecret');
+    const mesh = new appmesh.Mesh(this, 'Mesh', {
+      meshName: this.stackName,
+      egressFilter: appmesh.MeshFilterType.ALLOW_ALL,
+    });
 
     const cluster = new ecs.Cluster(this, 'Cluster', {
       enableFargateCapacityProviders: true,
@@ -28,10 +27,14 @@ export class SupabaseStack extends Stack {
       vpc,
     });
 
+    const db = new SupabaseDatabase(this, 'DB', { vpc, mesh, namespace: cluster.defaultCloudMapNamespace });
+    const dbSecret = db.secret!;
+
+    const jwtSecret = new SupabaseJwtSecret(this, 'SupabaseJwtSecret');
+
     const kong = new SupabaseService(this, 'Kong', {
       cluster,
       containerDefinition: {
-        containerName: 'supabase-kong',
         //image: ecs.ContainerImage.fromRegistry('public.ecr.aws/docker/library/kong:2.8'),
         image: ecs.ContainerImage.fromAsset('./src/containers/kong', {
           platform: Platform.LINUX_ARM64,
@@ -47,6 +50,7 @@ export class SupabaseStack extends Stack {
         },
       },
       gateway: 'nlb',
+      mesh,
     });
 
     const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kong.loadBalancer! });
@@ -54,7 +58,6 @@ export class SupabaseStack extends Stack {
     const auth = new SupabaseService(this, 'Auth', {
       cluster,
       containerDefinition: {
-        containerName: 'supabase-auth',
         image: ecs.ContainerImage.fromRegistry('supabase/gotrue:v2.9.2'),
         portMappings: [{ containerPort: 9999 }],
         environment: {
@@ -92,12 +95,12 @@ export class SupabaseStack extends Stack {
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
         },
       },
+      mesh,
     });
 
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
       containerDefinition: {
-        containerName: 'supabase-rest',
         image: ecs.ContainerImage.fromRegistry('postgrest/postgrest:v9.0.1'),
         portMappings: [{ containerPort: 3000 }],
         environment: {
@@ -110,12 +113,12 @@ export class SupabaseStack extends Stack {
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
         },
       },
+      mesh,
     });
 
     const realtime = new SupabaseService(this, 'Realtime', {
       cluster,
       containerDefinition: {
-        containerName: 'supabase-realtime',
         image: ecs.ContainerImage.fromRegistry('supabase/realtime:v0.22.7'),
         portMappings: [{ containerPort: 4000 }],
         environment: {
@@ -137,6 +140,7 @@ export class SupabaseStack extends Stack {
         },
         command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
       },
+      mesh,
     });
 
     const bucket = new s3.Bucket(this, 'Bucket', {
@@ -147,7 +151,6 @@ export class SupabaseStack extends Stack {
     const storage = new SupabaseService(this, 'Storage', {
       cluster,
       containerDefinition: {
-        containerName: 'supabase-storage',
         image: ecs.ContainerImage.fromRegistry('supabase/storage-api:v0.18.6'),
         portMappings: [{ containerPort: 8080 }],
         environment: {
@@ -168,13 +171,13 @@ export class SupabaseStack extends Stack {
           DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
         },
       },
+      mesh,
     });
     bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
 
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
       containerDefinition: {
-        containerName: 'supabase-meta',
         image: ecs.ContainerImage.fromRegistry('supabase/postgres-meta:v0.41.0'),
         portMappings: [{ containerPort: 8080 }],
         environment: {
@@ -188,27 +191,27 @@ export class SupabaseStack extends Stack {
           PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
         },
       },
+      mesh,
     });
 
-    kong.service.connections.allowTo(auth.service, Port.tcp(9999));
-    kong.service.connections.allowTo(rest.service, Port.tcp(3000));
-    kong.service.connections.allowTo(realtime.service, Port.tcp(4000));
-    kong.service.connections.allowTo(storage.service, Port.tcp(8080));
-    kong.service.connections.allowTo(meta.service, Port.tcp(8080));
+    kong.addBackend(auth);
+    kong.addBackend(rest);
+    kong.addBackend(realtime);
+    kong.addBackend(storage);
+    kong.addBackend(meta);
 
-    rest.service.connections.allowFrom(auth.service, Port.tcp(3000));
-    rest.service.connections.allowFrom(storage.service, Port.tcp(3000));
+    auth.addBackend(rest);
+    storage.addBackend(rest);
 
-    db.connections.allowDefaultPortFrom(auth.service);
-    db.connections.allowDefaultPortFrom(rest.service);
-    db.connections.allowDefaultPortFrom(realtime.service);
-    db.connections.allowDefaultPortFrom(storage.service);
-    db.connections.allowDefaultPortFrom(meta.service);
+    auth.addDatabaseBackend(db);
+    rest.addDatabaseBackend(db);
+    realtime.addDatabaseBackend(db);
+    storage.addDatabaseBackend(db);
+    meta.addDatabaseBackend(db);
 
     const studio = new SupabaseService(this, 'Studio', {
       cluster,
       containerDefinition: {
-        containerName: 'supabase-studio',
         image: ecs.ContainerImage.fromRegistry('supabase/studio:latest'),
         portMappings: [{ containerPort: 3000 }],
         environment: {
@@ -223,6 +226,7 @@ export class SupabaseStack extends Stack {
         },
       },
       gateway: 'alb',
+      mesh,
     });
 
     const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studio.loadBalancer! });

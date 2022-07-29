@@ -1,19 +1,25 @@
 import * as cdk from 'aws-cdk-lib';
+import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as rds from 'aws-cdk-lib/aws-rds';
+import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
 interface SupabaseDatabaseProps {
   vpc: ec2.IVpc;
+  namespace?: servicediscovery.INamespace;
+  mesh?: appmesh.IMesh;
 }
 
 export class SupabaseDatabase extends rds.DatabaseCluster {
+  virtualService?: appmesh.VirtualService;
+  virtualNode?: appmesh.VirtualNode;
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
 
-    const vpc = props.vpc;
+    const { vpc, mesh, namespace } = props;
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
       version: rds.AuroraPostgresEngineVersion.of('14.3', '14'),
@@ -39,6 +45,14 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       defaultDatabaseName: 'postgres',
     });
 
+    if (typeof namespace != 'undefined') {
+      new servicediscovery.Service(this, 'Service', {
+        namespace,
+        name: 'db',
+        dnsRecordType: servicediscovery.DnsRecordType.CNAME,
+      }).registerCnameInstance('Aurora', { instanceCname: this.clusterEndpoint.hostname });
+    }
+
     const urlGeneratorFunction = new NodejsFunction(this, 'UrlGeneratorFunction', {
       description: 'Supabase - Database URL generator function',
       entry: './src/functions/db-url-generate.ts',
@@ -54,6 +68,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       resourceType: 'Custom::SupabaseDatabaseUrl',
       properties: {
         SecretId: this.secret?.secretArn,
+        Hostname: (typeof namespace != 'undefined') ? `db.${namespace.namespaceName}` : this.clusterEndpoint,
       },
     });
 
@@ -95,5 +110,17 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       },
     });
 
+    if (typeof mesh != 'undefined') {
+      this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
+        serviceDiscovery: appmesh.ServiceDiscovery.dns(this.clusterEndpoint.hostname, appmesh.DnsResponseType.ENDPOINTS),
+        listeners: [appmesh.VirtualNodeListener.tcp({ port: this.clusterEndpoint.port })],
+        mesh,
+      });
+
+      this.virtualService = new appmesh.VirtualService(this, 'VirtualService', {
+        virtualServiceName: 'db.spabase.local',
+        virtualServiceProvider: appmesh.VirtualServiceProvider.virtualNode(this.virtualNode),
+      });
+    }
   }
 }
