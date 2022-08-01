@@ -1,6 +1,6 @@
-import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
+import { Stack, StackProps, Duration, CfnOutput } from 'aws-cdk-lib';
 import * as appmesh from 'aws-cdk-lib/aws-appmesh';
-import { Vpc, Port } from 'aws-cdk-lib/aws-ec2';
+import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
@@ -8,6 +8,7 @@ import { Construct } from 'constructs';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwtSecret } from './supabase-jwt-secret';
+import { SupabaseWorkMail } from './supabase-mail';
 import { SupabaseService } from './supabase-service';
 
 export class SupabaseStack extends Stack {
@@ -27,7 +28,9 @@ export class SupabaseStack extends Stack {
       vpc,
     });
 
-    const db = new SupabaseDatabase(this, 'DB', { vpc, mesh, namespace: cluster.defaultCloudMapNamespace });
+    const mail = new SupabaseWorkMail(this, 'SupabaseMail', { region: 'us-west-2', mesh });
+
+    const db = new SupabaseDatabase(this, 'DB', { vpc, mesh });
     const dbSecret = db.secret!;
 
     const jwtSecret = new SupabaseJwtSecret(this, 'SupabaseJwtSecret');
@@ -39,10 +42,17 @@ export class SupabaseStack extends Stack {
         image: ecs.ContainerImage.fromAsset('./src/containers/kong', {
           platform: Platform.LINUX_ARM64,
         }),
-        portMappings: [{ containerPort: 8000 }],
+        portMappings: [{ containerPort: 8000 }, { containerPort: 8100 }],
+        healthCheck: {
+          command: ['CMD', 'kong', 'health'],
+          interval: Duration.seconds(10),
+          timeout: Duration.seconds(10),
+          retries: 3,
+        },
         environment: {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
           KONG_PLUGINS: 'request-transformer,cors,key-auth,acl',
+          KONG_STATUS_LISTEN: '0.0.0.0:8100',
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'anon_key'),
@@ -54,6 +64,7 @@ export class SupabaseStack extends Stack {
     });
 
     const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kong.loadBalancer! });
+    kong.service.connections.allowFrom(Peer.prefixList('pl-82a045eb'), Port.tcp(kong.listenerPort), 'CloudFront');
 
     const auth = new SupabaseService(this, 'Auth', {
       cluster,
@@ -76,12 +87,7 @@ export class SupabaseStack extends Stack {
           // mail
           GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
           GOTRUE_MAILER_AUTOCONFIRM: 'false',
-          GOTRUE_SMTP_ADMIN_EMAIL: 'admin@example.com',
-          GOTRUE_SMTP_HOST: 'mail',
-          GOTRUE_SMTP_PORT: '2500',
-          GOTRUE_SMTP_USER: 'fake_mail_user',
-          GOTRUE_SMTP_PASS: 'fake_mail_password',
-          GOTRUE_SMTP_SENDER_NAME: 'fake_sender',
+          GOTRUE_SMTP_SENDER_NAME: 'Supabase',
           GOTRUE_MAILER_URLPATHS_INVITE: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_RECOVERY: '/auth/v1/verify',
@@ -93,6 +99,11 @@ export class SupabaseStack extends Stack {
         secrets: {
           GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url_auth'),
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
+          GOTRUE_SMTP_ADMIN_EMAIL: ecs.Secret.fromSecretsManager(mail.secret, 'email'),
+          GOTRUE_SMTP_HOST: ecs.Secret.fromSecretsManager(mail.secret, 'host'),
+          GOTRUE_SMTP_PORT: ecs.Secret.fromSecretsManager(mail.secret, 'port'),
+          GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(mail.secret, 'username'),
+          GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(mail.secret, 'password'),
         },
       },
       mesh,
@@ -215,8 +226,9 @@ export class SupabaseStack extends Stack {
         image: ecs.ContainerImage.fromRegistry('supabase/studio:latest'),
         portMappings: [{ containerPort: 3000 }],
         environment: {
-          STUDIO_PG_META_URL: `https://${cdn.domainName}/pg/`,
-          SUPABASE_URL: `https://${cdn.domainName}`,
+          //STUDIO_PG_META_URL: 'http://meta.supabase.local:8080',
+          STUDIO_PG_META_URL: `https://${cdn.domainName}/pg`,
+          SUPABASE_URL: `https://${cdn.domainName}`, // for API Docs
           SUPABASE_REST_URL: `https://${cdn.domainName}/rest/v1/`,
         },
         secrets: {
@@ -226,8 +238,9 @@ export class SupabaseStack extends Stack {
         },
       },
       gateway: 'alb',
-      mesh,
+      //mesh,
     });
+    //studio.addBackend(meta);
 
     const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studio.loadBalancer! });
 

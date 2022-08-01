@@ -1,3 +1,4 @@
+import { Duration } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
@@ -33,6 +34,10 @@ export class SupabaseCdn extends cf.Distribution {
         '*.woff2': { ...defaultBehavior, cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED },
         '*.js': { ...defaultBehavior, cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED },
       },
+      errorResponses: [
+        { httpStatus: 400, ttl: Duration.seconds(10) },
+        { httpStatus: 500, ttl: Duration.seconds(10) },
+      ],
       enableIpv6: true,
     });
   }

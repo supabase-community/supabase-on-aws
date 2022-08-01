@@ -10,7 +10,6 @@ import { Construct } from 'constructs';
 
 interface SupabaseDatabaseProps {
   vpc: ec2.IVpc;
-  namespace?: servicediscovery.INamespace;
   mesh?: appmesh.IMesh;
 }
 
@@ -19,7 +18,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
   virtualNode?: appmesh.VirtualNode;
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
 
-    const { vpc, mesh, namespace } = props;
+    const { vpc, mesh } = props;
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
       version: rds.AuroraPostgresEngineVersion.of('14.3', '14'),
@@ -45,14 +44,6 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       defaultDatabaseName: 'postgres',
     });
 
-    if (typeof namespace != 'undefined') {
-      new servicediscovery.Service(this, 'Service', {
-        namespace,
-        name: 'db',
-        dnsRecordType: servicediscovery.DnsRecordType.CNAME,
-      }).registerCnameInstance('Aurora', { instanceCname: this.clusterEndpoint.hostname });
-    }
-
     const urlGeneratorFunction = new NodejsFunction(this, 'UrlGeneratorFunction', {
       description: 'Supabase - Database URL generator function',
       entry: './src/functions/db-url-generate.ts',
@@ -68,7 +59,6 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       resourceType: 'Custom::SupabaseDatabaseUrl',
       properties: {
         SecretId: this.secret?.secretArn,
-        Hostname: (typeof namespace != 'undefined') ? `db.${namespace.namespaceName}` : this.clusterEndpoint,
       },
     });
 
@@ -118,7 +108,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       });
 
       this.virtualService = new appmesh.VirtualService(this, 'VirtualService', {
-        virtualServiceName: 'db.spabase.local',
+        virtualServiceName: this.clusterEndpoint.hostname,
         virtualServiceProvider: appmesh.VirtualServiceProvider.virtualNode(this.virtualNode),
       });
     }

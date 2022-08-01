@@ -11,11 +11,11 @@ interface SupabaseServiceProps {
   cluster: ecs.ICluster;
   containerDefinition: ecs.ContainerDefinitionOptions;
   gateway?: 'nlb'|'alb';
-  mesh?: appmesh.IMesh;
+  mesh?: appmesh.Mesh;
 }
 
 export class SupabaseService extends Construct {
-  service: ecs.BaseService;
+  service: ecs.FargateService;
   listenerPort: number;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
@@ -25,12 +25,26 @@ export class SupabaseService extends Construct {
     super(scope, id);
 
     const serviceName = id.toLowerCase();
-    const { cluster, containerDefinition, mesh } = props;
+    const { cluster, containerDefinition, gateway, mesh } = props;
+
+    const proxyConfiguration = (typeof mesh == 'undefined') ? undefined : new ecs.AppMeshProxyConfiguration({
+      containerName: 'envoy',
+      properties: {
+        ignoredUID: 1337,
+        ignoredGID: 1338,
+        appPorts: [containerDefinition.portMappings![0].containerPort],
+        proxyIngressPort: 15000,
+        proxyEgressPort: 15001,
+        //egressIgnoredPorts: [2049], // EFS
+        egressIgnoredIPs: ['169.254.170.2', '169.254.169.254'],
+      },
+    });
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDefinition', {
       runtimePlatform: {
         cpuArchitecture: ecs.CpuArchitecture.ARM64,
       },
+      proxyConfiguration,
     });
 
     const logging = new ecs.AwsLogDriver({ streamPrefix: 'ecs' });
@@ -41,14 +55,6 @@ export class SupabaseService extends Construct {
       logging,
     });
     appContainer.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 65536, hardLimit: 65536 });
-
-    taskDefinition.addContainer('xray-daemon', {
-      image: ecs.ContainerImage.fromRegistry('public.ecr.aws/xray/aws-xray-daemon:latest'),
-      cpu: 16,
-      memoryReservationMiB: 64,
-      essential: true,
-      logging,
-    });
 
     this.listenerPort = appContainer.containerPort;
 
@@ -62,7 +68,7 @@ export class SupabaseService extends Construct {
     ];
     const circuitBreaker: ecs.DeploymentCircuitBreaker = { rollback: true };
 
-    if (props.gateway == 'nlb') {
+    if (gateway == 'nlb') {
       const vpcInternal = ec2.Peer.ipv4(cluster.vpc.vpcCidrBlock);
       const nlbService = new NetworkLoadBalancedFargateService(this, 'Svc', {
         cluster,
@@ -72,11 +78,19 @@ export class SupabaseService extends Construct {
         cloudMapOptions,
         healthCheckGracePeriod: cdk.Duration.seconds(10),
       });
-      nlbService.targetGroup.configureHealthCheck({ interval: cdk.Duration.seconds(10) });
-      nlbService.service.connections.allowFrom(vpcInternal, ec2.Port.tcp(this.listenerPort), 'NLB healthcheck');
-      nlbService.service.connections.allowFrom(ec2.Peer.prefixList('pl-82a045eb'), ec2.Port.tcp(this.listenerPort), 'CloudFront');
       this.service = nlbService.service;
       this.loadBalancer = nlbService.loadBalancer;
+      const targetGroup = nlbService.targetGroup;
+      // TargetGroup Attributes
+      targetGroup.setAttribute('deregistration_delay.timeout_seconds', '30');
+      targetGroup.setAttribute('preserve_client_ip.enabled', 'true');
+      // Health Check
+      const healthCheckPort = containerDefinition.portMappings!.slice(-1)[0].containerPort;
+      targetGroup.configureHealthCheck({
+        port: healthCheckPort.toString(),
+        interval: cdk.Duration.seconds(10),
+      });
+      this.service.connections.allowFrom(vpcInternal, ec2.Port.tcp(healthCheckPort), 'NLB healthcheck');
     } else if (props.gateway == 'alb') {
       const albService = new ApplicationLoadBalancedFargateService(this, 'Svc', {
         cluster,
@@ -86,9 +100,16 @@ export class SupabaseService extends Construct {
         cloudMapOptions,
         healthCheckGracePeriod: cdk.Duration.seconds(10),
       });
-      albService.targetGroup.configureHealthCheck({ interval: cdk.Duration.seconds(10), timeout: cdk.Duration.seconds(5) });
       this.service = albService.service;
       this.loadBalancer = albService.loadBalancer;
+      const targetGroup = albService.targetGroup;
+      // TargetGroup Attributes
+      targetGroup.setAttribute('deregistration_delay.timeout_seconds', '30');
+      // Health Check
+      albService.targetGroup.configureHealthCheck({
+        interval: cdk.Duration.seconds(10),
+        timeout: cdk.Duration.seconds(5),
+      });
     } else {
       this.service = new ecs.FargateService(this, 'Svc', {
         cluster,
@@ -101,8 +122,10 @@ export class SupabaseService extends Construct {
 
     if (typeof mesh != 'undefined') {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
+        virtualNodeName: id,
         serviceDiscovery: appmesh.ServiceDiscovery.cloudMap(this.service.cloudMapService!),
         listeners: [appmesh.VirtualNodeListener.http({ port: this.listenerPort })],
+        accessLog: appmesh.AccessLog.fromFilePath('/dev/stdout'),
         mesh,
       });
 
@@ -110,6 +133,54 @@ export class SupabaseService extends Construct {
         virtualServiceName: `${serviceName}.${cluster.defaultCloudMapNamespace?.namespaceName}`,
         virtualServiceProvider: appmesh.VirtualServiceProvider.virtualNode(this.virtualNode),
       });
+
+      taskDefinition.taskRole.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess' });
+      taskDefinition.taskRole.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess' });
+
+      const proxyContainer = taskDefinition.addContainer('envoy', {
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/appmesh/aws-appmesh-envoy:v1.22.2.0-prod'),
+        user: '1337',
+        cpu: 80,
+        memoryReservationMiB: 128,
+        essential: true,
+        healthCheck: {
+          command: ['CMD-SHELL', 'curl -s http://localhost:9901/server_info | grep state | grep -q LIVE'],
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(2),
+          startPeriod: cdk.Duration.seconds(10),
+          retries: 3,
+        },
+        environment: {
+          APPMESH_VIRTUAL_NODE_NAME: `mesh/${mesh.meshName}/virtualNode/${this.virtualNode.virtualNodeName}`,
+          //AWS_REGION: cdk.Aws.REGION,
+          //ENABLE_ENVOY_DOG_STATSD: '1',
+          //ENABLE_ENVOY_STATS_TAGS: '1',
+          ENABLE_ENVOY_XRAY_TRACING: '1',
+        },
+        logging,
+      });
+      proxyContainer.addUlimits({ name: ecs.UlimitName.NOFILE, hardLimit: 1024000, softLimit: 1024000 });
+
+      appContainer.addContainerDependencies({
+        container: proxyContainer,
+        condition: ecs.ContainerDependencyCondition.HEALTHY,
+      });
+
+      taskDefinition.addContainer('xray-daemon', {
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/xray/aws-xray-daemon:latest'),
+        cpu: 16,
+        memoryReservationMiB: 64,
+        essential: true,
+        //healthCheck: {
+        //  command: ['CMD-SHELL', 'netstat -aun | grep 2000 > /dev/null; if [ 0 != $? ]; then exit 1; fi;'],
+        //  interval: cdk.Duration.seconds(5),
+        //  timeout: cdk.Duration.seconds(2),
+        //  startPeriod: cdk.Duration.seconds(10),
+        //  retries: 3,
+        //},
+        logging,
+      });
+
     }
 
   }
