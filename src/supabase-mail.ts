@@ -34,6 +34,16 @@ const createWorkMailOrgStatement = new iam.PolicyStatement({
   resources: ['*'],
 });
 
+export class SupabaseMailBase extends Construct {
+  secret!: Secret;
+  virtualService?: appmesh.VirtualService;
+  virtualNode?: appmesh.VirtualNode;
+
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
+  }
+}
+
 interface SupabaseMailProps {
   region: string;
   email: string;
@@ -41,10 +51,7 @@ interface SupabaseMailProps {
   mesh?: appmesh.IMesh;
 }
 
-export class SupabaseMail extends Construct {
-  secret: Secret;
-  virtualService?: appmesh.VirtualService;
-  virtualNode?: appmesh.VirtualNode;
+export class SupabaseSES extends SupabaseMailBase {
 
   constructor(scope: Construct, id: string, props: SupabaseMailProps) {
     super(scope, id);
@@ -129,10 +136,7 @@ interface SupabaseWorkMailProps {
   mesh?: appmesh.IMesh;
 }
 
-export class SupabaseWorkMail extends Construct {
-  secret: Secret;
-  virtualService?: appmesh.VirtualService;
-  virtualNode?: appmesh.VirtualNode;
+export class SupabaseWorkMail extends SupabaseMailBase {
 
   constructor(scope: Construct, id: string, props: SupabaseWorkMailProps) {
     super(scope, id);
