@@ -23,13 +23,14 @@ const getSecret = async (secretId: string) => {
   return secret;
 };
 
-const updateSecret = async (secretId: string) => {
+const updateSecret = async (secretId: string, hostname: string) => {
   const secret = await getSecret(secretId);
   const dbname = secret.dbname || 'postgres';
   const newSecret = {
     ...secret,
-    url: `postgres://${secret.username}:${secret.password}@${secret.host}:${secret.port}/${dbname}`,
-    url_auth: `postgres://${secret.username}:${secret.password}@${secret.host}:${secret.port}/${dbname}?search_path=auth`,
+    host: hostname,
+    url: `postgres://${secret.username}:${secret.password}@${hostname}:${secret.port}/${dbname}`,
+    url_auth: `postgres://${secret.username}:${secret.password}@${hostname}:${secret.port}/${dbname}?search_path=auth`,
   };
   const cmd = new UpdateSecretCommand({
     SecretId: secretId,
@@ -40,15 +41,16 @@ const updateSecret = async (secretId: string) => {
 
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
   const secretId: string = event.ResourceProperties.SecretId;
+  const hostname: string = event.ResourceProperties.Hostname;
   const response: CdkCustomResourceResponse = { PhysicalResourceId: `${secretId}/url` };
 
   switch (event.RequestType) {
     case 'Create': {
-      await updateSecret(secretId);
+      await updateSecret(secretId, hostname);
       return response;
     }
     case 'Update': {
-      await updateSecret(secretId);
+      await updateSecret(secretId, hostname);
       return response;
     }
     case 'Delete': {

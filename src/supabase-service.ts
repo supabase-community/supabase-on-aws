@@ -4,8 +4,10 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import { NetworkLoadBalancedFargateService, ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import { SupabaseDatabase } from './supabase-db';
+import { SupabaseMail, SupabaseWorkMail } from './supabase-mail';
 
 interface SupabaseServiceProps {
   cluster: ecs.ICluster;
@@ -19,7 +21,7 @@ export class SupabaseService extends Construct {
   listenerPort: number;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
-  loadBalancer?: elb.ILoadBalancerV2;
+  loadBalancer?: elb.NetworkLoadBalancer|elb.ApplicationLoadBalancer;
 
   constructor(scope: Construct, id: string, props: SupabaseServiceProps) {
     super(scope, id);
@@ -47,7 +49,12 @@ export class SupabaseService extends Construct {
       proxyConfiguration,
     });
 
-    const logging = new ecs.AwsLogDriver({ streamPrefix: 'ecs' });
+    const logGroup = new logs.LogGroup(this, 'Logs', {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      retention: logs.RetentionDays.ONE_MONTH,
+    });
+
+    const logging = new ecs.AwsLogDriver({ logGroup, streamPrefix: 'ecs' });
 
     const appContainer = taskDefinition.addContainer('app', {
       ...containerDefinition,
@@ -152,10 +159,9 @@ export class SupabaseService extends Construct {
         },
         environment: {
           APPMESH_VIRTUAL_NODE_NAME: `mesh/${mesh.meshName}/virtualNode/${this.virtualNode.virtualNodeName}`,
-          //AWS_REGION: cdk.Aws.REGION,
-          //ENABLE_ENVOY_DOG_STATSD: '1',
-          //ENABLE_ENVOY_STATS_TAGS: '1',
+          ENVOY_ADMIN_ACCESS_LOG_FILE: '/dev/null',
           ENABLE_ENVOY_XRAY_TRACING: '1',
+          XRAY_SAMPLING_RATE: '1.00',
         },
         logging,
       });
@@ -193,6 +199,12 @@ export class SupabaseService extends Construct {
 
   addDatabaseBackend(backend: SupabaseDatabase) {
     this.service.connections.allowToDefaultPort(backend);
+    if (typeof backend.virtualService != 'undefined') {
+      this.virtualNode?.addBackend(appmesh.Backend.virtualService(backend.virtualService));
+    }
+  }
+
+  addExternalBackend(backend: SupabaseMail|SupabaseWorkMail) {
     if (typeof backend.virtualService != 'undefined') {
       this.virtualNode?.addBackend(appmesh.Backend.virtualService(backend.virtualService));
     }

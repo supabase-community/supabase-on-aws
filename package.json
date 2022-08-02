@@ -47,6 +47,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.137.0",
+    "@aws-sdk/client-ses": "^3.141.0",
     "@aws-sdk/client-workmail": "^3.137.0",
     "@databases/pg": "^5.4.1",
     "@types/aws-lambda": "^8.10.101",

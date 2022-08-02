@@ -36,7 +36,7 @@ const createWorkMailOrgStatement = new iam.PolicyStatement({
 
 interface SupabaseMailProps {
   region: string;
-  email?: string;
+  email: string;
   workMailAlias?: string;
   mesh?: appmesh.IMesh;
 }
@@ -51,7 +51,7 @@ export class SupabaseMail extends Construct {
 
     const { region, mesh } = props;
     const workMailAlias = props.workMailAlias;
-    const email = props.email || `info@${workMailAlias}.awsapps.com`;
+    const email = props.email;
 
     const smtpEndpoint = `email.${region}.amazonaws.com`;
     if (typeof mesh != 'undefined') {
@@ -184,7 +184,13 @@ export class SupabaseWorkMail extends Construct {
       entry: './src/functions/check-workmail-org.ts',
       runtime: lambda.Runtime.NODEJS_16_X,
       initialPolicy: [
-        new iam.PolicyStatement({ actions: ['workmail:DescribeOrganization'], resources: ['*'] }),
+        new iam.PolicyStatement({
+          actions: [
+            'workmail:DescribeOrganization',
+            'ses:GetIdentityVerificationAttributes',
+          ],
+          resources: ['*'],
+        }),
       ],
     });
 

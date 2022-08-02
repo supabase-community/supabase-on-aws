@@ -4,11 +4,13 @@ create schema if not exists realtime;
 create publication supabase_realtime;
 
 -- Supabase super admin
-create user supabase_admin;
+-- create user supabase_admin;
 -- alter user  supabase_admin with superuser createdb createrole replication bypassrls;
-ALTER user supabase_admin WITH createdb createrole bypassrls; -- for Amazon RDS/Aurora
-GRANT rds_superuser, rds_replication TO supabase_admin; -- for Amazon RDS/Aurora
-GRANT supabase_admin TO postgres; -- for Amazon RDS/Aurora
+GRANT rds_replication TO supabase_admin;
+
+CREATE user postgres;
+ALTER user postgres WITH createdb createrole bypassrls;
+GRANT rds_replication TO postgres;
 
 -- Extension namespacing
 create schema if not exists extensions;

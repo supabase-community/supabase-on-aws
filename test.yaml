@@ -337,7 +337,9 @@ Resources:
     Type: AWS::AppMesh::Mesh
     Properties:
       MeshName: Supabase
-      Spec: {}
+      Spec:
+        EgressFilter:
+          Type: DROP_ALL
     Metadata:
       aws:cdk:path: Supabase/Mesh/Resource
   ClusterEB0386A7:
@@ -363,6 +365,42 @@ Resources:
       DefaultCapacityProviderStrategy: []
     Metadata:
       aws:cdk:path: Supabase/Cluster/Cluster
+  SupabaseMailVirtualNode6D9ABCE1:
+    Type: AWS::AppMesh::VirtualNode
+    Properties:
+      MeshName:
+        Fn::GetAtt:
+          - Mesh73A573F6
+          - MeshName
+      Spec:
+        Listeners:
+          - PortMapping:
+              Port: 465
+              Protocol: tcp
+        ServiceDiscovery:
+          DNS:
+            Hostname: smtp.mail.us-west-2.awsapps.com
+            ResponseType: ENDPOINTS
+      VirtualNodeName: WorkMail
+    Metadata:
+      aws:cdk:path: Supabase/SupabaseMail/VirtualNode/Resource
+  SupabaseMailVirtualService6FFA81D4:
+    Type: AWS::AppMesh::VirtualService
+    Properties:
+      MeshName:
+        Fn::GetAtt:
+          - Mesh73A573F6
+          - MeshName
+      Spec:
+        Provider:
+          VirtualNode:
+            VirtualNodeName:
+              Fn::GetAtt:
+                - SupabaseMailVirtualNode6D9ABCE1
+                - VirtualNodeName
+      VirtualServiceName: smtp.mail.us-west-2.awsapps.com
+    Metadata:
+      aws:cdk:path: Supabase/SupabaseMail/VirtualService/Resource
   SupabaseMailSecret777E0288:
     Type: AWS::SecretsManager::Secret
     Properties:
@@ -373,7 +411,9 @@ Resources:
         SecretStringTemplate:
           Fn::Join:
             - ""
-            - - '{"host":"smtp.mail.us-west-2.awsapps.com","port":"465","username":"info","password":"your-super-secret-smtp-password","email_address":"info@supabase-'
+            - - '{"host":"smtp.mail.us-west-2.awsapps.com","port":"465","username":"info@supabase-'
+              - Ref: AWS::AccountId
+              - .awsapps.com","password":"your-super-secret-smtp-password","email":"info@supabase-
               - Ref: AWS::AccountId
               - .awsapps.com"}
     UpdateReplacePolicy: Delete
@@ -480,7 +520,9 @@ Resources:
     Properties:
       PolicyDocument:
         Statement:
-          - Action: workmail:DescribeOrganization
+          - Action:
+              - workmail:DescribeOrganization
+              - ses:GetIdentityVerificationAttributes
             Effect: Allow
             Resource: "*"
         Version: "2012-10-17"
@@ -494,7 +536,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: cdk-hnb659fds-assets-983035974902-us-west-2
-        S3Key: 93991e1e75ef47660fd52f30057a1e6e42526460850a9172ec5fd54a71b8e027.zip
+        S3Key: 0cc2061e2ca47639da2d372db6de6990f96cb51fdd34f3b08f479f26c674916f.zip
       Role:
         Fn::GetAtt:
           - SupabaseMailCheckWorkMailOrgFunctionServiceRole7B5DBA72
@@ -510,7 +552,7 @@ Resources:
       - SupabaseMailCheckWorkMailOrgFunctionServiceRole7B5DBA72
     Metadata:
       aws:cdk:path: Supabase/SupabaseMail/CheckWorkMailOrgFunction/Resource
-      aws:asset:path: asset.93991e1e75ef47660fd52f30057a1e6e42526460850a9172ec5fd54a71b8e027
+      aws:asset:path: asset.0cc2061e2ca47639da2d372db6de6990f96cb51fdd34f3b08f479f26c674916f
       aws:asset:is-bundled: true
       aws:asset:property: Code
   SupabaseMailCreateWorkMailOrgProviderframeworkonEventServiceRole10A485C8:
@@ -862,45 +904,7 @@ Resources:
     DeletionPolicy: Delete
     Metadata:
       aws:cdk:path: Supabase/SupabaseMail/Organization/Default
-  SupabaseMailUserCustomResourcePolicyEFB2A15A:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action: workmail:CreateUser
-            Effect: Allow
-            Resource: "*"
-        Version: "2012-10-17"
-      PolicyName: SupabaseMailUserCustomResourcePolicyEFB2A15A
-      Roles:
-        - Ref: AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2
-    Metadata:
-      aws:cdk:path: Supabase/SupabaseMail/User/CustomResourcePolicy/Resource
-  SupabaseMailUser6287674D:
-    Type: Custom::WorkMailUser
-    Properties:
-      ServiceToken:
-        Fn::GetAtt:
-          - AWS679f53fac002430cb0da5b7982bd22872D164C4C
-          - Arn
-      Create:
-        Fn::Join:
-          - ""
-          - - '{"service":"WorkMail","action":"createUser","parameters":{"OrganizationId":"'
-            - Ref: SupabaseMailOrganization367310F9
-            - '","DisplayName":"info","Name":"info@supabase-'
-            - Ref: AWS::AccountId
-            - '.awsapps.com","Password":"{{resolve:secretsmanager:'
-            - Ref: SupabaseMailSecret777E0288
-            - :SecretString:password::}}"},"physicalResourceId":{"responsePath":"UserId"}}
-      InstallLatestAwsSdk: true
-    DependsOn:
-      - SupabaseMailUserCustomResourcePolicyEFB2A15A
-    UpdateReplacePolicy: Delete
-    DeletionPolicy: Delete
-    Metadata:
-      aws:cdk:path: Supabase/SupabaseMail/User/Resource/Default
-  AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2:
+  SupabaseMailCreateWorkMailUserFunctionServiceRoleFCE02860:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -917,28 +921,141 @@ Resources:
               - Ref: AWS::Partition
               - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
     Metadata:
-      aws:cdk:path: Supabase/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource
-  AWS679f53fac002430cb0da5b7982bd22872D164C4C:
+      aws:cdk:path: Supabase/SupabaseMail/CreateWorkMailUserFunction/ServiceRole/Resource
+  SupabaseMailCreateWorkMailUserFunctionServiceRoleDefaultPolicy7E87E06A:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - workmail:CreateUser
+              - workmail:DeleteUser
+              - workmail:RegisterToWorkMail
+              - workmail:DeregisterFromWorkMail
+              - ses:GetIdentityVerificationAttributes
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Effect: Allow
+            Resource:
+              Ref: SupabaseMailSecret777E0288
+        Version: "2012-10-17"
+      PolicyName: SupabaseMailCreateWorkMailUserFunctionServiceRoleDefaultPolicy7E87E06A
+      Roles:
+        - Ref: SupabaseMailCreateWorkMailUserFunctionServiceRoleFCE02860
+    Metadata:
+      aws:cdk:path: Supabase/SupabaseMail/CreateWorkMailUserFunction/ServiceRole/DefaultPolicy/Resource
+  SupabaseMailCreateWorkMailUserFunction7382C596:
     Type: AWS::Lambda::Function
     Properties:
       Code:
         S3Bucket: cdk-hnb659fds-assets-983035974902-us-west-2
-        S3Key: 6dbd112fe448437b3438da4382c72fccbb7d2ee1543db222620d7447fffebc50.zip
+        S3Key: f1105297940cc1205923c3e10af81e402061ae89b25a2d313dcc22016ad15dd2.zip
       Role:
         Fn::GetAtt:
-          - AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2
+          - SupabaseMailCreateWorkMailUserFunctionServiceRoleFCE02860
           - Arn
-      FunctionName: CreateWorkMailUserFunction
+      Description: Supabase - Create WorkMail User Function
+      Environment:
+        Variables:
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
       Handler: index.handler
-      Runtime: nodejs14.x
-      Timeout: 120
+      Runtime: nodejs16.x
     DependsOn:
-      - AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2
+      - SupabaseMailCreateWorkMailUserFunctionServiceRoleDefaultPolicy7E87E06A
+      - SupabaseMailCreateWorkMailUserFunctionServiceRoleFCE02860
     Metadata:
-      aws:cdk:path: Supabase/AWS679f53fac002430cb0da5b7982bd2287/Resource
-      aws:asset:path: asset.6dbd112fe448437b3438da4382c72fccbb7d2ee1543db222620d7447fffebc50
+      aws:cdk:path: Supabase/SupabaseMail/CreateWorkMailUserFunction/Resource
+      aws:asset:path: asset.f1105297940cc1205923c3e10af81e402061ae89b25a2d313dcc22016ad15dd2
+      aws:asset:is-bundled: true
+      aws:asset:property: Code
+  SupabaseMailCreateWorkMailUserProviderframeworkonEventServiceRole536D1387:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: Supabase/SupabaseMail/CreateWorkMailUserProvider/framework-onEvent/ServiceRole/Resource
+  SupabaseMailCreateWorkMailUserProviderframeworkonEventServiceRoleDefaultPolicy2CD1D6FD:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: lambda:InvokeFunction
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - SupabaseMailCreateWorkMailUserFunction7382C596
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - SupabaseMailCreateWorkMailUserFunction7382C596
+                        - Arn
+                    - :*
+        Version: "2012-10-17"
+      PolicyName: SupabaseMailCreateWorkMailUserProviderframeworkonEventServiceRoleDefaultPolicy2CD1D6FD
+      Roles:
+        - Ref: SupabaseMailCreateWorkMailUserProviderframeworkonEventServiceRole536D1387
+    Metadata:
+      aws:cdk:path: Supabase/SupabaseMail/CreateWorkMailUserProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource
+  SupabaseMailCreateWorkMailUserProviderframeworkonEvent8F95C17F:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-983035974902-us-west-2
+        S3Key: e7c95e1a12d903d913ebdd526c735f1ac58b2024882a5562110221fe685ebe85.zip
+      Role:
+        Fn::GetAtt:
+          - SupabaseMailCreateWorkMailUserProviderframeworkonEventServiceRole536D1387
+          - Arn
+      Description: AWS CDK resource provider framework - onEvent (Supabase/SupabaseMail/CreateWorkMailUserProvider)
+      Environment:
+        Variables:
+          USER_ON_EVENT_FUNCTION_ARN:
+            Fn::GetAtt:
+              - SupabaseMailCreateWorkMailUserFunction7382C596
+              - Arn
+      Handler: framework.onEvent
+      Runtime: nodejs14.x
+      Timeout: 900
+    DependsOn:
+      - SupabaseMailCreateWorkMailUserProviderframeworkonEventServiceRoleDefaultPolicy2CD1D6FD
+      - SupabaseMailCreateWorkMailUserProviderframeworkonEventServiceRole536D1387
+    Metadata:
+      aws:cdk:path: Supabase/SupabaseMail/CreateWorkMailUserProvider/framework-onEvent/Resource
+      aws:asset:path: asset.e7c95e1a12d903d913ebdd526c735f1ac58b2024882a5562110221fe685ebe85
       aws:asset:is-bundled: false
       aws:asset:property: Code
+  SupabaseMailUser20B5147B:
+    Type: Custom::WorkMailUser
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - SupabaseMailCreateWorkMailUserProviderframeworkonEvent8F95C17F
+          - Arn
+      Region: us-west-2
+      OrganizationId:
+        Ref: SupabaseMailOrganization367310F9
+      SecretId:
+        Ref: SupabaseMailSecret777E0288
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: Supabase/SupabaseMail/User/Default
   ParameterGroup5E32DECB:
     Type: AWS::RDS::DBClusterParameterGroup
     Properties:
@@ -946,6 +1063,10 @@ Resources:
       Family: aurora-postgresql14
       Parameters:
         rds.logical_replication: "1"
+        max_replication_slots: "5"
+        max_wal_senders: "10"
+        max_logical_replication_workers: "2"
+        max_slot_wal_keep_size: "1024"
     Metadata:
       aws:cdk:path: Supabase/ParameterGroup/Resource
   DBSubnets7B70DA43:
@@ -1108,7 +1229,7 @@ Resources:
           - Endpoint.Port
     Metadata:
       aws:cdk:path: Supabase/DB/SecurityGroup/from SupabaseMetaSvcSecurityGroup7C723FC7:{IndirectPort}
-  DBSecretB8D1B379:
+  SupabaseDBSecret7B56035E3fdaad7efa858a3daf9490cf0a702aeb:
     Type: AWS::SecretsManager::Secret
     Properties:
       Description:
@@ -1120,7 +1241,7 @@ Resources:
         ExcludeCharacters: " %+~`#$&*()|[]{}:;<>?!'/@\"\\"
         GenerateStringKey: password
         PasswordLength: 30
-        SecretStringTemplate: '{"username":"postgres"}'
+        SecretStringTemplate: '{"username":"supabase_admin"}'
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
     Metadata:
@@ -1129,7 +1250,7 @@ Resources:
     Type: AWS::SecretsManager::SecretTargetAttachment
     Properties:
       SecretId:
-        Ref: DBSecretB8D1B379
+        Ref: SupabaseDBSecret7B56035E3fdaad7efa858a3daf9490cf0a702aeb
       TargetId:
         Ref: DB4924F778
       TargetType: AWS::RDS::DBCluster
@@ -1146,17 +1267,12 @@ Resources:
       DBSubnetGroupName:
         Ref: DBSubnets7B70DA43
       EngineVersion: "14.3"
-      MasterUsername:
-        Fn::Join:
-          - ""
-          - - "{{resolve:secretsmanager:"
-            - Ref: DBSecretB8D1B379
-            - :SecretString:username::}}
+      MasterUsername: supabase_admin
       MasterUserPassword:
         Fn::Join:
           - ""
           - - "{{resolve:secretsmanager:"
-            - Ref: DBSecretB8D1B379
+            - Ref: SupabaseDBSecret7B56035E3fdaad7efa858a3daf9490cf0a702aeb
             - :SecretString:password::}}
       Port: 5432
       StorageEncrypted: true
@@ -1186,40 +1302,6 @@ Resources:
     DeletionPolicy: Delete
     Metadata:
       aws:cdk:path: Supabase/DB/Instance1
-  DBService90DA777C:
-    Type: AWS::ServiceDiscovery::Service
-    Properties:
-      DnsConfig:
-        DnsRecords:
-          - TTL: 60
-            Type: CNAME
-        NamespaceId:
-          Fn::GetAtt:
-            - ClusterDefaultServiceDiscoveryNamespaceC336F9B4
-            - Id
-        RoutingPolicy: WEIGHTED
-      Name: db
-      NamespaceId:
-        Fn::GetAtt:
-          - ClusterDefaultServiceDiscoveryNamespaceC336F9B4
-          - Id
-    Metadata:
-      aws:cdk:path: Supabase/DB/Service/Resource
-  DBServiceAurora15751868:
-    Type: AWS::ServiceDiscovery::Instance
-    Properties:
-      InstanceAttributes:
-        AWS_INSTANCE_CNAME:
-          Fn::GetAtt:
-            - DB4924F778
-            - Endpoint.Address
-      ServiceId:
-        Fn::GetAtt:
-          - DBService90DA777C
-          - Id
-      InstanceId: SupabaseDBServiceAuroraE5579F48
-    Metadata:
-      aws:cdk:path: Supabase/DB/Service/Aurora/Resource
   DBUrlGeneratorFunctionServiceRole1A36EAC8:
     Type: AWS::IAM::Role
     Properties:
@@ -1363,7 +1445,10 @@ Resources:
           - Arn
       SecretId:
         Ref: DBSecretAttachment1CF7DE47
-      Hostname: db.supabase.local
+      Hostname:
+        Fn::GetAtt:
+          - DB4924F778
+          - Endpoint.Address
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
     Metadata:
@@ -1425,7 +1510,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: cdk-hnb659fds-assets-983035974902-us-west-2
-        S3Key: be7e267f8222c81cbaf4fae111fb1a83629da064558fcc481290fc653f4561ea.zip
+        S3Key: 0a5b6ac40ccd795d279a48bbc7f26432f5b720267039bf59c2b3cfd6f44d0135.zip
       Role:
         Fn::GetAtt:
           - DBInitFunctionServiceRole0DD3B954
@@ -1451,7 +1536,7 @@ Resources:
       - DBInitFunctionServiceRole0DD3B954
     Metadata:
       aws:cdk:path: Supabase/DB/InitFunction/Resource
-      aws:asset:path: asset.be7e267f8222c81cbaf4fae111fb1a83629da064558fcc481290fc653f4561ea
+      aws:asset:path: asset.0a5b6ac40ccd795d279a48bbc7f26432f5b720267039bf59c2b3cfd6f44d0135
       aws:asset:is-bundled: true
       aws:asset:property: Code
   DBInitProviderframeworkonEventServiceRole0A865FA6:
@@ -1532,7 +1617,13 @@ Resources:
           - Arn
       SecretId:
         Ref: DBSecretAttachment1CF7DE47
-      Version: "4"
+      Hostname:
+        Fn::GetAtt:
+          - DB4924F778
+          - Endpoint.Address
+      Version: "1"
+    DependsOn:
+      - DBInstance17EB9EC72
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
     Metadata:
@@ -1576,7 +1667,10 @@ Resources:
               Fn::GetAtt:
                 - DBVirtualNode473618FF
                 - VirtualNodeName
-      VirtualServiceName: db.spabase.local
+      VirtualServiceName:
+        Fn::GetAtt:
+          - DB4924F778
+          - Endpoint.Address
     Metadata:
       aws:cdk:path: Supabase/DB/VirtualService/Resource
   SupabaseJwtSecret4CEDF760:
@@ -1766,6 +1860,8 @@ Resources:
               Value: LAST,A,CNAME
             - Name: KONG_PLUGINS
               Value: request-transformer,cors,key-auth,acl
+            - Name: KONG_STATUS_LISTEN
+              Value: 0.0.0.0:8100
           Essential: true
           HealthCheck:
             Command:
@@ -1781,12 +1877,14 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: KongTaskDefinitionappLogGroup2AEC822E
+                Ref: KongLogs4BD50491
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           Name: app
           PortMappings:
             - ContainerPort: 8000
+              Protocol: tcp
+            - ContainerPort: 8100
               Protocol: tcp
           Secrets:
             - Name: ANON_KEY
@@ -1819,8 +1917,12 @@ Resources:
                     - Fn::GetAtt:
                         - KongVirtualNodeFABCC391
                         - VirtualNodeName
+            - Name: ENVOY_ADMIN_ACCESS_LOG_FILE
+              Value: /dev/null
             - Name: ENABLE_ENVOY_XRAY_TRACING
               Value: "1"
+            - Name: XRAY_SAMPLING_RATE
+              Value: "1.00"
           Essential: true
           HealthCheck:
             Command:
@@ -1835,11 +1937,15 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: KongTaskDefinitionenvoyLogGroupD501650D
+                Ref: KongLogs4BD50491
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 128
           Name: envoy
+          Ulimits:
+            - HardLimit: 1024000
+              Name: nofile
+              SoftLimit: 1024000
           User: "1337"
         - Cpu: 16
           Essential: true
@@ -1848,7 +1954,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: KongTaskDefinitionxraydaemonLogGroup98B1A9FF
+                Ref: KongLogs4BD50491
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 64
@@ -1887,12 +1993,6 @@ Resources:
           - Arn
     Metadata:
       aws:cdk:path: Supabase/Kong/TaskDefinition/Resource
-  KongTaskDefinitionappLogGroup2AEC822E:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Kong/TaskDefinition/app/LogGroup/Resource
   KongTaskDefinitionExecutionRole2593435E:
     Type: AWS::IAM::Role
     Properties:
@@ -1930,7 +2030,7 @@ Resources:
             Effect: Allow
             Resource:
               Fn::GetAtt:
-                - KongTaskDefinitionappLogGroup2AEC822E
+                - KongLogs4BD50491
                 - Arn
           - Action:
               - secretsmanager:GetSecretValue
@@ -1938,40 +2038,20 @@ Resources:
             Effect: Allow
             Resource:
               Ref: SupabaseJwtSecret4CEDF760
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - KongTaskDefinitionenvoyLogGroupD501650D
-                - Arn
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - KongTaskDefinitionxraydaemonLogGroup98B1A9FF
-                - Arn
         Version: "2012-10-17"
       PolicyName: KongTaskDefinitionExecutionRoleDefaultPolicyF6446340
       Roles:
         - Ref: KongTaskDefinitionExecutionRole2593435E
     Metadata:
       aws:cdk:path: Supabase/Kong/TaskDefinition/ExecutionRole/DefaultPolicy/Resource
-  KongTaskDefinitionenvoyLogGroupD501650D:
+  KongLogs4BD50491:
     Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
+    Properties:
+      RetentionInDays: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
     Metadata:
-      aws:cdk:path: Supabase/Kong/TaskDefinition/envoy/LogGroup/Resource
-  KongTaskDefinitionxraydaemonLogGroup98B1A9FF:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Kong/TaskDefinition/xray-daemon/LogGroup/Resource
+      aws:cdk:path: Supabase/Kong/Logs/Resource
   KongSvcLBD22BD9AD:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -2007,8 +2087,14 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 10
+      HealthCheckPort: "8100"
       Port: 80
       Protocol: TCP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: "30"
+        - Key: preserve_client_ip.enabled
+          Value: "true"
       TargetType: ip
       VpcId:
         Ref: VPCB9E5F0B4
@@ -2099,9 +2185,9 @@ Resources:
               - VPCB9E5F0B4
               - CidrBlock
           Description: NLB healthcheck
-          FromPort: 8000
+          FromPort: 8100
           IpProtocol: tcp
-          ToPort: 8000
+          ToPort: 8100
       VpcId:
         Ref: VPCB9E5F0B4
     Metadata:
@@ -2359,18 +2445,8 @@ Resources:
               Value: "true"
             - Name: GOTRUE_MAILER_AUTOCONFIRM
               Value: "false"
-            - Name: GOTRUE_SMTP_ADMIN_EMAIL
-              Value: admin@example.com
-            - Name: GOTRUE_SMTP_HOST
-              Value: mail
-            - Name: GOTRUE_SMTP_PORT
-              Value: "2500"
-            - Name: GOTRUE_SMTP_USER
-              Value: fake_mail_user
-            - Name: GOTRUE_SMTP_PASS
-              Value: fake_mail_password
             - Name: GOTRUE_SMTP_SENDER_NAME
-              Value: fake_sender
+              Value: Supabase
             - Name: GOTRUE_MAILER_URLPATHS_INVITE
               Value: /auth/v1/verify
             - Name: GOTRUE_MAILER_URLPATHS_CONFIRMATION
@@ -2389,7 +2465,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: AuthTaskDefinitionappLogGroup30C81075
+                Ref: AuthLogs940C0551
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           Name: app
@@ -2409,6 +2485,36 @@ Resources:
                   - ""
                   - - Ref: SupabaseJwtSecret4CEDF760
                     - ":jwt_secret::"
+            - Name: GOTRUE_SMTP_ADMIN_EMAIL
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: SupabaseMailSecret777E0288
+                    - ":email::"
+            - Name: GOTRUE_SMTP_HOST
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: SupabaseMailSecret777E0288
+                    - ":host::"
+            - Name: GOTRUE_SMTP_PORT
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: SupabaseMailSecret777E0288
+                    - ":port::"
+            - Name: GOTRUE_SMTP_USER
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: SupabaseMailSecret777E0288
+                    - ":username::"
+            - Name: GOTRUE_SMTP_PASS
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: SupabaseMailSecret777E0288
+                    - ":password::"
           Ulimits:
             - HardLimit: 65536
               Name: nofile
@@ -2427,8 +2533,12 @@ Resources:
                     - Fn::GetAtt:
                         - AuthVirtualNode4480F984
                         - VirtualNodeName
+            - Name: ENVOY_ADMIN_ACCESS_LOG_FILE
+              Value: /dev/null
             - Name: ENABLE_ENVOY_XRAY_TRACING
               Value: "1"
+            - Name: XRAY_SAMPLING_RATE
+              Value: "1.00"
           Essential: true
           HealthCheck:
             Command:
@@ -2443,11 +2553,15 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: AuthTaskDefinitionenvoyLogGroup220A606F
+                Ref: AuthLogs940C0551
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 128
           Name: envoy
+          Ulimits:
+            - HardLimit: 1024000
+              Name: nofile
+              SoftLimit: 1024000
           User: "1337"
         - Cpu: 16
           Essential: true
@@ -2456,7 +2570,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: AuthTaskDefinitionxraydaemonLogGroupEA589E9E
+                Ref: AuthLogs940C0551
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 64
@@ -2495,12 +2609,6 @@ Resources:
           - Arn
     Metadata:
       aws:cdk:path: Supabase/Auth/TaskDefinition/Resource
-  AuthTaskDefinitionappLogGroup30C81075:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Auth/TaskDefinition/app/LogGroup/Resource
   AuthTaskDefinitionExecutionRole8B68B008:
     Type: AWS::IAM::Role
     Properties:
@@ -2524,7 +2632,7 @@ Resources:
             Effect: Allow
             Resource:
               Fn::GetAtt:
-                - AuthTaskDefinitionappLogGroup30C81075
+                - AuthLogs940C0551
                 - Arn
           - Action:
               - secretsmanager:GetSecretValue
@@ -2539,39 +2647,25 @@ Resources:
             Resource:
               Ref: SupabaseJwtSecret4CEDF760
           - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
             Effect: Allow
             Resource:
-              Fn::GetAtt:
-                - AuthTaskDefinitionenvoyLogGroup220A606F
-                - Arn
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - AuthTaskDefinitionxraydaemonLogGroupEA589E9E
-                - Arn
+              Ref: SupabaseMailSecret777E0288
         Version: "2012-10-17"
       PolicyName: AuthTaskDefinitionExecutionRoleDefaultPolicy2A4B4627
       Roles:
         - Ref: AuthTaskDefinitionExecutionRole8B68B008
     Metadata:
       aws:cdk:path: Supabase/Auth/TaskDefinition/ExecutionRole/DefaultPolicy/Resource
-  AuthTaskDefinitionenvoyLogGroup220A606F:
+  AuthLogs940C0551:
     Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
+    Properties:
+      RetentionInDays: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
     Metadata:
-      aws:cdk:path: Supabase/Auth/TaskDefinition/envoy/LogGroup/Resource
-  AuthTaskDefinitionxraydaemonLogGroupEA589E9E:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Auth/TaskDefinition/xray-daemon/LogGroup/Resource
+      aws:cdk:path: Supabase/Auth/Logs/Resource
   AuthSvcServiceDAF53F1D:
     Type: AWS::ECS::Service
     Properties:
@@ -2675,7 +2769,12 @@ Resources:
           - VirtualService:
               VirtualServiceName: rest.supabase.local
           - VirtualService:
-              VirtualServiceName: db.spabase.local
+              VirtualServiceName: smtp.mail.us-west-2.awsapps.com
+          - VirtualService:
+              VirtualServiceName:
+                Fn::GetAtt:
+                  - DB4924F778
+                  - Endpoint.Address
         Listeners:
           - PortMapping:
               Port: 9999
@@ -2746,7 +2845,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: RestTaskDefinitionappLogGroup1B252B42
+                Ref: RestLogsE8B49088
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           Name: app
@@ -2784,8 +2883,12 @@ Resources:
                     - Fn::GetAtt:
                         - RestVirtualNode2FA1B1DF
                         - VirtualNodeName
+            - Name: ENVOY_ADMIN_ACCESS_LOG_FILE
+              Value: /dev/null
             - Name: ENABLE_ENVOY_XRAY_TRACING
               Value: "1"
+            - Name: XRAY_SAMPLING_RATE
+              Value: "1.00"
           Essential: true
           HealthCheck:
             Command:
@@ -2800,11 +2903,15 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: RestTaskDefinitionenvoyLogGroup8364AFDA
+                Ref: RestLogsE8B49088
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 128
           Name: envoy
+          Ulimits:
+            - HardLimit: 1024000
+              Name: nofile
+              SoftLimit: 1024000
           User: "1337"
         - Cpu: 16
           Essential: true
@@ -2813,7 +2920,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: RestTaskDefinitionxraydaemonLogGroupB7C2922E
+                Ref: RestLogsE8B49088
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 64
@@ -2852,12 +2959,6 @@ Resources:
           - Arn
     Metadata:
       aws:cdk:path: Supabase/Rest/TaskDefinition/Resource
-  RestTaskDefinitionappLogGroup1B252B42:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Rest/TaskDefinition/app/LogGroup/Resource
   RestTaskDefinitionExecutionRole3F0CBE29:
     Type: AWS::IAM::Role
     Properties:
@@ -2881,7 +2982,7 @@ Resources:
             Effect: Allow
             Resource:
               Fn::GetAtt:
-                - RestTaskDefinitionappLogGroup1B252B42
+                - RestLogsE8B49088
                 - Arn
           - Action:
               - secretsmanager:GetSecretValue
@@ -2895,40 +2996,20 @@ Resources:
             Effect: Allow
             Resource:
               Ref: SupabaseJwtSecret4CEDF760
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - RestTaskDefinitionenvoyLogGroup8364AFDA
-                - Arn
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - RestTaskDefinitionxraydaemonLogGroupB7C2922E
-                - Arn
         Version: "2012-10-17"
       PolicyName: RestTaskDefinitionExecutionRoleDefaultPolicyB130F5B5
       Roles:
         - Ref: RestTaskDefinitionExecutionRole3F0CBE29
     Metadata:
       aws:cdk:path: Supabase/Rest/TaskDefinition/ExecutionRole/DefaultPolicy/Resource
-  RestTaskDefinitionenvoyLogGroup8364AFDA:
+  RestLogsE8B49088:
     Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
+    Properties:
+      RetentionInDays: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
     Metadata:
-      aws:cdk:path: Supabase/Rest/TaskDefinition/envoy/LogGroup/Resource
-  RestTaskDefinitionxraydaemonLogGroupB7C2922E:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Rest/TaskDefinition/xray-daemon/LogGroup/Resource
+      aws:cdk:path: Supabase/Rest/Logs/Resource
   RestSvcServiceCEB7F559:
     Type: AWS::ECS::Service
     Properties:
@@ -3064,7 +3145,10 @@ Resources:
       Spec:
         Backends:
           - VirtualService:
-              VirtualServiceName: db.spabase.local
+              VirtualServiceName:
+                Fn::GetAtt:
+                  - DB4924F778
+                  - Endpoint.Address
         Listeners:
           - PortMapping:
               Port: 3000
@@ -3138,7 +3222,7 @@ Resources:
             - Name: SECURE_CHANNELS
               Value: "true"
             - Name: SLOT_NAME
-              Value: supabase_realtime_rls
+              Value: realtime_rls
             - Name: TEMPORARY_SLOT
               Value: "true"
           Essential: true
@@ -3147,7 +3231,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: RealtimeTaskDefinitionappLogGroup60EE6415
+                Ref: RealtimeLogs5C43159D
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           Name: app
@@ -3209,8 +3293,12 @@ Resources:
                     - Fn::GetAtt:
                         - RealtimeVirtualNode58346FCC
                         - VirtualNodeName
+            - Name: ENVOY_ADMIN_ACCESS_LOG_FILE
+              Value: /dev/null
             - Name: ENABLE_ENVOY_XRAY_TRACING
               Value: "1"
+            - Name: XRAY_SAMPLING_RATE
+              Value: "1.00"
           Essential: true
           HealthCheck:
             Command:
@@ -3225,11 +3313,15 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: RealtimeTaskDefinitionenvoyLogGroup7AE18490
+                Ref: RealtimeLogs5C43159D
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 128
           Name: envoy
+          Ulimits:
+            - HardLimit: 1024000
+              Name: nofile
+              SoftLimit: 1024000
           User: "1337"
         - Cpu: 16
           Essential: true
@@ -3238,7 +3330,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: RealtimeTaskDefinitionxraydaemonLogGroup46723FF1
+                Ref: RealtimeLogs5C43159D
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 64
@@ -3277,12 +3369,6 @@ Resources:
           - Arn
     Metadata:
       aws:cdk:path: Supabase/Realtime/TaskDefinition/Resource
-  RealtimeTaskDefinitionappLogGroup60EE6415:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Realtime/TaskDefinition/app/LogGroup/Resource
   RealtimeTaskDefinitionExecutionRoleCD260B29:
     Type: AWS::IAM::Role
     Properties:
@@ -3306,7 +3392,7 @@ Resources:
             Effect: Allow
             Resource:
               Fn::GetAtt:
-                - RealtimeTaskDefinitionappLogGroup60EE6415
+                - RealtimeLogs5C43159D
                 - Arn
           - Action:
               - secretsmanager:GetSecretValue
@@ -3320,40 +3406,20 @@ Resources:
             Effect: Allow
             Resource:
               Ref: DBSecretAttachment1CF7DE47
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - RealtimeTaskDefinitionenvoyLogGroup7AE18490
-                - Arn
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - RealtimeTaskDefinitionxraydaemonLogGroup46723FF1
-                - Arn
         Version: "2012-10-17"
       PolicyName: RealtimeTaskDefinitionExecutionRoleDefaultPolicyBD7C355B
       Roles:
         - Ref: RealtimeTaskDefinitionExecutionRoleCD260B29
     Metadata:
       aws:cdk:path: Supabase/Realtime/TaskDefinition/ExecutionRole/DefaultPolicy/Resource
-  RealtimeTaskDefinitionenvoyLogGroup7AE18490:
+  RealtimeLogs5C43159D:
     Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
+    Properties:
+      RetentionInDays: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
     Metadata:
-      aws:cdk:path: Supabase/Realtime/TaskDefinition/envoy/LogGroup/Resource
-  RealtimeTaskDefinitionxraydaemonLogGroup46723FF1:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Realtime/TaskDefinition/xray-daemon/LogGroup/Resource
+      aws:cdk:path: Supabase/Realtime/Logs/Resource
   RealtimeSvcService05F54057:
     Type: AWS::ECS::Service
     Properties:
@@ -3455,7 +3521,10 @@ Resources:
       Spec:
         Backends:
           - VirtualService:
-              VirtualServiceName: db.spabase.local
+              VirtualServiceName:
+                Fn::GetAtt:
+                  - DB4924F778
+                  - Endpoint.Address
         Listeners:
           - PortMapping:
               Port: 4000
@@ -3586,7 +3655,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: StorageTaskDefinitionappLogGroupDFD4685A
+                Ref: StorageLogs2A2D4D26
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           Name: app
@@ -3636,8 +3705,12 @@ Resources:
                     - Fn::GetAtt:
                         - StorageVirtualNodeB19919D7
                         - VirtualNodeName
+            - Name: ENVOY_ADMIN_ACCESS_LOG_FILE
+              Value: /dev/null
             - Name: ENABLE_ENVOY_XRAY_TRACING
               Value: "1"
+            - Name: XRAY_SAMPLING_RATE
+              Value: "1.00"
           Essential: true
           HealthCheck:
             Command:
@@ -3652,11 +3725,15 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: StorageTaskDefinitionenvoyLogGroupDEA4EB92
+                Ref: StorageLogs2A2D4D26
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 128
           Name: envoy
+          Ulimits:
+            - HardLimit: 1024000
+              Name: nofile
+              SoftLimit: 1024000
           User: "1337"
         - Cpu: 16
           Essential: true
@@ -3665,7 +3742,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: StorageTaskDefinitionxraydaemonLogGroupFF6266CC
+                Ref: StorageLogs2A2D4D26
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 64
@@ -3704,12 +3781,6 @@ Resources:
           - Arn
     Metadata:
       aws:cdk:path: Supabase/Storage/TaskDefinition/Resource
-  StorageTaskDefinitionappLogGroupDFD4685A:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Storage/TaskDefinition/app/LogGroup/Resource
   StorageTaskDefinitionExecutionRoleAEB5CF80:
     Type: AWS::IAM::Role
     Properties:
@@ -3733,7 +3804,7 @@ Resources:
             Effect: Allow
             Resource:
               Fn::GetAtt:
-                - StorageTaskDefinitionappLogGroupDFD4685A
+                - StorageLogs2A2D4D26
                 - Arn
           - Action:
               - secretsmanager:GetSecretValue
@@ -3747,40 +3818,20 @@ Resources:
             Effect: Allow
             Resource:
               Ref: DBSecretAttachment1CF7DE47
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - StorageTaskDefinitionenvoyLogGroupDEA4EB92
-                - Arn
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - StorageTaskDefinitionxraydaemonLogGroupFF6266CC
-                - Arn
         Version: "2012-10-17"
       PolicyName: StorageTaskDefinitionExecutionRoleDefaultPolicy537D0826
       Roles:
         - Ref: StorageTaskDefinitionExecutionRoleAEB5CF80
     Metadata:
       aws:cdk:path: Supabase/Storage/TaskDefinition/ExecutionRole/DefaultPolicy/Resource
-  StorageTaskDefinitionenvoyLogGroupDEA4EB92:
+  StorageLogs2A2D4D26:
     Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
+    Properties:
+      RetentionInDays: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
     Metadata:
-      aws:cdk:path: Supabase/Storage/TaskDefinition/envoy/LogGroup/Resource
-  StorageTaskDefinitionxraydaemonLogGroupFF6266CC:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Storage/TaskDefinition/xray-daemon/LogGroup/Resource
+      aws:cdk:path: Supabase/Storage/Logs/Resource
   StorageSvcServiceA4DA327A:
     Type: AWS::ECS::Service
     Properties:
@@ -3884,7 +3935,10 @@ Resources:
           - VirtualService:
               VirtualServiceName: rest.supabase.local
           - VirtualService:
-              VirtualServiceName: db.spabase.local
+              VirtualServiceName:
+                Fn::GetAtt:
+                  - DB4924F778
+                  - Endpoint.Address
         Listeners:
           - PortMapping:
               Port: 8080
@@ -3951,7 +4005,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: MetaTaskDefinitionappLogGroup5C408D57
+                Ref: MetaLogs80FD71C7
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           Name: app
@@ -4007,8 +4061,12 @@ Resources:
                     - Fn::GetAtt:
                         - MetaVirtualNode03248F16
                         - VirtualNodeName
+            - Name: ENVOY_ADMIN_ACCESS_LOG_FILE
+              Value: /dev/null
             - Name: ENABLE_ENVOY_XRAY_TRACING
               Value: "1"
+            - Name: XRAY_SAMPLING_RATE
+              Value: "1.00"
           Essential: true
           HealthCheck:
             Command:
@@ -4023,11 +4081,15 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: MetaTaskDefinitionenvoyLogGroup7E55EAEB
+                Ref: MetaLogs80FD71C7
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 128
           Name: envoy
+          Ulimits:
+            - HardLimit: 1024000
+              Name: nofile
+              SoftLimit: 1024000
           User: "1337"
         - Cpu: 16
           Essential: true
@@ -4036,7 +4098,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: MetaTaskDefinitionxraydaemonLogGroupAD84E3BE
+                Ref: MetaLogs80FD71C7
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           MemoryReservation: 64
@@ -4075,12 +4137,6 @@ Resources:
           - Arn
     Metadata:
       aws:cdk:path: Supabase/Meta/TaskDefinition/Resource
-  MetaTaskDefinitionappLogGroup5C408D57:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Meta/TaskDefinition/app/LogGroup/Resource
   MetaTaskDefinitionExecutionRole93D83399:
     Type: AWS::IAM::Role
     Properties:
@@ -4104,7 +4160,7 @@ Resources:
             Effect: Allow
             Resource:
               Fn::GetAtt:
-                - MetaTaskDefinitionappLogGroup5C408D57
+                - MetaLogs80FD71C7
                 - Arn
           - Action:
               - secretsmanager:GetSecretValue
@@ -4112,40 +4168,20 @@ Resources:
             Effect: Allow
             Resource:
               Ref: DBSecretAttachment1CF7DE47
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - MetaTaskDefinitionenvoyLogGroup7E55EAEB
-                - Arn
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - MetaTaskDefinitionxraydaemonLogGroupAD84E3BE
-                - Arn
         Version: "2012-10-17"
       PolicyName: MetaTaskDefinitionExecutionRoleDefaultPolicy5A6F1F9C
       Roles:
         - Ref: MetaTaskDefinitionExecutionRole93D83399
     Metadata:
       aws:cdk:path: Supabase/Meta/TaskDefinition/ExecutionRole/DefaultPolicy/Resource
-  MetaTaskDefinitionenvoyLogGroup7E55EAEB:
+  MetaLogs80FD71C7:
     Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
+    Properties:
+      RetentionInDays: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
     Metadata:
-      aws:cdk:path: Supabase/Meta/TaskDefinition/envoy/LogGroup/Resource
-  MetaTaskDefinitionxraydaemonLogGroupAD84E3BE:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Meta/TaskDefinition/xray-daemon/LogGroup/Resource
+      aws:cdk:path: Supabase/Meta/Logs/Resource
   MetaSvcService58BFAF30:
     Type: AWS::ECS::Service
     Properties:
@@ -4237,23 +4273,6 @@ Resources:
       ToPort: 8080
     Metadata:
       aws:cdk:path: Supabase/Meta/Svc/SecurityGroup/from SupabaseKongSvcServiceSecurityGroupB2E20753:8080
-  MetaSvcSecurityGroupfromSupabaseStudioSvcServiceSecurityGroupD00B7C978080BB5C6F0F:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      IpProtocol: tcp
-      Description: from SupabaseStudioSvcServiceSecurityGroupD00B7C97:8080
-      FromPort: 8080
-      GroupId:
-        Fn::GetAtt:
-          - MetaSvcSecurityGroup28D90BB4
-          - GroupId
-      SourceSecurityGroupId:
-        Fn::GetAtt:
-          - StudioSvcServiceSecurityGroupEF26159E
-          - GroupId
-      ToPort: 8080
-    Metadata:
-      aws:cdk:path: Supabase/Meta/Svc/SecurityGroup/from SupabaseStudioSvcServiceSecurityGroupD00B7C97:8080
   MetaVirtualNode03248F16:
     Type: AWS::AppMesh::VirtualNode
     Properties:
@@ -4264,7 +4283,10 @@ Resources:
       Spec:
         Backends:
           - VirtualService:
-              VirtualServiceName: db.spabase.local
+              VirtualServiceName:
+                Fn::GetAtt:
+                  - DB4924F778
+                  - Endpoint.Address
         Listeners:
           - PortMapping:
               Port: 8080
@@ -4310,21 +4332,22 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
         Version: "2012-10-17"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
     Metadata:
       aws:cdk:path: Supabase/Studio/TaskDefinition/TaskRole/Resource
   StudioTaskDefinitionFEEA269A:
     Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
-        - DependsOn:
-            - Condition: HEALTHY
-              ContainerName: envoy
-          Environment:
+        - Environment:
             - Name: STUDIO_PG_META_URL
-              Value: http://meta.supabase.local:8080
+              Value:
+                Fn::Join:
+                  - ""
+                  - - https://
+                    - Fn::GetAtt:
+                        - CDN2330F4C0
+                        - DomainName
+                    - /pg
             - Name: SUPABASE_URL
               Value:
                 Fn::Join:
@@ -4348,7 +4371,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-group:
-                Ref: StudioTaskDefinitionappLogGroupD6A01F3C
+                Ref: StudioLogs5268B2C5
               awslogs-stream-prefix: ecs
               awslogs-region: us-west-2
           Name: app
@@ -4378,54 +4401,6 @@ Resources:
             - HardLimit: 65536
               Name: nofile
               SoftLimit: 65536
-        - Cpu: 80
-          Environment:
-            - Name: APPMESH_VIRTUAL_NODE_NAME
-              Value:
-                Fn::Join:
-                  - ""
-                  - - mesh/
-                    - Fn::GetAtt:
-                        - Mesh73A573F6
-                        - MeshName
-                    - /virtualNode/
-                    - Fn::GetAtt:
-                        - StudioVirtualNode46AA78DE
-                        - VirtualNodeName
-            - Name: ENABLE_ENVOY_XRAY_TRACING
-              Value: "1"
-          Essential: true
-          HealthCheck:
-            Command:
-              - CMD-SHELL
-              - curl -s http://localhost:9901/server_info | grep state | grep -q LIVE
-            Interval: 5
-            Retries: 3
-            StartPeriod: 10
-            Timeout: 2
-          Image: public.ecr.aws/appmesh/aws-appmesh-envoy:v1.22.2.0-prod
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-group:
-                Ref: StudioTaskDefinitionenvoyLogGroupBF83B5F7
-              awslogs-stream-prefix: ecs
-              awslogs-region: us-west-2
-          MemoryReservation: 128
-          Name: envoy
-          User: "1337"
-        - Cpu: 16
-          Essential: true
-          Image: public.ecr.aws/xray/aws-xray-daemon:latest
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-group:
-                Ref: StudioTaskDefinitionxraydaemonLogGroup95EDBB55
-              awslogs-stream-prefix: ecs
-              awslogs-region: us-west-2
-          MemoryReservation: 64
-          Name: xray-daemon
       Cpu: "256"
       ExecutionRoleArn:
         Fn::GetAtt:
@@ -4434,22 +4409,6 @@ Resources:
       Family: SupabaseStudioTaskDefinition2986B664
       Memory: "512"
       NetworkMode: awsvpc
-      ProxyConfiguration:
-        ContainerName: envoy
-        ProxyConfigurationProperties:
-          - Name: IgnoredUID
-            Value: "1337"
-          - Name: IgnoredGID
-            Value: "1338"
-          - Name: AppPorts
-            Value: "3000"
-          - Name: ProxyIngressPort
-            Value: "15000"
-          - Name: ProxyEgressPort
-            Value: "15001"
-          - Name: EgressIgnoredIPs
-            Value: 169.254.170.2,169.254.169.254
-        Type: APPMESH
       RequiresCompatibilities:
         - FARGATE
       RuntimePlatform:
@@ -4460,12 +4419,6 @@ Resources:
           - Arn
     Metadata:
       aws:cdk:path: Supabase/Studio/TaskDefinition/Resource
-  StudioTaskDefinitionappLogGroupD6A01F3C:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Studio/TaskDefinition/app/LogGroup/Resource
   StudioTaskDefinitionExecutionRoleBBC69CFE:
     Type: AWS::IAM::Role
     Properties:
@@ -4489,7 +4442,7 @@ Resources:
             Effect: Allow
             Resource:
               Fn::GetAtt:
-                - StudioTaskDefinitionappLogGroupD6A01F3C
+                - StudioLogs5268B2C5
                 - Arn
           - Action:
               - secretsmanager:GetSecretValue
@@ -4503,40 +4456,20 @@ Resources:
             Effect: Allow
             Resource:
               Ref: SupabaseJwtSecret4CEDF760
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - StudioTaskDefinitionenvoyLogGroupBF83B5F7
-                - Arn
-          - Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - StudioTaskDefinitionxraydaemonLogGroup95EDBB55
-                - Arn
         Version: "2012-10-17"
       PolicyName: StudioTaskDefinitionExecutionRoleDefaultPolicy1DF00583
       Roles:
         - Ref: StudioTaskDefinitionExecutionRoleBBC69CFE
     Metadata:
       aws:cdk:path: Supabase/Studio/TaskDefinition/ExecutionRole/DefaultPolicy/Resource
-  StudioTaskDefinitionenvoyLogGroupBF83B5F7:
+  StudioLogs5268B2C5:
     Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
+    Properties:
+      RetentionInDays: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
     Metadata:
-      aws:cdk:path: Supabase/Studio/TaskDefinition/envoy/LogGroup/Resource
-  StudioTaskDefinitionxraydaemonLogGroup95EDBB55:
-    Type: AWS::Logs::LogGroup
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Metadata:
-      aws:cdk:path: Supabase/Studio/TaskDefinition/xray-daemon/LogGroup/Resource
+      aws:cdk:path: Supabase/Studio/Logs/Resource
   StudioSvcLBC1B49D6D:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -4613,6 +4546,8 @@ Resources:
       TargetGroupAttributes:
         - Key: stickiness.enabled
           Value: "false"
+        - Key: deregistration_delay.timeout_seconds
+          Value: "30"
       TargetType: ip
       VpcId:
         Ref: VPCB9E5F0B4
@@ -4718,52 +4653,6 @@ Resources:
       ToPort: 3000
     Metadata:
       aws:cdk:path: Supabase/Studio/Svc/Service/SecurityGroup/from SupabaseStudioSvcLBSecurityGroup6D675C62:3000
-  StudioVirtualNode46AA78DE:
-    Type: AWS::AppMesh::VirtualNode
-    Properties:
-      MeshName:
-        Fn::GetAtt:
-          - Mesh73A573F6
-          - MeshName
-      Spec:
-        Backends:
-          - VirtualService:
-              VirtualServiceName: meta.supabase.local
-        Listeners:
-          - PortMapping:
-              Port: 3000
-              Protocol: http
-        Logging:
-          AccessLog:
-            File:
-              Path: /dev/stdout
-        ServiceDiscovery:
-          AWSCloudMap:
-            NamespaceName: supabase.local
-            ServiceName:
-              Fn::GetAtt:
-                - StudioSvcServiceCloudmapServiceFC9B208A
-                - Name
-      VirtualNodeName: Studio
-    Metadata:
-      aws:cdk:path: Supabase/Studio/VirtualNode/Resource
-  StudioVirtualService81E3869F:
-    Type: AWS::AppMesh::VirtualService
-    Properties:
-      MeshName:
-        Fn::GetAtt:
-          - Mesh73A573F6
-          - MeshName
-      Spec:
-        Provider:
-          VirtualNode:
-            VirtualNodeName:
-              Fn::GetAtt:
-                - StudioVirtualNode46AA78DE
-                - VirtualNodeName
-      VirtualServiceName: studio.supabase.local
-    Metadata:
-      aws:cdk:path: Supabase/Studio/VirtualService/Resource
   StudioCDN8AB0BD38:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -4891,7 +4780,7 @@ Resources:
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Analytics: v2:deflate64:H4sIAAAAAAAA/31UyW7bMBD9lt4ZtknQ3r0kgYHUFewgV2NE0QpjiRS42DAE/XuHpCgzTtqL5s3C4ZuFuqP39/THNziZG1YdbhpR0n5rgR0ImnY9Z3e0f+0YWezla7EghSsbwbaulNx62wVtlLP8BcqGX+wX28wYxQRYoeQU7MHDqvBiDfYJLD/BmRRaHBFeEq+k5RpxCohMRm1mketby6UlW86cFvb8pJXrAof/Glay1tyYT/aHYB4IdF3LzRvtf+PXRwX5KrR10KxVFejn6oi3XB8Fy72jZSCcGdovGmewIO//DBfQAUMmhVZHUXGdtc2QR9A1+H6aw5LvhRSpm9cWJS0IyXVmG89m5CZWJoJKGKaOXJ9pP45gKc0asAdIKZz4yvw5IVlI9K6ksSCjI2F/FdPcmhYk1FzjogV9HIFHUbwgWW6z0U4B156BNNCWFewkTuDd0HUQj06yULWAlvYbFVcyyELh+oYdigg53e/AGGRFZ16gTvu5Ywdu52A4idAfiCjdiIPcy+miCWyFrBtu1eQaiK5w6gVo7ApOeFrG5Xyc+ZVrCRZKvDktR3wI2bHckIIvjZzSRuXSe4xIhS4VVqJXLQ4h1ow+uuGdMsIqfQ51N6pG2s+qnm5OOOzxrgPrnyXGrLk9KX14VlDNofGXVVfbNus67HXY4n9HYdoGjBWswZAyhGAvj3dfXaAjn0xPMQJLl6M/4dEXd2cqJ1e/Jqg/2FO2zJalGAjydtVe49uj/RKDtShdeqC5Pgxkw41y2jfGdx//tjVWShiOTbU7PTr90ox/ATI7mUXwppNDWOiU5qPPu/442zncVf8s6Lv5frz9RW9/0ttv70aIG+2kFS2nmyj/AnocBGEDBgAA
+      Analytics: v2:deflate64:H4sIAAAAAAAA/31UyW7bMBD9ltwZtknQ3r0kgYHUFewgV2NE0QpjiRS4ODAE/XuHpCizjtuL581C8s3Mk+/pwwP9fgOf5pZVh9tGlLTfWmAHgqFdz9k97d86RhZ7+VYsSOHKRrCtKyW3PnZGG+Usf4Wy4ef4OTYzRjEBVig5FXvwuCq8WYN9Bss/4UQKLY4IzxevpOUacSqITEZvZpHre8ulJVvOnBb29KyV6wKH/wZWstbcmC/xxxAeCHRdy8077X/hr68K9k1o66BZqyrQz90Rb7k+CpZnx8hAODO0XzTOYEM+/xUuoAOGTAqtjqLiOhubIU+ga/DzNIcl3wsp0jQvI0paEJLrLDaezchNrEwElTBMHbk+0X5cwVKaNeAMkFI4cS18/UKmuTUtSKi5RjkFfxy0R9G8IiVuswVOBZeZgTTQlhXsJM75w9B1ME9OstCbgJb2GxWFF2yhUKRBKREhp4cdGIOs6Mwb9Gk/d+zA7RwMJxH6AxGlF3Fdezk9lMBAdIWbLEDjHHBrk8CW83GPF6klWCjxnbTwKO7sWB5IxeexTddGZyWNBRkFpVNbS4W89arFkccOMUc3vFNGWKVPoctG1Uj7RdXTywkHbe46sP5Tw5o1t59KH14UVHNo/GPVhYJmXYeTDcr8dxVe24CxgjVYUoYSIevj/bUHdOST+alGYOtyzCc85qJSpnZy9zpB/Vc83ZbFsisGgrxdtdf4PdF+icValC59dLk/DGTDjXLaD8ZPH/9Ba+yUMFyband6TBqaPuwg1XRkEarO7l7+drZzqEIvePphvh3vftK7H/Tu5sMIcaudtKLldBPtH9TrfFfDBQAA
     Metadata:
       aws:cdk:path: Supabase/CDKMetadata/Default
 Outputs:

@@ -88,6 +88,10 @@
       "type": "runtime"
     },
     {
+      "name": "@aws-sdk/client-ses",
+      "type": "runtime"
+    },
+    {
       "name": "@aws-sdk/client-workmail",
       "type": "runtime"
     },

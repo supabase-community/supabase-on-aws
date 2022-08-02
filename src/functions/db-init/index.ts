@@ -9,6 +9,7 @@ interface dbSecret {
   port: string;
   username: string;
   password: string;
+  dbname?: string;
   dbClusterIdentifier?: string;
   dbInstanceIdentifier?: string;
 };
@@ -24,6 +25,7 @@ const getConfig = async (secretId: string): Promise<ConnectionPoolConfig> => {
     port: Number(secret.port),
     user: secret.username,
     password: secret.password,
+    database: secret.dbname,
     ssl: 'disable',
   };
   return config;
@@ -34,9 +36,9 @@ const listFile = (dir: string, suffix: string) => {
   return files;
 };
 
-const initialize = async (secretId: string) => {
+const initialize = async (secretId: string, host: string) => {
   const config = await getConfig(secretId);
-  const db = createConnectionPool(config);
+  const db = createConnectionPool({ ...config, host });
   console.log('Connected to PostgreSQL database');
 
   const files = listFile('./', '.sql');
@@ -58,15 +60,16 @@ const initialize = async (secretId: string) => {
 
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
   const secretId: string = event.ResourceProperties.SecretId;
+  const hostname: string = event.ResourceProperties.Hostname;
   const response: CdkCustomResourceResponse = {};
 
   switch (event.RequestType) {
     case 'Create': {
-      await initialize(secretId);
+      await initialize(secretId, hostname);
       return response;
     }
     case 'Update': {
-      await initialize(secretId);
+      await initialize(secretId, hostname);
       return response;
     }
     case 'Delete': {

@@ -4,7 +4,6 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as rds from 'aws-cdk-lib/aws-rds';
-import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
@@ -24,11 +23,20 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       version: rds.AuroraPostgresEngineVersion.of('14.3', '14'),
     });
 
+    // https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.Replication.Logical.html
     const parameterGroup = new rds.ParameterGroup(scope, 'ParameterGroup', {
       engine,
-      description: 'Supabase parameter group for aurora-postgresql14',
+      description: `Supabase parameter group for aurora-postgresql ${engine.engineVersion?.majorVersion}`,
       parameters: {
         'rds.logical_replication': '1',
+        'max_replication_slots': '5', // Default Aurora:20, Supabase:5
+        'max_wal_senders': '10', // Default Aurora:20, Supabase:10
+        'max_logical_replication_workers': '2',
+        'autovacuum_max_workers': 'GREATEST({DBInstanceClassMemory/64371566592},2)', // Default: GREATEST({DBInstanceClassMemory/64371566592},3)
+        'max_parallel_workers': '4', // Default: GREATEST(${DBInstanceVCPU/2},8)
+        //'max_worker_processes': '', // Default: GREATEST(${DBInstanceVCPU*2},8)
+
+        'max_slot_wal_keep_size': '1024', // https://github.com/supabase/realtime
       },
     });
 
@@ -41,6 +49,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
         instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MEDIUM),
         vpc,
       },
+      credentials: rds.Credentials.fromGeneratedSecret('supabase_admin'),
       defaultDatabaseName: 'postgres',
     });
 
@@ -59,6 +68,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       resourceType: 'Custom::SupabaseDatabaseUrl',
       properties: {
         SecretId: this.secret?.secretArn,
+        Hostname: this.clusterEndpoint.hostname,
       },
     });
 
@@ -91,14 +101,15 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
 
     const initProvider = new cr.Provider(this, 'InitProvider', { onEventHandler: initFunction });
 
-    new cdk.CustomResource(this, 'Init', {
+    const init = new cdk.CustomResource(this, 'Init', {
       serviceToken: initProvider.serviceToken,
       resourceType: 'Custom::SupabaseDatabaseInit',
       properties: {
         SecretId: this.secret?.secretArn,
-        Version: '4',
+        Hostname: this.clusterEndpoint.hostname,
       },
     });
+    init.node.addDependency(this.node.findChild('Instance1'));
 
     if (typeof mesh != 'undefined') {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {

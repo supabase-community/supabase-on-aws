@@ -19,7 +19,7 @@ export class SupabaseStack extends Stack {
 
     const mesh = new appmesh.Mesh(this, 'Mesh', {
       meshName: this.stackName,
-      egressFilter: appmesh.MeshFilterType.ALLOW_ALL,
+      egressFilter: appmesh.MeshFilterType.DROP_ALL,
     });
 
     const cluster = new ecs.Cluster(this, 'Cluster', {
@@ -138,7 +138,7 @@ export class SupabaseStack extends Stack {
           REPLICATION_MODE: 'RLS',
           REPLICATION_POLL_INTERVAL: '100',
           SECURE_CHANNELS: 'true',
-          SLOT_NAME: 'supabase_realtime_rls',
+          SLOT_NAME: 'realtime_rls',
           TEMPORARY_SLOT: 'true',
         },
         secrets: {
@@ -214,6 +214,8 @@ export class SupabaseStack extends Stack {
     auth.addBackend(rest);
     storage.addBackend(rest);
 
+    auth.addExternalBackend(mail);
+
     auth.addDatabaseBackend(db);
     rest.addDatabaseBackend(db);
     realtime.addDatabaseBackend(db);
@@ -244,6 +246,7 @@ export class SupabaseStack extends Stack {
 
     const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studio.loadBalancer! });
 
+    new CfnOutput(this, 'AppUrl', { value: `https://${cdn.domainName}` });
     new CfnOutput(this, 'StudioUrl', { value: `https://${studioCdn.domainName}` });
 
   }
