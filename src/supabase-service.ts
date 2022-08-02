@@ -2,39 +2,42 @@ import * as cdk from 'aws-cdk-lib';
 import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
-import { NetworkLoadBalancedFargateService, ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import { SupabaseDatabase } from './supabase-db';
-import { SupabaseMail, SupabaseWorkMail } from './supabase-mail';
+import { SupabaseMailBase } from './supabase-mail';
 
 interface SupabaseServiceProps {
   cluster: ecs.ICluster;
   containerDefinition: ecs.ContainerDefinitionOptions;
-  gateway?: 'nlb'|'alb';
+  withLoadBalancer?: 'Network'|'Application';
   mesh?: appmesh.Mesh;
 }
 
 export class SupabaseService extends Construct {
-  service: ecs.FargateService;
   listenerPort: number;
+  internalDnsName: string;
+  service: ecs.FargateService;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
-  loadBalancer?: elb.NetworkLoadBalancer|elb.ApplicationLoadBalancer;
+  loadBalancer?: elb.BaseLoadBalancer;
 
   constructor(scope: Construct, id: string, props: SupabaseServiceProps) {
     super(scope, id);
 
     const serviceName = id.toLowerCase();
-    const { cluster, containerDefinition, gateway, mesh } = props;
+    const { cluster, containerDefinition, withLoadBalancer, mesh } = props;
+    const vpc = cluster.vpc;
+
+    this.listenerPort = containerDefinition.portMappings![0].containerPort;
 
     const proxyConfiguration = (typeof mesh == 'undefined') ? undefined : new ecs.AppMeshProxyConfiguration({
       containerName: 'envoy',
       properties: {
         ignoredUID: 1337,
         ignoredGID: 1338,
-        appPorts: [containerDefinition.portMappings![0].containerPort],
+        appPorts: [this.listenerPort],
         proxyIngressPort: 15000,
         proxyEgressPort: 15001,
         //egressIgnoredPorts: [2049], // EFS
@@ -63,69 +66,67 @@ export class SupabaseService extends Construct {
     });
     appContainer.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 65536, hardLimit: 65536 });
 
-    this.listenerPort = appContainer.containerPort;
+    this.service = new ecs.FargateService(this, 'Svc', {
+      cluster,
+      taskDefinition,
+      circuitBreaker: { rollback: true },
+      capacityProviderStrategies: [
+        { capacityProvider: 'FARGATE', base: 1, weight: 1 },
+        { capacityProvider: 'FARGATE_SPOT', base: 0, weight: 0 },
+      ],
+      cloudMapOptions: {
+        dnsTtl: cdk.Duration.seconds(10),
+        name: serviceName,
+      },
+      healthCheckGracePeriod: (typeof withLoadBalancer == 'undefined') ? undefined : cdk.Duration.seconds(10),
+    });
 
-    const cloudMapOptions: ecs.CloudMapOptions = {
-      dnsTtl: cdk.Duration.seconds(10),
-      name: serviceName,
-    };
-    const capacityProviderStrategies: ecs.CapacityProviderStrategy[] = [
-      { capacityProvider: 'FARGATE', base: 1, weight: 1 },
-      { capacityProvider: 'FARGATE_SPOT', base: 0, weight: 0 },
-    ];
-    const circuitBreaker: ecs.DeploymentCircuitBreaker = { rollback: true };
+    this.internalDnsName = `${this.service.cloudMapService?.serviceName}.${this.service.cloudMapService?.namespace.namespaceName}`;
 
-    if (gateway == 'nlb') {
+    if (withLoadBalancer == 'Network') {
       const vpcInternal = ec2.Peer.ipv4(cluster.vpc.vpcCidrBlock);
-      const nlbService = new NetworkLoadBalancedFargateService(this, 'Svc', {
-        cluster,
-        taskDefinition,
-        capacityProviderStrategies,
-        circuitBreaker,
-        cloudMapOptions,
-        healthCheckGracePeriod: cdk.Duration.seconds(10),
+      const healthCheckPort = ec2.Port.tcp(containerDefinition.portMappings!.slice(-1)[0].containerPort);
+      this.service.connections.allowFrom(vpcInternal, healthCheckPort, 'NLB healthcheck');
+
+      const targetGroup = new elb.NetworkTargetGroup(this, 'TargetGroup', {
+        port: 80,
+        targets: [
+          this.service.loadBalancerTarget({ containerName: 'app' }),
+        ],
+        healthCheck: {
+          port: healthCheckPort.toString(),
+          interval: cdk.Duration.seconds(10),
+        },
+        deregistrationDelay: cdk.Duration.seconds(30),
+        preserveClientIp: true,
+        vpc,
       });
-      this.service = nlbService.service;
-      this.loadBalancer = nlbService.loadBalancer;
-      const targetGroup = nlbService.targetGroup;
-      // TargetGroup Attributes
-      targetGroup.setAttribute('deregistration_delay.timeout_seconds', '30');
-      targetGroup.setAttribute('preserve_client_ip.enabled', 'true');
-      // Health Check
-      const healthCheckPort = containerDefinition.portMappings!.slice(-1)[0].containerPort;
-      targetGroup.configureHealthCheck({
-        port: healthCheckPort.toString(),
-        interval: cdk.Duration.seconds(10),
+      const loadBalancer = new elb.NetworkLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
+      loadBalancer.addListener('Listener', {
+        port: 80,
+        defaultTargetGroups: [targetGroup],
       });
-      this.service.connections.allowFrom(vpcInternal, ec2.Port.tcp(healthCheckPort), 'NLB healthcheck');
-    } else if (props.gateway == 'alb') {
-      const albService = new ApplicationLoadBalancedFargateService(this, 'Svc', {
-        cluster,
-        taskDefinition,
-        capacityProviderStrategies,
-        circuitBreaker,
-        cloudMapOptions,
-        healthCheckGracePeriod: cdk.Duration.seconds(10),
+      this.loadBalancer = loadBalancer;
+    } else if (withLoadBalancer == 'Application') {
+      const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
+        port: 80,
+        targets: [
+          this.service.loadBalancerTarget({ containerName: 'app' }),
+        ],
+        healthCheck: {
+          interval: cdk.Duration.seconds(10),
+          timeout: cdk.Duration.seconds(5),
+        },
+        deregistrationDelay: cdk.Duration.seconds(30),
+        vpc,
       });
-      this.service = albService.service;
-      this.loadBalancer = albService.loadBalancer;
-      const targetGroup = albService.targetGroup;
-      // TargetGroup Attributes
-      targetGroup.setAttribute('deregistration_delay.timeout_seconds', '30');
-      // Health Check
-      albService.targetGroup.configureHealthCheck({
-        interval: cdk.Duration.seconds(10),
-        timeout: cdk.Duration.seconds(5),
+      const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
+      loadBalancer.addListener('Listener', {
+        port: 80,
+        defaultTargetGroups: [targetGroup],
       });
-    } else {
-      this.service = new ecs.FargateService(this, 'Svc', {
-        cluster,
-        taskDefinition,
-        capacityProviderStrategies,
-        circuitBreaker,
-        cloudMapOptions,
-      });
-    };
+      this.loadBalancer = loadBalancer;
+    }
 
     if (typeof mesh != 'undefined') {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
@@ -204,7 +205,7 @@ export class SupabaseService extends Construct {
     }
   }
 
-  addExternalBackend(backend: SupabaseMail|SupabaseWorkMail) {
+  addExternalBackend(backend: SupabaseMailBase) {
     if (typeof backend.virtualService != 'undefined') {
       this.virtualNode?.addBackend(appmesh.Backend.virtualService(backend.virtualService));
     }

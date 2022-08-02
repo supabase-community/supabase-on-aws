@@ -59,7 +59,7 @@ export class SupabaseStack extends Stack {
           SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
         },
       },
-      gateway: 'nlb',
+      withLoadBalancer: 'Network',
       mesh,
     });
 
@@ -239,14 +239,14 @@ export class SupabaseStack extends Stack {
           SUPABASE_SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
         },
       },
-      gateway: 'alb',
+      withLoadBalancer: 'Application',
       //mesh,
     });
     //studio.addBackend(meta);
 
     const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studio.loadBalancer! });
 
-    new CfnOutput(this, 'AppUrl', { value: `https://${cdn.domainName}` });
+    new CfnOutput(this, 'Url', { value: `https://${cdn.domainName}` });
     new CfnOutput(this, 'StudioUrl', { value: `https://${studioCdn.domainName}` });
 
   }
