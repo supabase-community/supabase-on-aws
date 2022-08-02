@@ -175,9 +175,14 @@ export class SupabaseService extends Construct {
 
       taskDefinition.addContainer('xray-daemon', {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/xray/aws-xray-daemon:latest'),
+        user: '1337',
         cpu: 16,
         memoryReservationMiB: 64,
         essential: true,
+        portMappings: [{
+          containerPort: 2000,
+          protocol: ecs.Protocol.UDP,
+        }],
         //healthCheck: {
         //  command: ['CMD-SHELL', 'netstat -aun | grep 2000 > /dev/null; if [ 0 != $? ]; then exit 1; fi;'],
         //  interval: cdk.Duration.seconds(5),
