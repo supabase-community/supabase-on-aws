@@ -97,38 +97,6 @@ Object {
     },
   },
   "Outputs": Object {
-    "KongSvcLoadBalancerDNS7AB8D78E": Object {
-      "Value": Object {
-        "Fn::GetAtt": Array [
-          "KongSvcLBD22BD9AD",
-          "DNSName",
-        ],
-      },
-    },
-    "StudioSvcLoadBalancerDNS4F23D7E8": Object {
-      "Value": Object {
-        "Fn::GetAtt": Array [
-          "StudioSvcLBC1B49D6D",
-          "DNSName",
-        ],
-      },
-    },
-    "StudioSvcServiceURLF12C5377": Object {
-      "Value": Object {
-        "Fn::Join": Array [
-          "",
-          Array [
-            "http://",
-            Object {
-              "Fn::GetAtt": Array [
-                "StudioSvcLBC1B49D6D",
-                "DNSName",
-              ],
-            },
-          ],
-        ],
-      },
-    },
     "StudioUrl": Object {
       "Value": Object {
         "Fn::Join": Array [
@@ -145,6 +113,22 @@ Object {
         ],
       },
     },
+    "Url": Object {
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Fn::GetAtt": Array [
+                "CDN2330F4C0",
+                "DomainName",
+              ],
+            },
+          ],
+        ],
+      },
+    },
   },
   "Parameters": Object {
     "BootstrapVersion": Object {
@@ -154,6 +138,14 @@ Object {
     },
   },
   "Resources": Object {
+    "AuthLogs940C0551": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "RetentionInDays": 30,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
     "AuthSvcCloudmapService85C22E54": Object {
       "Properties": Object {
         "DnsConfig": Object {
@@ -200,9 +192,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "AuthSvcSecurityGroupfromtestKongSvcServiceSecurityGroupD2D88BD7999923CBA018": Object {
+    "AuthSvcSecurityGroupfromtestKongSvcSecurityGroupFD5143FA99996D81722E": Object {
       "Properties": Object {
-        "Description": "from testKongSvcServiceSecurityGroupD2D88BD7:9999",
+        "Description": "from testKongSvcSecurityGroupFD5143FA:9999",
         "FromPort": 9999,
         "GroupId": Object {
           "Fn::GetAtt": Array [
@@ -213,7 +205,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "KongSvcServiceSecurityGroup5EF39425",
+            "KongSvcSecurityGroupD458B522",
             "GroupId",
           ],
         },
@@ -336,7 +328,7 @@ Object {
                       "http://",
                       Object {
                         "Fn::GetAtt": Array [
-                          "KongSvcLBD22BD9AD",
+                          "KongLoadBalancerD341ED7C",
                           "DNSName",
                         ],
                       },
@@ -411,7 +403,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "AuthTaskDefinitionappLogGroup30C81075",
+                  "Ref": "AuthLogs940C0551",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -590,7 +582,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "AuthTaskDefinitionenvoyLogGroup220A606F",
+                  "Ref": "AuthLogs940C0551",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -617,7 +609,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "AuthTaskDefinitionxraydaemonLogGroupEA589E9E",
+                  "Ref": "AuthLogs940C0551",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -627,6 +619,13 @@ Object {
             },
             "MemoryReservation": 64,
             "Name": "xray-daemon",
+            "PortMappings": Array [
+              Object {
+                "ContainerPort": 2000,
+                "Protocol": "udp",
+              },
+            ],
+            "User": "1337",
           },
         ],
         "Cpu": "256",
@@ -713,7 +712,7 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "AuthTaskDefinitionappLogGroup30C81075",
+                  "AuthLogs940C0551",
                   "Arn",
                 ],
               },
@@ -746,32 +745,6 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Ref": "SupabaseMailSecret777E0288",
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "AuthTaskDefinitionenvoyLogGroup220A606F",
-                  "Arn",
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "AuthTaskDefinitionxraydaemonLogGroupEA589E9E",
-                  "Arn",
-                ],
               },
             },
           ],
@@ -807,21 +780,6 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "AuthTaskDefinitionappLogGroup30C81075": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "AuthTaskDefinitionenvoyLogGroup220A606F": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "AuthTaskDefinitionxraydaemonLogGroupEA589E9E": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
     "AuthVirtualNode4480F984": Object {
       "Properties": Object {
         "MeshName": Object {
@@ -835,6 +793,11 @@ Object {
             Object {
               "VirtualService": Object {
                 "VirtualServiceName": "rest.supabase.local",
+              },
+            },
+            Object {
+              "VirtualService": Object {
+                "VirtualServiceName": "smtp.mail.us-west-2.awsapps.com",
               },
             },
             Object {
@@ -1072,7 +1035,7 @@ Object {
               },
               "DomainName": Object {
                 "Fn::GetAtt": Array [
-                  "KongSvcLBD22BD9AD",
+                  "KongLoadBalancerD341ED7C",
                   "DNSName",
                 ],
               },
@@ -1127,24 +1090,13 @@ Object {
             Array [
               "{{resolve:secretsmanager:",
               Object {
-                "Ref": "DBSecretB8D1B379",
+                "Ref": "testDBSecretFE622B583fdaad7efa858a3daf9490cf0a702aeb",
               },
               ":SecretString:password::}}",
             ],
           ],
         },
-        "MasterUsername": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "{{resolve:secretsmanager:",
-              Object {
-                "Ref": "DBSecretB8D1B379",
-              },
-              ":SecretString:username::}}",
-            ],
-          ],
-        },
+        "MasterUsername": "supabase_admin",
         "Port": 5432,
         "StorageEncrypted": true,
         "VpcSecurityGroupIds": Array [
@@ -1161,7 +1113,16 @@ Object {
     },
     "DBInitC726DE70": Object {
       "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DBInstance17EB9EC72",
+      ],
       "Properties": Object {
+        "Hostname": Object {
+          "Fn::GetAtt": Array [
+            "DB4924F778",
+            "Endpoint.Address",
+          ],
+        },
         "SecretId": Object {
           "Ref": "DBSecretAttachment1CF7DE47",
         },
@@ -1171,7 +1132,6 @@ Object {
             "Arn",
           ],
         },
-        "Version": "4",
       },
       "Type": "Custom::SupabaseDatabaseInit",
       "UpdateReplacePolicy": "Delete",
@@ -1186,7 +1146,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "be7e267f8222c81cbaf4fae111fb1a83629da064558fcc481290fc653f4561ea.zip",
+          "S3Key": "0a5b6ac40ccd795d279a48bbc7f26432f5b720267039bf59c2b3cfd6f44d0135.zip",
         },
         "Description": "Supabase - Database init function",
         "Environment": Object {
@@ -1440,7 +1400,7 @@ Object {
     "DBSecretAttachment1CF7DE47": Object {
       "Properties": Object {
         "SecretId": Object {
-          "Ref": "DBSecretB8D1B379",
+          "Ref": "testDBSecretFE622B583fdaad7efa858a3daf9490cf0a702aeb",
         },
         "TargetId": Object {
           "Ref": "DB4924F778",
@@ -1448,30 +1408,6 @@ Object {
         "TargetType": "AWS::RDS::DBCluster",
       },
       "Type": "AWS::SecretsManager::SecretTargetAttachment",
-    },
-    "DBSecretB8D1B379": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "Description": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "Generated by the CDK for stack: ",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-            ],
-          ],
-        },
-        "GenerateSecretString": Object {
-          "ExcludeCharacters": " %+~\`#$&*()|[]{}:;<>?!'/@\\"\\\\",
-          "GenerateStringKey": "password",
-          "PasswordLength": 30,
-          "SecretStringTemplate": "{\\"username\\":\\"postgres\\"}",
-        },
-      },
-      "Type": "AWS::SecretsManager::Secret",
-      "UpdateReplacePolicy": "Delete",
     },
     "DBSecurityGroup302CDD63": Object {
       "Properties": Object {
@@ -1692,6 +1628,12 @@ Object {
     "DBURLF56CE3E5": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
+        "Hostname": Object {
+          "Fn::GetAtt": Array [
+            "DB4924F778",
+            "Endpoint.Address",
+          ],
+        },
         "SecretId": Object {
           "Ref": "DBSecretAttachment1CF7DE47",
         },
@@ -1715,7 +1657,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "fa5329d9302be2afb3c5a7c609acd80d541c87faf6d1c16f88af0cde95fba2a8.zip",
+          "S3Key": "6a6b2e42578465278e9e467f02c4aa6c0c1f2e251eec738bbc49957c69f49d89.zip",
         },
         "Description": "Supabase - Database URL generator function",
         "Environment": Object {
@@ -1976,7 +1918,7 @@ Object {
       },
       "Type": "AWS::AppMesh::VirtualService",
     },
-    "KongSvcLBD22BD9AD": Object {
+    "KongLoadBalancerD341ED7C": Object {
       "DependsOn": Array [
         "VPCPublicSubnet1DefaultRoute91CEF279",
         "VPCPublicSubnet2DefaultRouteB7481BBA",
@@ -2001,51 +1943,111 @@ Object {
       },
       "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
     },
-    "KongSvcLBPublicListener5B640FAA": Object {
+    "KongLoadBalancerListenerA03182E0": Object {
       "Properties": Object {
         "DefaultActions": Array [
           Object {
             "TargetGroupArn": Object {
-              "Ref": "KongSvcLBPublicListenerECSGroup64A6B988",
+              "Ref": "KongTargetGroupD0277B2A",
             },
             "Type": "forward",
           },
         ],
         "LoadBalancerArn": Object {
-          "Ref": "KongSvcLBD22BD9AD",
+          "Ref": "KongLoadBalancerD341ED7C",
         },
         "Port": 80,
         "Protocol": "TCP",
       },
       "Type": "AWS::ElasticLoadBalancingV2::Listener",
     },
-    "KongSvcLBPublicListenerECSGroup64A6B988": Object {
+    "KongLogs4BD50491": Object {
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "HealthCheckIntervalSeconds": 10,
-        "HealthCheckPort": "8100",
-        "Port": 80,
-        "Protocol": "TCP",
-        "TargetGroupAttributes": Array [
-          Object {
-            "Key": "deregistration_delay.timeout_seconds",
-            "Value": "30",
+        "RetentionInDays": 30,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "KongSvcCloudmapServiceF8523DCA": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
           },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "kong",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "KongSvcSecurityGroupD458B522": Object {
+      "Properties": Object {
+        "GroupDescription": "test/Kong/Svc/SecurityGroup",
+        "SecurityGroupEgress": Array [
           Object {
-            "Key": "preserve_client_ip.enabled",
-            "Value": "true",
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
           },
         ],
-        "TargetType": "ip",
+        "SecurityGroupIngress": Array [
+          Object {
+            "CidrIp": Object {
+              "Fn::GetAtt": Array [
+                "VPCB9E5F0B4",
+                "CidrBlock",
+              ],
+            },
+            "Description": "NLB healthcheck",
+            "FromPort": 8100,
+            "IpProtocol": "tcp",
+            "ToPort": 8100,
+          },
+        ],
         "VpcId": Object {
           "Ref": "VPCB9E5F0B4",
         },
       },
-      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Type": "AWS::EC2::SecurityGroup",
     },
-    "KongSvcServiceCAB2BB74": Object {
+    "KongSvcSecurityGroupfrompl82a045eb8000D2C3D1AE": Object {
+      "Properties": Object {
+        "Description": "CloudFront",
+        "FromPort": 8000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongSvcSecurityGroupD458B522",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourcePrefixListId": "pl-82a045eb",
+        "ToPort": 8000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "KongSvcServiceE14A19D7": Object {
       "DependsOn": Array [
-        "KongSvcLBPublicListenerECSGroup64A6B988",
-        "KongSvcLBPublicListener5B640FAA",
+        "KongLoadBalancerListenerA03182E0",
       ],
       "Properties": Object {
         "CapacityProviderStrategy": Array [
@@ -2081,7 +2083,7 @@ Object {
             "ContainerName": "app",
             "ContainerPort": 8000,
             "TargetGroupArn": Object {
-              "Ref": "KongSvcLBPublicListenerECSGroup64A6B988",
+              "Ref": "KongTargetGroupD0277B2A",
             },
           },
         ],
@@ -2091,7 +2093,7 @@ Object {
             "SecurityGroups": Array [
               Object {
                 "Fn::GetAtt": Array [
-                  "KongSvcServiceSecurityGroup5EF39425",
+                  "KongSvcSecurityGroupD458B522",
                   "GroupId",
                 ],
               },
@@ -2110,7 +2112,7 @@ Object {
           Object {
             "RegistryArn": Object {
               "Fn::GetAtt": Array [
-                "KongSvcServiceCloudmapServiceA3BF260B",
+                "KongSvcCloudmapServiceF8523DCA",
                 "Arn",
               ],
             },
@@ -2122,81 +2124,28 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
-    "KongSvcServiceCloudmapServiceA3BF260B": Object {
+    "KongTargetGroupD0277B2A": Object {
       "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "kong",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
-      },
-      "Type": "AWS::ServiceDiscovery::Service",
-    },
-    "KongSvcServiceSecurityGroup5EF39425": Object {
-      "Properties": Object {
-        "GroupDescription": "test/Kong/Svc/Service/SecurityGroup",
-        "SecurityGroupEgress": Array [
+        "HealthCheckIntervalSeconds": 10,
+        "HealthCheckPort": "8100",
+        "Port": 80,
+        "Protocol": "TCP",
+        "TargetGroupAttributes": Array [
           Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
+            "Key": "deregistration_delay.timeout_seconds",
+            "Value": "30",
+          },
+          Object {
+            "Key": "preserve_client_ip.enabled",
+            "Value": "true",
           },
         ],
-        "SecurityGroupIngress": Array [
-          Object {
-            "CidrIp": Object {
-              "Fn::GetAtt": Array [
-                "VPCB9E5F0B4",
-                "CidrBlock",
-              ],
-            },
-            "Description": "NLB healthcheck",
-            "FromPort": 8100,
-            "IpProtocol": "tcp",
-            "ToPort": 8100,
-          },
-        ],
+        "TargetType": "ip",
         "VpcId": Object {
           "Ref": "VPCB9E5F0B4",
         },
       },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "KongSvcServiceSecurityGroupfrompl82a045eb8000E450E98F": Object {
-      "Properties": Object {
-        "Description": "CloudFront",
-        "FromPort": 8000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongSvcServiceSecurityGroup5EF39425",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourcePrefixListId": "pl-82a045eb",
-        "ToPort": 8000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
     },
     "KongTaskDefinitionAE44544D": Object {
       "Properties": Object {
@@ -2240,7 +2189,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "KongTaskDefinitionappLogGroup2AEC822E",
+                  "Ref": "KongLogs4BD50491",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -2353,7 +2302,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "KongTaskDefinitionenvoyLogGroupD501650D",
+                  "Ref": "KongLogs4BD50491",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -2380,7 +2329,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "KongTaskDefinitionxraydaemonLogGroup98B1A9FF",
+                  "Ref": "KongLogs4BD50491",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -2390,6 +2339,13 @@ Object {
             },
             "MemoryReservation": 64,
             "Name": "xray-daemon",
+            "PortMappings": Array [
+              Object {
+                "ContainerPort": 2000,
+                "Protocol": "udp",
+              },
+            ],
+            "User": "1337",
           },
         ],
         "Cpu": "256",
@@ -2512,7 +2468,7 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "KongTaskDefinitionappLogGroup2AEC822E",
+                  "KongLogs4BD50491",
                   "Arn",
                 ],
               },
@@ -2525,32 +2481,6 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Ref": "SupabaseJwtSecret4CEDF760",
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "KongTaskDefinitionenvoyLogGroupD501650D",
-                  "Arn",
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "KongTaskDefinitionxraydaemonLogGroup98B1A9FF",
-                  "Arn",
-                ],
               },
             },
           ],
@@ -2585,21 +2515,6 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "KongTaskDefinitionappLogGroup2AEC822E": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "KongTaskDefinitionenvoyLogGroupD501650D": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "KongTaskDefinitionxraydaemonLogGroup98B1A9FF": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
     },
     "KongVirtualNodeFABCC391": Object {
       "Properties": Object {
@@ -2657,7 +2572,7 @@ Object {
               "NamespaceName": "supabase.local",
               "ServiceName": Object {
                 "Fn::GetAtt": Array [
-                  "KongSvcServiceCloudmapServiceA3BF260B",
+                  "KongSvcCloudmapServiceF8523DCA",
                   "Name",
                 ],
               },
@@ -2697,11 +2612,19 @@ Object {
         "MeshName": "test",
         "Spec": Object {
           "EgressFilter": Object {
-            "Type": "ALLOW_ALL",
+            "Type": "DROP_ALL",
           },
         },
       },
       "Type": "AWS::AppMesh::Mesh",
+    },
+    "MetaLogs80FD71C7": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "RetentionInDays": 30,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
     "MetaSvcCloudmapService5BBAEB97": Object {
       "Properties": Object {
@@ -2749,9 +2672,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "MetaSvcSecurityGroupfromtestKongSvcServiceSecurityGroupD2D88BD78080683BE40D": Object {
+    "MetaSvcSecurityGroupfromtestKongSvcSecurityGroupFD5143FA8080E5BF816E": Object {
       "Properties": Object {
-        "Description": "from testKongSvcServiceSecurityGroupD2D88BD7:8080",
+        "Description": "from testKongSvcSecurityGroupFD5143FA:8080",
         "FromPort": 8080,
         "GroupId": Object {
           "Fn::GetAtt": Array [
@@ -2762,28 +2685,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "KongSvcServiceSecurityGroup5EF39425",
-            "GroupId",
-          ],
-        },
-        "ToPort": 8080,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "MetaSvcSecurityGroupfromtestStudioSvcServiceSecurityGroup969332918080EE542376": Object {
-      "Properties": Object {
-        "Description": "from testStudioSvcServiceSecurityGroup96933291:8080",
-        "FromPort": 8080,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "MetaSvcSecurityGroup28D90BB4",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioSvcServiceSecurityGroupEF26159E",
+            "KongSvcSecurityGroupD458B522",
             "GroupId",
           ],
         },
@@ -2879,7 +2781,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "MetaTaskDefinitionappLogGroup5C408D57",
+                  "Ref": "MetaLogs80FD71C7",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -3030,7 +2932,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "MetaTaskDefinitionenvoyLogGroup7E55EAEB",
+                  "Ref": "MetaLogs80FD71C7",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -3057,7 +2959,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "MetaTaskDefinitionxraydaemonLogGroupAD84E3BE",
+                  "Ref": "MetaLogs80FD71C7",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -3067,6 +2969,13 @@ Object {
             },
             "MemoryReservation": 64,
             "Name": "xray-daemon",
+            "PortMappings": Array [
+              Object {
+                "ContainerPort": 2000,
+                "Protocol": "udp",
+              },
+            ],
+            "User": "1337",
           },
         ],
         "Cpu": "256",
@@ -3153,7 +3062,7 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "MetaTaskDefinitionappLogGroup5C408D57",
+                  "MetaLogs80FD71C7",
                   "Arn",
                 ],
               },
@@ -3166,32 +3075,6 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Ref": "DBSecretAttachment1CF7DE47",
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "MetaTaskDefinitionenvoyLogGroup7E55EAEB",
-                  "Arn",
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "MetaTaskDefinitionxraydaemonLogGroupAD84E3BE",
-                  "Arn",
-                ],
               },
             },
           ],
@@ -3226,21 +3109,6 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "MetaTaskDefinitionappLogGroup5C408D57": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "MetaTaskDefinitionenvoyLogGroup7E55EAEB": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "MetaTaskDefinitionxraydaemonLogGroupAD84E3BE": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
     },
     "MetaVirtualNode03248F16": Object {
       "Properties": Object {
@@ -3320,13 +3188,27 @@ Object {
     },
     "ParameterGroup5E32DECB": Object {
       "Properties": Object {
-        "Description": "Supabase parameter group for aurora-postgresql14",
+        "Description": "Supabase parameter group for aurora-postgresql 14",
         "Family": "aurora-postgresql14",
         "Parameters": Object {
+          "autovacuum_max_workers": "GREATEST({DBInstanceClassMemory/64371566592},2)",
+          "max_logical_replication_workers": "2",
+          "max_parallel_workers": "4",
+          "max_replication_slots": "5",
+          "max_slot_wal_keep_size": "1024",
+          "max_wal_senders": "10",
           "rds.logical_replication": "1",
         },
       },
       "Type": "AWS::RDS::DBClusterParameterGroup",
+    },
+    "RealtimeLogs5C43159D": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "RetentionInDays": 30,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
     "RealtimeSvcCloudmapServiceF8CD5DF6": Object {
       "Properties": Object {
@@ -3374,9 +3256,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "RealtimeSvcSecurityGroupfromtestKongSvcServiceSecurityGroupD2D88BD74000249763F3": Object {
+    "RealtimeSvcSecurityGroupfromtestKongSvcSecurityGroupFD5143FA4000A8AC9945": Object {
       "Properties": Object {
-        "Description": "from testKongSvcServiceSecurityGroupD2D88BD7:4000",
+        "Description": "from testKongSvcSecurityGroupFD5143FA:4000",
         "FromPort": 4000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
@@ -3387,7 +3269,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "KongSvcServiceSecurityGroup5EF39425",
+            "KongSvcSecurityGroupD458B522",
             "GroupId",
           ],
         },
@@ -3499,7 +3381,7 @@ Object {
               },
               Object {
                 "Name": "SLOT_NAME",
-                "Value": "supabase_realtime_rls",
+                "Value": "realtime_rls",
               },
               Object {
                 "Name": "TEMPORARY_SLOT",
@@ -3512,7 +3394,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "RealtimeTaskDefinitionappLogGroup60EE6415",
+                  "Ref": "RealtimeLogs5C43159D",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -3677,7 +3559,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "RealtimeTaskDefinitionenvoyLogGroup7AE18490",
+                  "Ref": "RealtimeLogs5C43159D",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -3704,7 +3586,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "RealtimeTaskDefinitionxraydaemonLogGroup46723FF1",
+                  "Ref": "RealtimeLogs5C43159D",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -3714,6 +3596,13 @@ Object {
             },
             "MemoryReservation": 64,
             "Name": "xray-daemon",
+            "PortMappings": Array [
+              Object {
+                "ContainerPort": 2000,
+                "Protocol": "udp",
+              },
+            ],
+            "User": "1337",
           },
         ],
         "Cpu": "256",
@@ -3800,7 +3689,7 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "RealtimeTaskDefinitionappLogGroup60EE6415",
+                  "RealtimeLogs5C43159D",
                   "Arn",
                 ],
               },
@@ -3823,32 +3712,6 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Ref": "DBSecretAttachment1CF7DE47",
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "RealtimeTaskDefinitionenvoyLogGroup7AE18490",
-                  "Arn",
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "RealtimeTaskDefinitionxraydaemonLogGroup46723FF1",
-                  "Arn",
-                ],
               },
             },
           ],
@@ -3883,21 +3746,6 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "RealtimeTaskDefinitionappLogGroup60EE6415": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "RealtimeTaskDefinitionenvoyLogGroup7AE18490": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "RealtimeTaskDefinitionxraydaemonLogGroup46723FF1": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
     },
     "RealtimeVirtualNode58346FCC": Object {
       "Properties": Object {
@@ -3975,6 +3823,14 @@ Object {
       },
       "Type": "AWS::AppMesh::VirtualService",
     },
+    "RestLogsE8B49088": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "RetentionInDays": 30,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
     "RestSvcCloudmapServiceC2707820": Object {
       "Properties": Object {
         "DnsConfig": Object {
@@ -4042,9 +3898,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "RestSvcSecurityGroupfromtestKongSvcServiceSecurityGroupD2D88BD730006DA670D0": Object {
+    "RestSvcSecurityGroupfromtestKongSvcSecurityGroupFD5143FA300054372DAF": Object {
       "Properties": Object {
-        "Description": "from testKongSvcServiceSecurityGroupD2D88BD7:3000",
+        "Description": "from testKongSvcSecurityGroupFD5143FA:3000",
         "FromPort": 3000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
@@ -4055,7 +3911,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "KongSvcServiceSecurityGroup5EF39425",
+            "KongSvcSecurityGroupD458B522",
             "GroupId",
           ],
         },
@@ -4180,7 +4036,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "RestTaskDefinitionappLogGroup1B252B42",
+                  "Ref": "RestLogsE8B49088",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -4289,7 +4145,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "RestTaskDefinitionenvoyLogGroup8364AFDA",
+                  "Ref": "RestLogsE8B49088",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -4316,7 +4172,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "RestTaskDefinitionxraydaemonLogGroupB7C2922E",
+                  "Ref": "RestLogsE8B49088",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -4326,6 +4182,13 @@ Object {
             },
             "MemoryReservation": 64,
             "Name": "xray-daemon",
+            "PortMappings": Array [
+              Object {
+                "ContainerPort": 2000,
+                "Protocol": "udp",
+              },
+            ],
+            "User": "1337",
           },
         ],
         "Cpu": "256",
@@ -4412,7 +4275,7 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "RestTaskDefinitionappLogGroup1B252B42",
+                  "RestLogsE8B49088",
                   "Arn",
                 ],
               },
@@ -4435,32 +4298,6 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Ref": "SupabaseJwtSecret4CEDF760",
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "RestTaskDefinitionenvoyLogGroup8364AFDA",
-                  "Arn",
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "RestTaskDefinitionxraydaemonLogGroupB7C2922E",
-                  "Arn",
-                ],
               },
             },
           ],
@@ -4495,21 +4332,6 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "RestTaskDefinitionappLogGroup1B252B42": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "RestTaskDefinitionenvoyLogGroup8364AFDA": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "RestTaskDefinitionxraydaemonLogGroupB7C2922E": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
     },
     "RestVirtualNode2FA1B1DF": Object {
       "Properties": Object {
@@ -4587,6 +4409,14 @@ Object {
       },
       "Type": "AWS::AppMesh::VirtualService",
     },
+    "StorageLogs2A2D4D26": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "RetentionInDays": 30,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
     "StorageSvcCloudmapServiceEC9FA74C": Object {
       "Properties": Object {
         "DnsConfig": Object {
@@ -4633,9 +4463,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "StorageSvcSecurityGroupfromtestKongSvcServiceSecurityGroupD2D88BD780806FB84E10": Object {
+    "StorageSvcSecurityGroupfromtestKongSvcSecurityGroupFD5143FA808046A6D90F": Object {
       "Properties": Object {
-        "Description": "from testKongSvcServiceSecurityGroupD2D88BD7:8080",
+        "Description": "from testKongSvcSecurityGroupFD5143FA:8080",
         "FromPort": 8080,
         "GroupId": Object {
           "Fn::GetAtt": Array [
@@ -4646,7 +4476,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "KongSvcServiceSecurityGroup5EF39425",
+            "KongSvcSecurityGroupD458B522",
             "GroupId",
           ],
         },
@@ -4774,7 +4604,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "StorageTaskDefinitionappLogGroupDFD4685A",
+                  "Ref": "StorageLogs2A2D4D26",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -4911,7 +4741,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "StorageTaskDefinitionenvoyLogGroupDEA4EB92",
+                  "Ref": "StorageLogs2A2D4D26",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -4938,7 +4768,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "StorageTaskDefinitionxraydaemonLogGroupFF6266CC",
+                  "Ref": "StorageLogs2A2D4D26",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -4948,6 +4778,13 @@ Object {
             },
             "MemoryReservation": 64,
             "Name": "xray-daemon",
+            "PortMappings": Array [
+              Object {
+                "ContainerPort": 2000,
+                "Protocol": "udp",
+              },
+            ],
+            "User": "1337",
           },
         ],
         "Cpu": "256",
@@ -5034,7 +4871,7 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "StorageTaskDefinitionappLogGroupDFD4685A",
+                  "StorageLogs2A2D4D26",
                   "Arn",
                 ],
               },
@@ -5057,32 +4894,6 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Ref": "DBSecretAttachment1CF7DE47",
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "StorageTaskDefinitionenvoyLogGroupDEA4EB92",
-                  "Arn",
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "StorageTaskDefinitionxraydaemonLogGroupFF6266CC",
-                  "Arn",
-                ],
               },
             },
           ],
@@ -5170,21 +4981,6 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
-    },
-    "StorageTaskDefinitionappLogGroupDFD4685A": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "StorageTaskDefinitionenvoyLogGroupDEA4EB92": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "StorageTaskDefinitionxraydaemonLogGroupFF6266CC": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
     },
     "StorageVirtualNodeB19919D7": Object {
       "Properties": Object {
@@ -5414,7 +5210,7 @@ Object {
               },
               "DomainName": Object {
                 "Fn::GetAtt": Array [
-                  "StudioSvcLBC1B49D6D",
+                  "StudioLoadBalancer143227F7",
                   "DNSName",
                 ],
               },
@@ -5425,7 +5221,7 @@ Object {
       },
       "Type": "AWS::CloudFront::Distribution",
     },
-    "StudioSvcLBC1B49D6D": Object {
+    "StudioLoadBalancer143227F7": Object {
       "DependsOn": Array [
         "VPCPublicSubnet1DefaultRoute91CEF279",
         "VPCPublicSubnet2DefaultRouteB7481BBA",
@@ -5441,7 +5237,7 @@ Object {
         "SecurityGroups": Array [
           Object {
             "Fn::GetAtt": Array [
-              "StudioSvcLBSecurityGroup7B90B4C7",
+              "StudioLoadBalancerSecurityGroup260AC42F",
               "GroupId",
             ],
           },
@@ -5458,52 +5254,27 @@ Object {
       },
       "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
     },
-    "StudioSvcLBPublicListener4C14E701": Object {
+    "StudioLoadBalancerListener522B10FC": Object {
       "Properties": Object {
         "DefaultActions": Array [
           Object {
             "TargetGroupArn": Object {
-              "Ref": "StudioSvcLBPublicListenerECSGroup48C5F9E8",
+              "Ref": "StudioTargetGroupC1E0E03D",
             },
             "Type": "forward",
           },
         ],
         "LoadBalancerArn": Object {
-          "Ref": "StudioSvcLBC1B49D6D",
+          "Ref": "StudioLoadBalancer143227F7",
         },
         "Port": 80,
         "Protocol": "HTTP",
       },
       "Type": "AWS::ElasticLoadBalancingV2::Listener",
     },
-    "StudioSvcLBPublicListenerECSGroup48C5F9E8": Object {
+    "StudioLoadBalancerSecurityGroup260AC42F": Object {
       "Properties": Object {
-        "HealthCheckIntervalSeconds": 10,
-        "HealthCheckPath": "/stats",
-        "HealthCheckPort": "9901",
-        "HealthCheckTimeoutSeconds": 5,
-        "Port": 80,
-        "Protocol": "HTTP",
-        "TargetGroupAttributes": Array [
-          Object {
-            "Key": "stickiness.enabled",
-            "Value": "false",
-          },
-          Object {
-            "Key": "deregistration_delay.timeout_seconds",
-            "Value": "30",
-          },
-        ],
-        "TargetType": "ip",
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-    },
-    "StudioSvcLBSecurityGroup7B90B4C7": Object {
-      "Properties": Object {
-        "GroupDescription": "Automatically created Security Group for ELB testStudioSvcLBC5D08617",
+        "GroupDescription": "Automatically created Security Group for ELB testStudioLoadBalancerAB3CC805",
         "SecurityGroupIngress": Array [
           Object {
             "CidrIp": "0.0.0.0/0",
@@ -5519,19 +5290,19 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "StudioSvcLBSecurityGrouptotestStudioSvcServiceSecurityGroup9693329130000CD56DFF": Object {
+    "StudioLoadBalancerSecurityGrouptotestStudioSvcSecurityGroup14C5DC6B3000715EC91C": Object {
       "Properties": Object {
         "Description": "Load balancer to target",
         "DestinationSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "StudioSvcServiceSecurityGroupEF26159E",
+            "StudioSvcSecurityGroupC3E32D42",
             "GroupId",
           ],
         },
         "FromPort": 3000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "StudioSvcLBSecurityGroup7B90B4C7",
+            "StudioLoadBalancerSecurityGroup260AC42F",
             "GroupId",
           ],
         },
@@ -5540,31 +5311,84 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
     },
-    "StudioSvcLBSecurityGrouptotestStudioSvcServiceSecurityGroup9693329199013F517CF1": Object {
+    "StudioLogs5268B2C5": Object {
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "Description": "ALB healthcheck",
-        "DestinationSecurityGroupId": Object {
+        "RetentionInDays": 30,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "StudioSvcCloudmapServiceD5D25A54": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "studio",
+        "NamespaceId": Object {
           "Fn::GetAtt": Array [
-            "StudioSvcServiceSecurityGroupEF26159E",
-            "GroupId",
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
           ],
         },
-        "FromPort": 9901,
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "StudioSvcSecurityGroupC3E32D42": Object {
+      "Properties": Object {
+        "GroupDescription": "test/Studio/Svc/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "StudioSvcSecurityGroupfromtestStudioLoadBalancerSecurityGroup60DC16C830004AFF67BA": Object {
+      "Properties": Object {
+        "Description": "Load balancer to target",
+        "FromPort": 3000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "StudioSvcLBSecurityGroup7B90B4C7",
+            "StudioSvcSecurityGroupC3E32D42",
             "GroupId",
           ],
         },
         "IpProtocol": "tcp",
-        "ToPort": 9901,
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "StudioLoadBalancerSecurityGroup260AC42F",
+            "GroupId",
+          ],
+        },
+        "ToPort": 3000,
       },
-      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "StudioSvcService8A78A16D": Object {
+    "StudioSvcService57CD4A48": Object {
       "DependsOn": Array [
-        "StudioSvcLBPublicListenerECSGroup48C5F9E8",
-        "StudioSvcLBPublicListener4C14E701",
+        "StudioLoadBalancerListener522B10FC",
       ],
       "Properties": Object {
         "CapacityProviderStrategy": Array [
@@ -5600,7 +5424,7 @@ Object {
             "ContainerName": "app",
             "ContainerPort": 3000,
             "TargetGroupArn": Object {
-              "Ref": "StudioSvcLBPublicListenerECSGroup48C5F9E8",
+              "Ref": "StudioTargetGroupC1E0E03D",
             },
           },
         ],
@@ -5610,7 +5434,7 @@ Object {
             "SecurityGroups": Array [
               Object {
                 "Fn::GetAtt": Array [
-                  "StudioSvcServiceSecurityGroupEF26159E",
+                  "StudioSvcSecurityGroupC3E32D42",
                   "GroupId",
                 ],
               },
@@ -5629,7 +5453,7 @@ Object {
           Object {
             "RegistryArn": Object {
               "Fn::GetAtt": Array [
-                "StudioSvcServiceCloudmapServiceFC9B208A",
+                "StudioSvcCloudmapServiceD5D25A54",
                 "Arn",
               ],
             },
@@ -5641,93 +5465,28 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
-    "StudioSvcServiceCloudmapServiceFC9B208A": Object {
+    "StudioTargetGroupC1E0E03D": Object {
       "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "studio",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
-      },
-      "Type": "AWS::ServiceDiscovery::Service",
-    },
-    "StudioSvcServiceSecurityGroupEF26159E": Object {
-      "Properties": Object {
-        "GroupDescription": "test/Studio/Svc/Service/SecurityGroup",
-        "SecurityGroupEgress": Array [
+        "HealthCheckIntervalSeconds": 10,
+        "HealthCheckTimeoutSeconds": 5,
+        "Port": 80,
+        "Protocol": "HTTP",
+        "TargetGroupAttributes": Array [
           Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
+            "Key": "deregistration_delay.timeout_seconds",
+            "Value": "30",
+          },
+          Object {
+            "Key": "stickiness.enabled",
+            "Value": "false",
           },
         ],
+        "TargetType": "ip",
         "VpcId": Object {
           "Ref": "VPCB9E5F0B4",
         },
       },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "StudioSvcServiceSecurityGroupfromtestStudioSvcLBSecurityGroup76CC4F2830006E37ACFB": Object {
-      "Properties": Object {
-        "Description": "Load balancer to target",
-        "FromPort": 3000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioSvcServiceSecurityGroupEF26159E",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioSvcLBSecurityGroup7B90B4C7",
-            "GroupId",
-          ],
-        },
-        "ToPort": 3000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "StudioSvcServiceSecurityGroupfromtestStudioSvcLBSecurityGroup76CC4F289901FD3AB1E3": Object {
-      "Properties": Object {
-        "Description": "ALB healthcheck",
-        "FromPort": 9901,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioSvcServiceSecurityGroupEF26159E",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioSvcLBSecurityGroup7B90B4C7",
-            "GroupId",
-          ],
-        },
-        "ToPort": 9901,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
     },
     "StudioTaskDefinitionExecutionRoleBBC69CFE": Object {
       "Properties": Object {
@@ -5758,7 +5517,7 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "StudioTaskDefinitionappLogGroupD6A01F3C",
+                  "StudioLogs5268B2C5",
                   "Arn",
                 ],
               },
@@ -5783,32 +5542,6 @@ Object {
                 "Ref": "SupabaseJwtSecret4CEDF760",
               },
             },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "StudioTaskDefinitionenvoyLogGroupBF83B5F7",
-                  "Arn",
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "StudioTaskDefinitionxraydaemonLogGroup95EDBB55",
-                  "Arn",
-                ],
-              },
-            },
           ],
           "Version": "2012-10-17",
         },
@@ -5825,16 +5558,24 @@ Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
           Object {
-            "DependsOn": Array [
-              Object {
-                "Condition": "HEALTHY",
-                "ContainerName": "envoy",
-              },
-            ],
             "Environment": Array [
               Object {
                 "Name": "STUDIO_PG_META_URL",
-                "Value": "http://meta.supabase.local:8080",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CDN2330F4C0",
+                          "DomainName",
+                        ],
+                      },
+                      "/pg",
+                    ],
+                  ],
+                },
               },
               Object {
                 "Name": "SUPABASE_URL",
@@ -5878,7 +5619,7 @@ Object {
               "LogDriver": "awslogs",
               "Options": Object {
                 "awslogs-group": Object {
-                  "Ref": "StudioTaskDefinitionappLogGroupD6A01F3C",
+                  "Ref": "StudioLogs5268B2C5",
                 },
                 "awslogs-region": Object {
                   "Ref": "AWS::Region",
@@ -5945,100 +5686,6 @@ Object {
               },
             ],
           },
-          Object {
-            "Cpu": 80,
-            "Environment": Array [
-              Object {
-                "Name": "APPMESH_VIRTUAL_NODE_NAME",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "mesh/",
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "Mesh73A573F6",
-                          "MeshName",
-                        ],
-                      },
-                      "/virtualNode/",
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "StudioVirtualNode46AA78DE",
-                          "VirtualNodeName",
-                        ],
-                      },
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "ENVOY_ADMIN_ACCESS_LOG_FILE",
-                "Value": "/dev/null",
-              },
-              Object {
-                "Name": "ENABLE_ENVOY_XRAY_TRACING",
-                "Value": "1",
-              },
-              Object {
-                "Name": "XRAY_SAMPLING_RATE",
-                "Value": "1.00",
-              },
-            ],
-            "Essential": true,
-            "HealthCheck": Object {
-              "Command": Array [
-                "CMD-SHELL",
-                "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE",
-              ],
-              "Interval": 5,
-              "Retries": 3,
-              "StartPeriod": 10,
-              "Timeout": 2,
-            },
-            "Image": "public.ecr.aws/appmesh/aws-appmesh-envoy:v1.22.2.0-prod",
-            "LogConfiguration": Object {
-              "LogDriver": "awslogs",
-              "Options": Object {
-                "awslogs-group": Object {
-                  "Ref": "StudioTaskDefinitionenvoyLogGroupBF83B5F7",
-                },
-                "awslogs-region": Object {
-                  "Ref": "AWS::Region",
-                },
-                "awslogs-stream-prefix": "ecs",
-              },
-            },
-            "MemoryReservation": 128,
-            "Name": "envoy",
-            "Ulimits": Array [
-              Object {
-                "HardLimit": 1024000,
-                "Name": "nofile",
-                "SoftLimit": 1024000,
-              },
-            ],
-            "User": "1337",
-          },
-          Object {
-            "Cpu": 16,
-            "Essential": true,
-            "Image": "public.ecr.aws/xray/aws-xray-daemon:latest",
-            "LogConfiguration": Object {
-              "LogDriver": "awslogs",
-              "Options": Object {
-                "awslogs-group": Object {
-                  "Ref": "StudioTaskDefinitionxraydaemonLogGroup95EDBB55",
-                },
-                "awslogs-region": Object {
-                  "Ref": "AWS::Region",
-                },
-                "awslogs-stream-prefix": "ecs",
-              },
-            },
-            "MemoryReservation": 64,
-            "Name": "xray-daemon",
-          },
         ],
         "Cpu": "256",
         "ExecutionRoleArn": Object {
@@ -6050,36 +5697,6 @@ Object {
         "Family": "testStudioTaskDefinition574A138A",
         "Memory": "512",
         "NetworkMode": "awsvpc",
-        "ProxyConfiguration": Object {
-          "ContainerName": "envoy",
-          "ProxyConfigurationProperties": Array [
-            Object {
-              "Name": "IgnoredUID",
-              "Value": "1337",
-            },
-            Object {
-              "Name": "IgnoredGID",
-              "Value": "1338",
-            },
-            Object {
-              "Name": "AppPorts",
-              "Value": "3000",
-            },
-            Object {
-              "Name": "ProxyIngressPort",
-              "Value": "15000",
-            },
-            Object {
-              "Name": "ProxyEgressPort",
-              "Value": "15001",
-            },
-            Object {
-              "Name": "EgressIgnoredIPs",
-              "Value": "169.254.170.2,169.254.169.254",
-            },
-          ],
-          "Type": "APPMESH",
-        },
         "RequiresCompatibilities": Array [
           "FARGATE",
         ],
@@ -6109,98 +5726,8 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": Array [
-          "arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess",
-          "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
-        ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "StudioTaskDefinitionappLogGroupD6A01F3C": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "StudioTaskDefinitionenvoyLogGroupBF83B5F7": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "StudioTaskDefinitionxraydaemonLogGroup95EDBB55": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "StudioVirtualNode46AA78DE": Object {
-      "Properties": Object {
-        "MeshName": Object {
-          "Fn::GetAtt": Array [
-            "Mesh73A573F6",
-            "MeshName",
-          ],
-        },
-        "Spec": Object {
-          "Backends": Array [
-            Object {
-              "VirtualService": Object {
-                "VirtualServiceName": "meta.supabase.local",
-              },
-            },
-          ],
-          "Listeners": Array [
-            Object {
-              "PortMapping": Object {
-                "Port": 3000,
-                "Protocol": "http",
-              },
-            },
-          ],
-          "Logging": Object {
-            "AccessLog": Object {
-              "File": Object {
-                "Path": "/dev/stdout",
-              },
-            },
-          },
-          "ServiceDiscovery": Object {
-            "AWSCloudMap": Object {
-              "NamespaceName": "supabase.local",
-              "ServiceName": Object {
-                "Fn::GetAtt": Array [
-                  "StudioSvcServiceCloudmapServiceFC9B208A",
-                  "Name",
-                ],
-              },
-            },
-          },
-        },
-        "VirtualNodeName": "Studio",
-      },
-      "Type": "AWS::AppMesh::VirtualNode",
-    },
-    "StudioVirtualService81E3869F": Object {
-      "Properties": Object {
-        "MeshName": Object {
-          "Fn::GetAtt": Array [
-            "Mesh73A573F6",
-            "MeshName",
-          ],
-        },
-        "Spec": Object {
-          "Provider": Object {
-            "VirtualNode": Object {
-              "VirtualNodeName": Object {
-                "Fn::GetAtt": Array [
-                  "StudioVirtualNode46AA78DE",
-                  "VirtualNodeName",
-                ],
-              },
-            },
-          },
-        },
-        "VirtualServiceName": "studio.supabase.local",
-      },
-      "Type": "AWS::AppMesh::VirtualService",
     },
     "SupabaseJwtSecret4CEDF760": Object {
       "DeletionPolicy": "Delete",
@@ -6446,7 +5973,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "93991e1e75ef47660fd52f30057a1e6e42526460850a9172ec5fd54a71b8e027.zip",
+          "S3Key": "0cc2061e2ca47639da2d372db6de6990f96cb51fdd34f3b08f479f26c674916f.zip",
         },
         "Description": "Supabase - Check state WorkMail Org Function",
         "Environment": Object {
@@ -6501,7 +6028,10 @@ Object {
         "PolicyDocument": Object {
           "Statement": Array [
             Object {
-              "Action": "workmail:DescribeOrganization",
+              "Action": Array [
+                "workmail:DescribeOrganization",
+                "ses:GetIdentityVerificationAttributes",
+              ],
               "Effect": "Allow",
               "Resource": "*",
             },
@@ -7860,6 +7390,30 @@ Object {
         },
       },
       "Type": "AWS::EC2::VPCGatewayAttachment",
+    },
+    "testDBSecretFE622B583fdaad7efa858a3daf9490cf0a702aeb": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Generated by the CDK for stack: ",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+            ],
+          ],
+        },
+        "GenerateSecretString": Object {
+          "ExcludeCharacters": " %+~\`#$&*()|[]{}:;<>?!'/@\\"\\\\",
+          "GenerateStringKey": "password",
+          "PasswordLength": 30,
+          "SecretStringTemplate": "{\\"username\\":\\"supabase_admin\\"}",
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
     },
   },
   "Rules": Object {
