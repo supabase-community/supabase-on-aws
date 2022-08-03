@@ -183,13 +183,13 @@ export class SupabaseService extends Construct {
           containerPort: 2000,
           protocol: ecs.Protocol.UDP,
         }],
-        //healthCheck: {
-        //  command: ['CMD-SHELL', 'netstat -aun | grep 2000 > /dev/null; if [ 0 != $? ]; then exit 1; fi;'],
-        //  interval: cdk.Duration.seconds(5),
-        //  timeout: cdk.Duration.seconds(2),
-        //  startPeriod: cdk.Duration.seconds(10),
-        //  retries: 3,
-        //},
+        healthCheck: {
+          command: ['CMD', '/xray', '--version', '||', 'exit 1'], // https://github.com/aws/aws-xray-daemon/issues/9
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(2),
+          startPeriod: cdk.Duration.seconds(10),
+          retries: 3,
+        },
         logging,
       });
 
