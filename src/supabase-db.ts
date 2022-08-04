@@ -23,11 +23,12 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       version: rds.AuroraPostgresEngineVersion.of('14.3', '14'),
     });
 
-    // https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.Replication.Logical.html
     const parameterGroup = new rds.ParameterGroup(scope, 'ParameterGroup', {
       engine,
       description: `Supabase parameter group for aurora-postgresql ${engine.engineVersion?.majorVersion}`,
       parameters: {
+        'shared_preload_libraries': 'pg_stat_statements, pgaudit, pg_cron',
+        // Logical Replication - https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.Replication.Logical.html
         'rds.logical_replication': '1',
         'max_replication_slots': '5', // Default Aurora:20, Supabase:5
         'max_wal_senders': '10', // Default Aurora:20, Supabase:10

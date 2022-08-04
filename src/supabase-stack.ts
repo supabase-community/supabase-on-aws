@@ -136,10 +136,12 @@ export class SupabaseStack extends Stack {
           DB_SSL: 'false',
           PORT: '4000',
           REPLICATION_MODE: 'RLS',
-          REPLICATION_POLL_INTERVAL: '100',
+          REPLICATION_POLL_INTERVAL: '300', // for RLS
+          SUBSCRIPTION_SYNC_INTERVAL: '60000', // for RLS
           SECURE_CHANNELS: 'true',
           SLOT_NAME: 'realtime_rls',
           TEMPORARY_SLOT: 'true',
+          MAX_REPLICATION_LAG_MB: '1000',
         },
         secrets: {
           JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
