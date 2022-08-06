@@ -256,7 +256,7 @@ export class SupabaseStack extends Stack {
     const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studio.loadBalancer! });
 
     new CfnOutput(this, 'Url', { value: `https://${cdn.domainName}` });
-    new CfnOutput(this, 'Studio', { value: `https://${studioCdn.domainName}` });
+    new CfnOutput(this, 'StudioUrl', { value: `https://${studioCdn.domainName}` });
 
   }
 }
