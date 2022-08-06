@@ -11,6 +11,9 @@ import { SupabaseMailBase } from './supabase-mail';
 interface SupabaseServiceProps {
   cluster: ecs.ICluster;
   containerDefinition: ecs.ContainerDefinitionOptions;
+  cpu?: number;
+  memory?: number;
+  cpuArchitecture?: ecs.CpuArchitecture;
   withLoadBalancer?: 'Network'|'Application';
   mesh?: appmesh.Mesh;
 }
@@ -27,7 +30,8 @@ export class SupabaseService extends Construct {
     super(scope, id);
 
     const serviceName = id.toLowerCase();
-    const { cluster, containerDefinition, withLoadBalancer, mesh } = props;
+    const { cluster, containerDefinition, cpu, memory, withLoadBalancer, mesh } = props;
+    const cpuArchitecture = props.cpuArchitecture || ecs.CpuArchitecture.ARM64;
     const vpc = cluster.vpc;
 
     this.listenerPort = containerDefinition.portMappings![0].containerPort;
@@ -46,9 +50,9 @@ export class SupabaseService extends Construct {
     });
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDefinition', {
-      runtimePlatform: {
-        cpuArchitecture: ecs.CpuArchitecture.ARM64,
-      },
+      cpu,
+      memoryLimitMiB: memory,
+      runtimePlatform: { cpuArchitecture },
       proxyConfiguration,
     });
 

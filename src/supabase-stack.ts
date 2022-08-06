@@ -4,6 +4,7 @@ import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as xray from 'aws-cdk-lib/aws-xray';
 import { Construct } from 'constructs';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
@@ -19,7 +20,12 @@ export class SupabaseStack extends Stack {
 
     const mesh = new appmesh.Mesh(this, 'Mesh', {
       meshName: this.stackName,
-      egressFilter: appmesh.MeshFilterType.DROP_ALL,
+      egressFilter: appmesh.MeshFilterType.ALLOW_ALL,
+    });
+    new xray.CfnGroup(this, 'XrayGroup', {
+      groupName: mesh.meshName,
+      filterExpression: `annotation.node_id BEGINSWITH "mesh/${mesh.meshName}/"`,
+      insightsConfiguration: { insightsEnabled: true },
     });
 
     const cluster = new ecs.Cluster(this, 'Cluster', {
@@ -76,7 +82,7 @@ export class SupabaseStack extends Stack {
           GOTRUE_API_PORT: '9999',
           API_EXTERNAL_URL: `https://${cdn.domainName}`,
           GOTRUE_DB_DRIVER: 'postgres',
-          GOTRUE_SITE_URL: `http://${kong.loadBalancer?.loadBalancerDnsName}`,
+          GOTRUE_SITE_URL: 'http://localhost:3000',
           GOTRUE_URI_ALLOW_LIST: '',
           GOTRUE_DISABLE_SIGNUP: 'false',
           // JWT
@@ -164,8 +170,8 @@ export class SupabaseStack extends Stack {
     const storage = new SupabaseService(this, 'Storage', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry('supabase/storage-api:v0.18.6'),
-        portMappings: [{ containerPort: 8080 }],
+        image: ecs.ContainerImage.fromRegistry('supabase/storage-api:v0.18.7'),
+        portMappings: [{ containerPort: 5000 }],
         environment: {
           POSTGREST_URL: 'http://rest.supabase.local:3000',
           PGOPTIONS: '-c search_path=storage,public',
@@ -184,6 +190,7 @@ export class SupabaseStack extends Stack {
           DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
         },
       },
+      cpuArchitecture: ecs.CpuArchitecture.X86_64,
       mesh,
     });
     bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
@@ -249,7 +256,7 @@ export class SupabaseStack extends Stack {
     const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studio.loadBalancer! });
 
     new CfnOutput(this, 'Url', { value: `https://${cdn.domainName}` });
-    new CfnOutput(this, 'StudioUrl', { value: `https://${studioCdn.domainName}` });
+    new CfnOutput(this, 'Studio', { value: `https://${studioCdn.domainName}` });
 
   }
 }
