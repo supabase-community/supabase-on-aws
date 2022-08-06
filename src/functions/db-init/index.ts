@@ -25,7 +25,7 @@ const getConfig = async (secretId: string): Promise<ConnectionPoolConfig> => {
     port: Number(secret.port),
     user: secret.username,
     password: secret.password,
-    database: secret.dbname,
+    database: secret.dbname || 'postgres',
     ssl: 'disable',
   };
   return config;
