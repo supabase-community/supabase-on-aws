@@ -190,7 +190,8 @@ export class SupabaseStack extends Stack {
           DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
         },
       },
-      cpuArchitecture: ecs.CpuArchitecture.X86_64,
+      memory: 1024, // patch for supabase-storage
+      cpuArchitecture: ecs.CpuArchitecture.X86_64, // patch for supabase-storage
       mesh,
     });
     bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
