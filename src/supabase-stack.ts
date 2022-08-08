@@ -71,7 +71,7 @@ export class SupabaseStack extends Stack {
     });
 
     const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kong.loadBalancer! });
-    kong.service.connections.allowFrom(Peer.prefixList('pl-82a045eb'), Port.tcp(kong.listenerPort), 'CloudFront');
+    kong.ecsService.connections.allowFrom(Peer.prefixList('pl-82a045eb'), Port.tcp(kong.listenerPort), 'CloudFront');
 
     const auth = new SupabaseService(this, 'Auth', {
       cluster,
@@ -195,7 +195,7 @@ export class SupabaseStack extends Stack {
       cpuArchitecture: ecs.CpuArchitecture.X86_64, // patch for supabase-storage
       mesh,
     });
-    bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
+    bucket.grantReadWrite(storage.ecsService.taskDefinition.taskRole);
 
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
@@ -223,9 +223,8 @@ export class SupabaseStack extends Stack {
     kong.addBackend(meta);
 
     auth.addBackend(rest);
-    storage.addBackend(rest);
-
     auth.addExternalBackend(mail);
+    storage.addBackend(rest);
 
     auth.addDatabaseBackend(db);
     rest.addDatabaseBackend(db);

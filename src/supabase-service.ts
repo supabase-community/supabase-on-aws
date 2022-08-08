@@ -21,7 +21,7 @@ interface SupabaseServiceProps {
 export class SupabaseService extends Construct {
   listenerPort: number;
   internalDnsName: string;
-  service: ecs.FargateService;
+  ecsService: ecs.FargateService;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
   loadBalancer?: elb.BaseLoadBalancer;
@@ -70,7 +70,7 @@ export class SupabaseService extends Construct {
     });
     appContainer.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 65536, hardLimit: 65536 });
 
-    this.service = new ecs.FargateService(this, 'Svc', {
+    this.ecsService = new ecs.FargateService(this, 'Svc', {
       cluster,
       taskDefinition,
       circuitBreaker: { rollback: true },
@@ -85,17 +85,17 @@ export class SupabaseService extends Construct {
       healthCheckGracePeriod: (typeof withLoadBalancer == 'undefined') ? undefined : cdk.Duration.seconds(10),
     });
 
-    this.internalDnsName = `${this.service.cloudMapService?.serviceName}.${this.service.cloudMapService?.namespace.namespaceName}`;
+    this.internalDnsName = `${this.ecsService.cloudMapService?.serviceName}.${this.ecsService.cloudMapService?.namespace.namespaceName}`;
 
     if (withLoadBalancer == 'Network') {
       const vpcInternal = ec2.Peer.ipv4(cluster.vpc.vpcCidrBlock);
       const healthCheckPort = ec2.Port.tcp(containerDefinition.portMappings!.slice(-1)[0].containerPort);
-      this.service.connections.allowFrom(vpcInternal, healthCheckPort, 'NLB healthcheck');
+      this.ecsService.connections.allowFrom(vpcInternal, healthCheckPort, 'NLB healthcheck');
 
       const targetGroup = new elb.NetworkTargetGroup(this, 'TargetGroup', {
         port: 80,
         targets: [
-          this.service.loadBalancerTarget({ containerName: 'app' }),
+          this.ecsService.loadBalancerTarget({ containerName: 'app' }),
         ],
         healthCheck: {
           port: healthCheckPort.toString(),
@@ -115,7 +115,7 @@ export class SupabaseService extends Construct {
       const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
         port: 80,
         targets: [
-          this.service.loadBalancerTarget({ containerName: 'app' }),
+          this.ecsService.loadBalancerTarget({ containerName: 'app' }),
         ],
         healthCheck: {
           interval: cdk.Duration.seconds(10),
@@ -135,7 +135,7 @@ export class SupabaseService extends Construct {
     if (typeof mesh != 'undefined') {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
         virtualNodeName: id,
-        serviceDiscovery: appmesh.ServiceDiscovery.cloudMap(this.service.cloudMapService!),
+        serviceDiscovery: appmesh.ServiceDiscovery.cloudMap(this.ecsService.cloudMapService!),
         listeners: [appmesh.VirtualNodeListener.http({ port: this.listenerPort })],
         accessLog: appmesh.AccessLog.fromFilePath('/dev/stdout'),
         mesh,
@@ -201,14 +201,14 @@ export class SupabaseService extends Construct {
 
   }
   addBackend(backend: SupabaseService) {
-    this.service.connections.allowTo(backend.service, ec2.Port.tcp(backend.listenerPort));
+    this.ecsService.connections.allowTo(backend.ecsService, ec2.Port.tcp(backend.listenerPort));
     if (typeof backend.virtualService != 'undefined') {
       this.virtualNode?.addBackend(appmesh.Backend.virtualService(backend.virtualService));
     }
   }
 
   addDatabaseBackend(backend: SupabaseDatabase) {
-    this.service.connections.allowToDefaultPort(backend);
+    this.ecsService.connections.allowToDefaultPort(backend);
     if (typeof backend.virtualService != 'undefined') {
       this.virtualNode?.addBackend(appmesh.Backend.virtualService(backend.virtualService));
     }
