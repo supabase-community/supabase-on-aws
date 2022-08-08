@@ -18,6 +18,7 @@ export class SupabaseStack extends Stack {
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
+    //const mesh = undefined; // for AppMesh disabled
     const mesh = new appmesh.Mesh(this, 'Mesh', {
       meshName: this.stackName,
       egressFilter: appmesh.MeshFilterType.ALLOW_ALL,
