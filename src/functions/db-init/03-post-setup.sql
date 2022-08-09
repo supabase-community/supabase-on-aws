@@ -1,4 +1,4 @@
-ALTER ROLE postgres SET search_path TO "\$user",public,extensions;
+ALTER ROLE postgres SET search_path TO "$user",public,extensions;
 CREATE OR REPLACE FUNCTION extensions.notify_api_restart()
 RETURNS event_trigger
 LANGUAGE plpgsql
