@@ -20,11 +20,11 @@ interface SupabaseServiceProps {
 
 export class SupabaseService extends Construct {
   listenerPort: number;
-  internalDnsName: string;
   ecsService: ecs.FargateService;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
   loadBalancer?: elb.BaseLoadBalancer;
+  internalDnsName?: string;
 
   constructor(scope: Construct, id: string, props: SupabaseServiceProps) {
     super(scope, id);
@@ -85,7 +85,14 @@ export class SupabaseService extends Construct {
       healthCheckGracePeriod: (typeof withLoadBalancer == 'undefined') ? undefined : cdk.Duration.seconds(10),
     });
 
-    this.internalDnsName = `${this.ecsService.cloudMapService?.serviceName}.${this.ecsService.cloudMapService?.namespace.namespaceName}`;
+    const autoscaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 20 });
+    autoscaling.scaleOnCpuUtilization('ScaleOnCpu', {
+      targetUtilizationPercent: 60,
+      scaleInCooldown: cdk.Duration.seconds(60),
+      scaleOutCooldown: cdk.Duration.seconds(60),
+    });
+
+    this.internalDnsName = (typeof this.ecsService.cloudMapService != 'undefined') ? `${this.ecsService.cloudMapService.serviceName}.${this.ecsService.cloudMapService.namespace.namespaceName}` : undefined;
 
     if (withLoadBalancer == 'Network') {
       const vpcInternal = ec2.Peer.ipv4(cluster.vpc.vpcCidrBlock);
