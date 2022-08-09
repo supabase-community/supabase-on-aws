@@ -7,6 +7,11 @@ import * as rds from 'aws-cdk-lib/aws-rds';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
+// Support for Aurora Serverless v2
+enum ServerlessInstanceType { SERVERLESS = 'serverless' }
+type CustomInstanceType = ServerlessInstanceType | ec2.InstanceType;
+const CustomInstanceType = { ...ServerlessInstanceType, ...ec2.InstanceType };
+
 interface SupabaseDatabaseProps {
   vpc: ec2.IVpc;
   mesh?: appmesh.IMesh;
@@ -47,12 +52,46 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       storageEncrypted: true,
       instances: 1,
       instanceProps: {
-        instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MEDIUM),
+        //instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MEDIUM),
+        instanceType: CustomInstanceType.SERVERLESS as unknown as ec2.InstanceType,
+        enablePerformanceInsights: true,
         vpc,
       },
       credentials: rds.Credentials.fromGeneratedSecret('supabase_admin'),
       defaultDatabaseName: 'postgres',
     });
+
+    // Support for Aurora Serverless v2 ---------------------------------------------------
+    const serverlessV2ScalingConfiguration = {
+      MinCapacity: 0.5,
+      MaxCapacity: 16,
+    };
+    const dbScalingConfigure = new cr.AwsCustomResource(this, 'DbScalingConfigure', {
+      resourceType: 'Custom::AuroraServerlessV2ScalingConfiguration',
+      onCreate: {
+        service: 'RDS',
+        action: 'modifyDBCluster',
+        parameters: {
+          DBClusterIdentifier: this.clusterIdentifier,
+          ServerlessV2ScalingConfiguration: serverlessV2ScalingConfiguration,
+        },
+        physicalResourceId: cr.PhysicalResourceId.of(this.clusterIdentifier),
+      },
+      onUpdate: {
+        service: 'RDS',
+        action: 'modifyDBCluster',
+        parameters: {
+          DBClusterIdentifier: this.clusterIdentifier,
+          ServerlessV2ScalingConfiguration: serverlessV2ScalingConfiguration,
+        },
+        physicalResourceId: cr.PhysicalResourceId.of(this.clusterIdentifier),
+      },
+      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
+        resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
+      }),
+    });
+    dbScalingConfigure.node.addDependency(this.node.findChild('Instance1'));
+    // Support for Aurora Serverless v2 ---------------------------------------------------
 
     const urlGeneratorFunction = new NodejsFunction(this, 'UrlGeneratorFunction', {
       description: 'Supabase - Database URL generator function',
