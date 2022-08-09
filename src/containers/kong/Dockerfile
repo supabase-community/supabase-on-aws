@@ -1,9 +1,11 @@
 FROM --platform=linux/amd64 public.ecr.aws/docker/library/kong:2.8 AS build
 
+ARG CPU_ARCHITECTURE=arm64 # arm64 or x86_64
+
 USER root
 
 RUN apk update && apk add curl
-RUN curl -L https://github.com/a8m/envsubst/releases/download/v1.2.0/envsubst-Linux-arm64 -o /tmp/envsubst && chmod +x /tmp/envsubst
+RUN curl -L https://github.com/a8m/envsubst/releases/download/v1.2.0/envsubst-Linux-${CPU_ARCHITECTURE} -o /tmp/envsubst && chmod +x /tmp/envsubst
 RUN sed -i 1a"envsubst -i /home/kong/kong-template.yml -o /home/kong/kong.yml" /docker-entrypoint.sh
 
 FROM public.ecr.aws/docker/library/kong:2.8
