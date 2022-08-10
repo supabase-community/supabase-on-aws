@@ -31,15 +31,14 @@ jobs:
           role-to-assume: ${{ secrets.ECR_PUBLIC_ROLE }}
           aws-region: us-east-1
 
-      - name: sam publish
+      - name: Login to ECR Public
         run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ env.ECR_PUBLIC_REGISTRY }}
 
       #- name: Extract metadata (tags, labels) for Docker
       #  id: meta
       #  uses: docker/metadata-action@v4
       #  with:
-      #    images: |
-      #      ${{ env.REPO_URI }}
+      #    images: ${{ env.ECR_PUBLIC_REGISTRY }}/${{ env.IMAGE_NAME }}
       #    flavor: |
       #      latest=true
       #    tags: |
