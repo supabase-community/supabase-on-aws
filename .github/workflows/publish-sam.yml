@@ -33,8 +33,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --check-files
 
-      - name: cdk build
-        run: npx projen build
+      #- name: cdk build
+      #  run: npx projen build
 
       - name: cdk synth
         run: $(npm bin)/cdk synth --build --no-staging --no-version-reporting --json | jq 'del(.Rules.CheckBootstrapVersion)' |  jq 'del(.Parameters.BootstrapVersion)' > template.json
