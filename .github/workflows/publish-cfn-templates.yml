@@ -28,7 +28,7 @@ jobs:
       #  run: npx projen build
 
       - name: cdk synth
-        run: $(npm bin)/cdk synth --build --no-version-reporting
+        run: $(npm bin)/cdk synth --no-version-reporting
         env:
           BSS_TEMPLATE_BUCKET_NAME: supabase-on-aws
           BSS_FILE_ASSET_BUCKET_NAME: 'supabase-on-aws-assets-${AWS::Region}'
