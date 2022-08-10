@@ -5,7 +5,8 @@ on:
       - main
   workflow_dispatch: {}
 env:
-  REPO_URI: public.ecr.aws/mats/supabase-kong
+  ECR_PUBLIC_REGISTRY: public.ecr.aws/mats
+  IMAGE_NAME: supabase-kong
 
 jobs:
   ecr_public:
@@ -30,6 +31,9 @@ jobs:
           role-to-assume: ${{ secrets.ECR_PUBLIC_ROLE }}
           aws-region: us-east-1
 
+      - name: sam publish
+        run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ env.ECR_PUBLIC_REGISTRY }}
+
       #- name: Extract metadata (tags, labels) for Docker
       #  id: meta
       #  uses: docker/metadata-action@v4
@@ -48,4 +52,4 @@ jobs:
           file: ./src/containers/kong/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REPO_URI }}:latest
+          tags: ${{ env.ECR_PUBLIC_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
