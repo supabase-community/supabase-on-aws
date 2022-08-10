@@ -1,0 +1,52 @@
+name: publish
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+env:
+  AWS_REGION : us-west-2
+  BUCKET_NAME: mats-toolbox
+  APPLICATION_NAME: supabase-on-aws
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # needed to interact with GitHub's OIDC Token endpoint.
+      contents: read
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.SAM_PUBLISH_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: node.js setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: yarn install --check-files
+
+      #- name: cdk build
+      #  run: npx projen build
+
+      - name: cdk synth
+        run: $(npm bin)/cdk synth --build --no-staging --no-version-reporting --json | jq 'del(.Rules.CheckBootstrapVersion)' |  jq 'del(.Parameters.BootstrapVersion)' > template.json
+
+      - name: sam build
+        run: sam build -t template.json
+
+      - name: sam package
+        run: sam package --s3-bucket ${{ env.BUCKET_NAME }} --s3-prefix ${{ env.APPLICATION_NAME }}/sam-assets --output-template-file output-template.yaml
+
+      - name: sam publish
+        run: sam publish --template-file output-template.yaml
+
+      - name: template publish
+        run: aws s3 cp ./output-template.yaml s3://${{ env.BUCKET_NAME }}/${{ env.APPLICATION_NAME }}/latest/template.yaml --acl public-read
