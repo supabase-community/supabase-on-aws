@@ -12,7 +12,7 @@ export class SamMetadata extends Construct {
         Description: 'Self-hosted Supabase on AWS',
         Author: 'mats',
         SpdxLicenseId: 'Apache-2.0',
-        LicenseUrl: 'LICENSE.txt',
+        LicenseUrl: 'LICENSE',
         ReadmeUrl: 'README.md',
         HomePageUrl: 'https://github.com/mats16/supabase-on-aws',
         SourceCodeUrl: 'https://github.com/mats16/supabase-on-aws',
