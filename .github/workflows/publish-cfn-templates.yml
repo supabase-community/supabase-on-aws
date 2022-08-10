@@ -12,6 +12,12 @@ jobs:
       id-token: write # needed to interact with GitHub's OIDC Token endpoint.
       contents: read
     steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.FILE_PUBLISHING_ROLE }}
+          aws-region: us-east-1
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -33,12 +39,6 @@ jobs:
           BSS_FILE_ASSET_BUCKET_NAME: 'supabase-on-aws-assets-${AWS::Region}'
           #BSS_FILE_ASSET_REGION_SET: us-east-1
           BSS_FILE_ASSET_PREFIX: latest/
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: ${{ secrets.FILE_PUBLISHING_ROLE }}
-          aws-region: us-west-2
 
       - name: Publish assets
         run: npx cdk-assets publish -p cdk.out/Supabase.assets.json -v
