@@ -1,4 +1,4 @@
-name: publish
+name: SAM Publish
 on:
   push:
     branches:
@@ -38,6 +38,9 @@ jobs:
 
       - name: cdk synth
         run: $(npm bin)/cdk synth --build --no-staging --no-version-reporting --json | jq 'del(.Rules.CheckBootstrapVersion)' |  jq 'del(.Parameters.BootstrapVersion)' > template.json
+
+      - name: test
+        run: template.json
 
       - name: sam build
         run: sam build -t template.json
