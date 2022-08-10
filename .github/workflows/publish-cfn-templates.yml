@@ -36,7 +36,7 @@ jobs:
         run: $(npm bin)/cdk synth --build --no-version-reporting
         env:
           BSS_TEMPLATE_BUCKET_NAME: supabase-on-aws
-          BSS_FILE_ASSET_BUCKET_NAME: 'supabase-on-aws-assets-\${AWS::Region}'
+          BSS_FILE_ASSET_BUCKET_NAME: 'supabase-on-aws-assets-${AWS::Region}'
           BSS_FILE_ASSET_REGION_SET: us-east-1,us-west-2
           BSS_FILE_ASSET_PREFIX: latest/
 
