@@ -37,7 +37,12 @@ jobs:
       #  run: npx projen build
 
       - name: cdk synth
-        run: $(npm bin)/cdk synth --toolkit-bucket-name ${{ env.BUCKET_NAME }} --build --no-staging --no-version-reporting --json | jq 'del(.Rules.CheckBootstrapVersion)' |  jq 'del(.Parameters.BootstrapVersion)' > template.json
+        run: $(npm bin)/cdk synth --build --no-version-reporting
+        env:
+          BSS_TEMPLATE_BUCKET_NAME: supabase-on-aws
+          BSS_FILE_ASSET_BUCKET_NAME: supabase-on-aws
+          BSS_FILE_ASSET_REGION_SET: 'us-east-1,us-west-2,ap-north-east-1'
+          BSS_FILE_ASSET_PREFIX: 'assets/latest/'
 
-      - name: template publish
-        run: aws s3 cp ./template.json s3://${{ env.BUCKET_NAME }}/us-west-2/template.json --acl public-read
+      - name: Publish assets
+        run: npx cdk-assets publish -p cdk.out/Supabase.assets.json -v

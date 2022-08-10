@@ -10,6 +10,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     '@aws-sdk/client-workmail',
     '@databases/pg',
     '@types/aws-lambda',
+    'cdk-bootstrapless-synthesizer@^2.2.2',
     'jsonwebtoken@^8.5.1',
   ],
   devDeps: [

@@ -109,6 +109,11 @@
       "type": "runtime"
     },
     {
+      "name": "cdk-bootstrapless-synthesizer",
+      "version": "^2.2.2",
+      "type": "runtime"
+    },
+    {
       "name": "constructs",
       "version": "^10.0.5",
       "type": "runtime"
