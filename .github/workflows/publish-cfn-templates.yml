@@ -42,7 +42,6 @@ jobs:
           BSS_TEMPLATE_BUCKET_NAME: supabase-on-aws
           BSS_FILE_ASSET_BUCKET_NAME: supabase-on-aws
           BSS_FILE_ASSET_REGION_SET: 'us-east-1,us-west-2,ap-north-east-1'
-          BSS_FILE_ASSET_PREFIX: 'assets/\${AWS::Region}/'
 
       - name: Publish assets
         run: npx cdk-assets publish -p cdk.out/Supabase.assets.json -v

@@ -6,7 +6,11 @@ const env = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEFAULT_REGION,
 };
-const synthesizer = (typeof process.env.BSS_TEMPLATE_BUCKET_NAME == 'undefined') ? undefined : new BootstraplessStackSynthesizer();
+const synthesizer = (typeof process.env.BSS_TEMPLATE_BUCKET_NAME == 'undefined')
+  ? undefined
+  : new BootstraplessStackSynthesizer({
+    fileAssetPrefix: 'assets/${AWS::Region}/',
+  });
 
 const app = new App();
 
