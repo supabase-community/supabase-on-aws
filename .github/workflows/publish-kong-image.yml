@@ -44,7 +44,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ./src/containers/kong
           file: ./src/containers/kong/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
