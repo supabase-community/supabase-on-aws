@@ -6,7 +6,6 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as xray from 'aws-cdk-lib/aws-xray';
 import { Construct } from 'constructs';
-import { SamMetadata } from './sam-metadata';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwtSecret } from './supabase-jwt-secret';
@@ -16,8 +15,6 @@ import { SupabaseService } from './supabase-service';
 export class SupabaseStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
     super(scope, id, props);
-
-    new SamMetadata(this, 'SamMetadata');
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
