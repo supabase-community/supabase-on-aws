@@ -8,9 +8,7 @@ const env = {
 };
 const synthesizer = (typeof process.env.BSS_TEMPLATE_BUCKET_NAME == 'undefined')
   ? undefined
-  : new BootstraplessStackSynthesizer({
-    fileAssetPrefix: 'assets/${AWS::Region}/',
-  });
+  : new BootstraplessStackSynthesizer();
 
 const app = new App();
 
