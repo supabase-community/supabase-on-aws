@@ -8,9 +8,7 @@ const env = {
 };
 const synthesizer = (typeof process.env.BSS_TEMPLATE_BUCKET_NAME == 'undefined')
   ? undefined
-  : new BootstraplessStackSynthesizer({
-    fileAssetRegionSet: ['us-east-1'],
-  });
+  : new BootstraplessStackSynthesizer();
 
 const app = new App();
 

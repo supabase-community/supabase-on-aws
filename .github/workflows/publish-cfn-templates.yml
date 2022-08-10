@@ -32,14 +32,14 @@ jobs:
         env:
           BSS_TEMPLATE_BUCKET_NAME: supabase-on-aws
           BSS_FILE_ASSET_BUCKET_NAME: 'supabase-on-aws-assets-${AWS::Region}'
-          #BSS_FILE_ASSET_REGION_SET: us-east-1
+          #BSS_FILE_ASSET_REGION_SET: us-east-1, us-west-2
           BSS_FILE_ASSET_PREFIX: latest/
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: ${{ secrets.FILE_PUBLISHING_ROLE }}
-          aws-region: us-east-1
+          aws-region: us-west-2
 
       - name: Publish assets
         run: npx cdk-assets publish -p cdk.out/Supabase.assets.json -v
