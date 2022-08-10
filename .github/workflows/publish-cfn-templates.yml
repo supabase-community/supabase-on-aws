@@ -4,10 +4,6 @@ on:
     branches:
       - main
   workflow_dispatch: {}
-env:
-  AWS_REGION : us-west-2
-  BUCKET_NAME: supabase-on-aws
-  APPLICATION_NAME: supabase-on-aws
 
 jobs:
   publish:
@@ -20,7 +16,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: ${{ secrets.FILE_PUBLISHING_ROLE }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-west-2
 
       - name: Checkout
         uses: actions/checkout@v2
