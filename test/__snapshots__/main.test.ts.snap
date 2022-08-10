@@ -96,6 +96,19 @@ Object {
       },
     },
   },
+  "Metadata": Object {
+    "AWS::ServerlessRepo::Application": Object {
+      "Author": "mats",
+      "Description": "Self-hosted Supabase on AWS",
+      "HomePageUrl": "https://github.com/mats16/supabase-on-aws",
+      "LicenseUrl": "LICENSE.txt",
+      "Name": "Supabase",
+      "ReadmeUrl": "README.md",
+      "SemanticVersion": "0.0.1",
+      "SourceCodeUrl": "https://github.com/mats16/supabase-on-aws",
+      "SpdxLicenseId": "Apache-2.0",
+    },
+  },
   "Outputs": Object {
     "StudioUrl": Object {
       "Value": Object {
@@ -138,6 +151,60 @@ Object {
     },
   },
   "Resources": Object {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": Object {
+      "DependsOn": Array [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "6dbd112fe448437b3438da4382c72fccbb7d2ee1543db222620d7447fffebc50.zip",
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
     "AuthLogs940C0551": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
@@ -279,6 +346,67 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
+    "AuthSvcTaskCountTarget3EF5C75D": Object {
+      "Properties": Object {
+        "MaxCapacity": 20,
+        "MinCapacity": 1,
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "AuthSvcServiceDAF53F1D",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "AuthSvcTaskCountTargetScaleOnCpuABE2CBF4": Object {
+      "Properties": Object {
+        "PolicyName": "testAuthSvcTaskCountTargetScaleOnCpu3881E5C2",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "AuthSvcTaskCountTarget3EF5C75D",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 60,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+    },
     "AuthTaskDefinitionDBEE261E": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
@@ -321,20 +449,7 @@ Object {
               },
               Object {
                 "Name": "GOTRUE_SITE_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "http://",
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "KongLoadBalancerD341ED7C",
-                          "DNSName",
-                        ],
-                      },
-                    ],
-                  ],
-                },
+                "Value": "http://localhost:3000",
               },
               Object {
                 "Name": "GOTRUE_URI_ALLOW_LIST",
@@ -604,6 +719,19 @@ Object {
           Object {
             "Cpu": 16,
             "Essential": true,
+            "HealthCheck": Object {
+              "Command": Array [
+                "CMD",
+                "/xray",
+                "--version",
+                "||",
+                "exit 1",
+              ],
+              "Interval": 5,
+              "Retries": 3,
+              "StartPeriod": 10,
+              "Timeout": 2,
+            },
             "Image": "public.ecr.aws/xray/aws-xray-daemon:latest",
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -1111,6 +1239,80 @@ Object {
       "Type": "AWS::RDS::DBCluster",
       "UpdateReplacePolicy": "Snapshot",
     },
+    "DBDbScalingConfigure04B4B71C": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DBDbScalingConfigureCustomResourcePolicyF2936DB8",
+        "DBInstance17EB9EC72",
+      ],
+      "Properties": Object {
+        "Create": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{\\"service\\":\\"RDS\\",\\"action\\":\\"modifyDBCluster\\",\\"parameters\\":{\\"DBClusterIdentifier\\":\\"",
+              Object {
+                "Ref": "DB4924F778",
+              },
+              "\\",\\"ServerlessV2ScalingConfiguration\\":{\\"MinCapacity\\":0.5,\\"MaxCapacity\\":16}},\\"physicalResourceId\\":{\\"id\\":\\"",
+              Object {
+                "Ref": "DB4924F778",
+              },
+              "\\"}}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": true,
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{\\"service\\":\\"RDS\\",\\"action\\":\\"modifyDBCluster\\",\\"parameters\\":{\\"DBClusterIdentifier\\":\\"",
+              Object {
+                "Ref": "DB4924F778",
+              },
+              "\\",\\"ServerlessV2ScalingConfiguration\\":{\\"MinCapacity\\":0.5,\\"MaxCapacity\\":16}},\\"physicalResourceId\\":{\\"id\\":\\"",
+              Object {
+                "Ref": "DB4924F778",
+              },
+              "\\"}}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AuroraServerlessV2ScalingConfiguration",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DBDbScalingConfigureCustomResourcePolicyF2936DB8": Object {
+      "DependsOn": Array [
+        "DBInstance17EB9EC72",
+      ],
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "rds:ModifyDBCluster",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DBDbScalingConfigureCustomResourcePolicyF2936DB8",
+        "Roles": Array [
+          Object {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "DBInitC726DE70": Object {
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
@@ -1146,7 +1348,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "0a5b6ac40ccd795d279a48bbc7f26432f5b720267039bf59c2b3cfd6f44d0135.zip",
+          "S3Key": "3d98dbe1c85d5f91d501e1d6549aacba383d6e3005515f2db34387727b31ac2a.zip",
         },
         "Description": "Supabase - Database init function",
         "Environment": Object {
@@ -1387,12 +1589,14 @@ Object {
         "DBClusterIdentifier": Object {
           "Ref": "DB4924F778",
         },
-        "DBInstanceClass": "db.t4g.medium",
+        "DBInstanceClass": "db.serverless",
         "DBSubnetGroupName": Object {
           "Ref": "DBSubnets7B70DA43",
         },
+        "EnablePerformanceInsights": true,
         "Engine": "aurora-postgresql",
         "EngineVersion": "14.3",
+        "PerformanceInsightsRetentionPeriod": 7,
       },
       "Type": "AWS::RDS::DBInstance",
       "UpdateReplacePolicy": "Delete",
@@ -2124,6 +2328,67 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
+    "KongSvcTaskCountTargetD123B28B": Object {
+      "Properties": Object {
+        "MaxCapacity": 20,
+        "MinCapacity": 1,
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "KongSvcServiceE14A19D7",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "KongSvcTaskCountTargetScaleOnCpu8A2BCD73": Object {
+      "Properties": Object {
+        "PolicyName": "testKongSvcTaskCountTargetScaleOnCpuFB5C8C0C",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "KongSvcTaskCountTargetD123B28B",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 60,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+    },
     "KongTargetGroupD0277B2A": Object {
       "Properties": Object {
         "HealthCheckIntervalSeconds": 10,
@@ -2182,9 +2447,7 @@ Object {
               "Retries": 3,
               "Timeout": 10,
             },
-            "Image": Object {
-              "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:4caf2cf98bd2ac54cac51cde120019576b434c9a3f41e40bc5cc4fb286c3314d",
-            },
+            "Image": "public.ecr.aws/mats/supabase-kong:latest",
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
               "Options": Object {
@@ -2324,6 +2587,19 @@ Object {
           Object {
             "Cpu": 16,
             "Essential": true,
+            "HealthCheck": Object {
+              "Command": Array [
+                "CMD",
+                "/xray",
+                "--version",
+                "||",
+                "exit 1",
+              ],
+              "Interval": 5,
+              "Retries": 3,
+              "StartPeriod": 10,
+              "Timeout": 2,
+            },
             "Image": "public.ecr.aws/xray/aws-xray-daemon:latest",
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -2424,42 +2700,6 @@ Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
-            Object {
-              "Action": Array [
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:BatchGetImage",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":ecr:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":repository/",
-                    Object {
-                      "Fn::Sub": "cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}",
-                    },
-                  ],
-                ],
-              },
-            },
-            Object {
-              "Action": "ecr:GetAuthorizationToken",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
             Object {
               "Action": Array [
                 "logs:CreateLogStream",
@@ -2612,7 +2852,7 @@ Object {
         "MeshName": "test",
         "Spec": Object {
           "EgressFilter": Object {
-            "Type": "DROP_ALL",
+            "Type": "ALLOW_ALL",
           },
         },
       },
@@ -2758,6 +2998,67 @@ Object {
         },
       },
       "Type": "AWS::ECS::Service",
+    },
+    "MetaSvcTaskCountTarget644CBD43": Object {
+      "Properties": Object {
+        "MaxCapacity": 20,
+        "MinCapacity": 1,
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "MetaSvcService58BFAF30",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "MetaSvcTaskCountTargetScaleOnCpuF6112AC5": Object {
+      "Properties": Object {
+        "PolicyName": "testMetaSvcTaskCountTargetScaleOnCpuC960F0D1",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "MetaSvcTaskCountTarget644CBD43",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 60,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
     },
     "MetaTaskDefinition286A1512": Object {
       "Properties": Object {
@@ -2954,6 +3255,19 @@ Object {
           Object {
             "Cpu": 16,
             "Essential": true,
+            "HealthCheck": Object {
+              "Command": Array [
+                "CMD",
+                "/xray",
+                "--version",
+                "||",
+                "exit 1",
+              ],
+              "Interval": 5,
+              "Retries": 3,
+              "StartPeriod": 10,
+              "Timeout": 2,
+            },
             "Image": "public.ecr.aws/xray/aws-xray-daemon:latest",
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -3192,12 +3506,13 @@ Object {
         "Family": "aurora-postgresql14",
         "Parameters": Object {
           "autovacuum_max_workers": "GREATEST({DBInstanceClassMemory/64371566592},2)",
-          "max_logical_replication_workers": "2",
-          "max_parallel_workers": "4",
-          "max_replication_slots": "5",
+          "max_logical_replication_workers": "4",
+          "max_parallel_workers": "2",
+          "max_replication_slots": "20",
           "max_slot_wal_keep_size": "1024",
-          "max_wal_senders": "10",
+          "max_wal_senders": "20",
           "rds.logical_replication": "1",
+          "shared_preload_libraries": "pg_stat_statements, pgaudit, pg_cron",
         },
       },
       "Type": "AWS::RDS::DBClusterParameterGroup",
@@ -3343,6 +3658,67 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
+    "RealtimeSvcTaskCountTargetE427DADA": Object {
+      "Properties": Object {
+        "MaxCapacity": 20,
+        "MinCapacity": 1,
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "RealtimeSvcService05F54057",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "RealtimeSvcTaskCountTargetScaleOnCpu5253E02B": Object {
+      "Properties": Object {
+        "PolicyName": "testRealtimeSvcTaskCountTargetScaleOnCpu24A4F1A5",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "RealtimeSvcTaskCountTargetE427DADA",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 60,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+    },
     "RealtimeTaskDefinition52361C2C": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
@@ -3373,7 +3749,11 @@ Object {
               },
               Object {
                 "Name": "REPLICATION_POLL_INTERVAL",
-                "Value": "100",
+                "Value": "300",
+              },
+              Object {
+                "Name": "SUBSCRIPTION_SYNC_INTERVAL",
+                "Value": "60000",
               },
               Object {
                 "Name": "SECURE_CHANNELS",
@@ -3386,6 +3766,10 @@ Object {
               Object {
                 "Name": "TEMPORARY_SLOT",
                 "Value": "true",
+              },
+              Object {
+                "Name": "MAX_REPLICATION_LAG_MB",
+                "Value": "1000",
               },
             ],
             "Essential": true,
@@ -3581,6 +3965,19 @@ Object {
           Object {
             "Cpu": 16,
             "Essential": true,
+            "HealthCheck": Object {
+              "Command": Array [
+                "CMD",
+                "/xray",
+                "--version",
+                "||",
+                "exit 1",
+              ],
+              "Interval": 5,
+              "Retries": 3,
+              "StartPeriod": 10,
+              "Timeout": 2,
+            },
             "Image": "public.ecr.aws/xray/aws-xray-daemon:latest",
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -4006,6 +4403,67 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
+    "RestSvcTaskCountTarget16F159C2": Object {
+      "Properties": Object {
+        "MaxCapacity": 20,
+        "MinCapacity": 1,
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "RestSvcServiceCEB7F559",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "RestSvcTaskCountTargetScaleOnCpuB698E9D3": Object {
+      "Properties": Object {
+        "PolicyName": "testRestSvcTaskCountTargetScaleOnCpu31ED86CE",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "RestSvcTaskCountTarget16F159C2",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 60,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+    },
     "RestTaskDefinition4EBA60E9": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
@@ -4167,6 +4625,19 @@ Object {
           Object {
             "Cpu": 16,
             "Essential": true,
+            "HealthCheck": Object {
+              "Command": Array [
+                "CMD",
+                "/xray",
+                "--version",
+                "||",
+                "exit 1",
+              ],
+              "Interval": 5,
+              "Retries": 3,
+              "StartPeriod": 10,
+              "Timeout": 2,
+            },
             "Image": "public.ecr.aws/xray/aws-xray-daemon:latest",
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -4463,10 +4934,10 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "StorageSvcSecurityGroupfromtestKongSvcSecurityGroupFD5143FA808046A6D90F": Object {
+    "StorageSvcSecurityGroupfromtestKongSvcSecurityGroupFD5143FA50005891524B": Object {
       "Properties": Object {
-        "Description": "from testKongSvcSecurityGroupFD5143FA:8080",
-        "FromPort": 8080,
+        "Description": "from testKongSvcSecurityGroupFD5143FA:5000",
+        "FromPort": 5000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
             "StorageSvcSecurityGroup134E6883",
@@ -4480,7 +4951,7 @@ Object {
             "GroupId",
           ],
         },
-        "ToPort": 8080,
+        "ToPort": 5000,
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
@@ -4550,6 +5021,67 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
+    "StorageSvcTaskCountTarget6971484D": Object {
+      "Properties": Object {
+        "MaxCapacity": 20,
+        "MinCapacity": 1,
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "StorageSvcServiceA4DA327A",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "StorageSvcTaskCountTargetScaleOnCpu9FD330E2": Object {
+      "Properties": Object {
+        "PolicyName": "testStorageSvcTaskCountTargetScaleOnCpu82D16794",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "StorageSvcTaskCountTarget6971484D",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 60,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+    },
     "StorageTaskDefinition6B21D26E": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
@@ -4599,7 +5131,7 @@ Object {
               },
             ],
             "Essential": true,
-            "Image": "supabase/storage-api:v0.18.6",
+            "Image": "supabase/storage-api:v0.18.7",
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
               "Options": Object {
@@ -4615,7 +5147,7 @@ Object {
             "Name": "app",
             "PortMappings": Array [
               Object {
-                "ContainerPort": 8080,
+                "ContainerPort": 5000,
                 "Protocol": "tcp",
               },
             ],
@@ -4763,6 +5295,19 @@ Object {
           Object {
             "Cpu": 16,
             "Essential": true,
+            "HealthCheck": Object {
+              "Command": Array [
+                "CMD",
+                "/xray",
+                "--version",
+                "||",
+                "exit 1",
+              ],
+              "Interval": 5,
+              "Retries": 3,
+              "StartPeriod": 10,
+              "Timeout": 2,
+            },
             "Image": "public.ecr.aws/xray/aws-xray-daemon:latest",
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -4795,7 +5340,7 @@ Object {
           ],
         },
         "Family": "testStorageTaskDefinition0C83A16A",
-        "Memory": "512",
+        "Memory": "1024",
         "NetworkMode": "awsvpc",
         "ProxyConfiguration": Object {
           "ContainerName": "envoy",
@@ -4810,7 +5355,7 @@ Object {
             },
             Object {
               "Name": "AppPorts",
-              "Value": "8080",
+              "Value": "5000",
             },
             Object {
               "Name": "ProxyIngressPort",
@@ -4831,7 +5376,7 @@ Object {
           "FARGATE",
         ],
         "RuntimePlatform": Object {
-          "CpuArchitecture": "ARM64",
+          "CpuArchitecture": "X86_64",
         },
         "TaskRoleArn": Object {
           "Fn::GetAtt": Array [
@@ -5011,7 +5556,7 @@ Object {
           "Listeners": Array [
             Object {
               "PortMapping": Object {
-                "Port": 8080,
+                "Port": 5000,
                 "Protocol": "http",
               },
             },
@@ -5464,6 +6009,67 @@ Object {
         },
       },
       "Type": "AWS::ECS::Service",
+    },
+    "StudioSvcTaskCountTarget992D589A": Object {
+      "Properties": Object {
+        "MaxCapacity": 20,
+        "MinCapacity": 1,
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "StudioSvcService57CD4A48",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "StudioSvcTaskCountTargetScaleOnCpuF08DFD58": Object {
+      "Properties": Object {
+        "PolicyName": "testStudioSvcTaskCountTargetScaleOnCpuF62B201C",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "StudioSvcTaskCountTarget992D589A",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 60,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
     },
     "StudioTargetGroupC1E0E03D": Object {
       "Properties": Object {
@@ -7391,6 +7997,35 @@ Object {
       },
       "Type": "AWS::EC2::VPCGatewayAttachment",
     },
+    "XrayGroup": Object {
+      "Properties": Object {
+        "FilterExpression": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "annotation.node_id BEGINSWITH \\"mesh/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "Mesh73A573F6",
+                  "MeshName",
+                ],
+              },
+              "/\\"",
+            ],
+          ],
+        },
+        "GroupName": Object {
+          "Fn::GetAtt": Array [
+            "Mesh73A573F6",
+            "MeshName",
+          ],
+        },
+        "InsightsConfiguration": Object {
+          "InsightsEnabled": true,
+        },
+      },
+      "Type": "AWS::XRay::Group",
+    },
     "testDBSecretFE622B583fdaad7efa858a3daf9490cf0a702aeb": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
@@ -7443,5 +8078,6 @@ Object {
       ],
     },
   },
+  "Transform": "AWS::Serverless-2016-10-31",
 }
 `;
