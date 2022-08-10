@@ -45,10 +45,8 @@ export class SupabaseStack extends Stack {
     const kong = new SupabaseService(this, 'Kong', {
       cluster,
       containerDefinition: {
-        //image: ecs.ContainerImage.fromRegistry('public.ecr.aws/docker/library/kong:2.8'),
-        image: ecs.ContainerImage.fromAsset('./src/containers/kong', {
-          platform: Platform.LINUX_ARM64,
-        }),
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/mats/supabase-kong:latest'),
+        //image: ecs.ContainerImage.fromAsset('./src/containers/kong', { platform: Platform.LINUX_ARM64 }),
         portMappings: [{ containerPort: 8000 }, { containerPort: 8100 }],
         healthCheck: {
           command: ['CMD', 'kong', 'health'],
