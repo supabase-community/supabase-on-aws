@@ -19,19 +19,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: technote-space/get-diff-action@v6
+        with:
+          PATTERNS: src/containers/kong/**/*
+
       - name: Set up QEMU
+        if: env.GIT_DIFF
         uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        if: env.GIT_DIFF
+        uses: docker/setup-buildx-action@v2
 
       - name: Configure AWS credentials
+        if: env.GIT_DIFF
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: ${{ secrets.ECR_PUBLIC_ROLE }}
           aws-region: us-east-1
 
       - name: Login to ECR Public
+        if: env.GIT_DIFF
         run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ env.ECR_PUBLIC_REGISTRY }}
 
       #- name: Extract metadata (tags, labels) for Docker
@@ -45,6 +53,7 @@ jobs:
       #      type=raw,value=lates
 
       - name: Build and push
+        if: env.GIT_DIFF
         uses: docker/build-push-action@v3
         with:
           context: ./src/containers/kong
