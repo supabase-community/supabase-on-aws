@@ -12,6 +12,6 @@ const synthesizer = (typeof process.env.BSS_TEMPLATE_BUCKET_NAME == 'undefined')
 
 const app = new App();
 
-new SupabaseStack(app, 'Supabase', { env, synthesizer });
+new SupabaseStack(app, 'Supabase', { synthesizer });
 
 app.synth();
