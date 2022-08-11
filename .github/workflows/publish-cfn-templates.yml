@@ -40,8 +40,8 @@ jobs:
 
       - name: cdk synth
         run: |
-          export -n AWS_DEFAULT_REGION
-          export -n AWS_REGION
+          echo "AWS_DEFAULT_REGION=" >> $GITHUB_ENV
+          echo "AWS_REGION=" >> $GITHUB_ENV
           $(npm bin)/cdk synth --no-version-reporting
 
       - name: Publish assets
