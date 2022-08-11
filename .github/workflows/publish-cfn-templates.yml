@@ -38,12 +38,7 @@ jobs:
       #  run: npx projen build
 
       - name: cdk synth
-        run: |
-          echo "AWS_DEFAULT_REGION=" >> $GITHUB_ENV
-          echo "AWS_REGION=" >> $GITHUB_ENV
-          $(npm bin)/cdk synth --no-version-reporting
+        run: $(npm bin)/cdk synth --no-version-reporting
 
       - name: Publish assets
         run: npx cdk-assets publish -p cdk.out/Supabase.assets.json -v
-        env:
-          AWS_REGION: us-east-1
