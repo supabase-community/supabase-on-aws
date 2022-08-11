@@ -22,7 +22,7 @@ export class SupabaseStack extends Stack {
     const sesRegion = new CfnParameter(this, 'SesRegion', {
       description: 'Region of SES endpoint used as SMTP server.',
       type: 'String',
-      default: this.region,
+      //default: this.region,
       allowedValues: sesSmtpSupportedRegions,
     });
 
