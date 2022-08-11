@@ -41,4 +41,4 @@ jobs:
         run: $(npm bin)/cdk synth --no-version-reporting
 
       - name: Publish assets
-        run: npx cdk-assets publish -p cdk.out/Supabase.assets.json -v
+        run: npx cdk-assets publish --path cdk.out/Supabase.assets.json --verbose
