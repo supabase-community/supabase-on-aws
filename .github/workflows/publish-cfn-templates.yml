@@ -24,11 +24,6 @@ jobs:
           role-to-assume: ${{ secrets.FILE_PUBLISHING_ROLE }}
           aws-region: us-west-2
 
-      - name: Remove env
-        run: |
-          export -n AWS_DEFAULT_REGION
-          export -n AWS_REGION
-
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -44,7 +39,10 @@ jobs:
       #  run: npx projen build
 
       - name: cdk synth
-        run: $(npm bin)/cdk synth --no-version-reporting
+        run: |
+          export -n AWS_DEFAULT_REGION
+          export -n AWS_REGION
+          $(npm bin)/cdk synth --no-version-reporting
 
       - name: Publish assets
         run: npx cdk-assets publish -p cdk.out/Supabase.assets.json -v
