@@ -1,4 +1,4 @@
-import { Stack, StackProps, Duration, CfnOutput } from 'aws-cdk-lib';
+import { Stack, StackProps, Aws, Duration, CfnOutput, CfnParameter } from 'aws-cdk-lib';
 import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
@@ -9,16 +9,30 @@ import { Construct } from 'constructs';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwtSecret } from './supabase-jwt-secret';
-import { SupabaseWorkMail } from './supabase-mail';
+import { SupabaseMail } from './supabase-mail';
 import { SupabaseService } from './supabase-service';
+import { sesSmtpSupportedRegions } from './utils';
 
 export class SupabaseStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
     super(scope, id, props);
 
+    const sesRegion = new CfnParameter(this, 'SesRegion', {
+      description: 'Region of SES endpoint used as SMTP server.',
+      type: 'String',
+      default: this.region,
+      allowedValues: sesSmtpSupportedRegions,
+    });
+
+    const supabaseAdminEmail = new CfnParameter(this, 'SupabaseAdminEmail', {
+      description: 'The From email address for all emails sent.',
+      type: 'String',
+      default: 'noreply@supabase.awsapps.com',
+      //allowedPattern: '/[^\s@]+@[^\s@]+\.[^\s@]+/',
+    });
+
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
-    //const mesh = undefined; // for AppMesh disabled
     const mesh = new appmesh.Mesh(this, 'Mesh', {
       meshName: this.stackName,
       egressFilter: appmesh.MeshFilterType.ALLOW_ALL,
@@ -35,7 +49,7 @@ export class SupabaseStack extends Stack {
       vpc,
     });
 
-    const mail = new SupabaseWorkMail(this, 'SupabaseMail', { region: 'us-west-2', mesh });
+    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString, email: supabaseAdminEmail.valueAsString, mesh });
 
     const db = new SupabaseDatabase(this, 'DB', { vpc, mesh });
     const dbSecret = db.secret!;
@@ -92,6 +106,9 @@ export class SupabaseStack extends Stack {
           // mail
           GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
           GOTRUE_MAILER_AUTOCONFIRM: 'false',
+          GOTRUE_SMTP_HOST: `email-smtp.${sesRegion.valueAsString}.amazonaws.com`,
+          GOTRUE_SMTP_PORT: '465',
+          GOTRUE_SMTP_ADMIN_EMAIL: supabaseAdminEmail.valueAsString,
           GOTRUE_SMTP_SENDER_NAME: 'Supabase',
           GOTRUE_MAILER_URLPATHS_INVITE: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify',
@@ -104,9 +121,6 @@ export class SupabaseStack extends Stack {
         secrets: {
           GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url_auth'),
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
-          GOTRUE_SMTP_ADMIN_EMAIL: ecs.Secret.fromSecretsManager(mail.secret, 'email'),
-          GOTRUE_SMTP_HOST: ecs.Secret.fromSecretsManager(mail.secret, 'host'),
-          GOTRUE_SMTP_PORT: ecs.Secret.fromSecretsManager(mail.secret, 'port'),
           GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(mail.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(mail.secret, 'password'),
         },

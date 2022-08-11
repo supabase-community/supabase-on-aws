@@ -47,20 +47,19 @@ export class SupabaseMailBase extends Construct {
 interface SupabaseMailProps {
   region: string;
   email: string;
-  workMailAlias?: string;
   mesh?: appmesh.IMesh;
 }
 
-export class SupabaseSES extends SupabaseMailBase {
+export class SupabaseMail extends SupabaseMailBase {
 
   constructor(scope: Construct, id: string, props: SupabaseMailProps) {
     super(scope, id);
 
     const { region, mesh } = props;
-    const workMailAlias = props.workMailAlias;
     const email = props.email;
 
-    const smtpEndpoint = `email.${region}.amazonaws.com`;
+    const smtpEndpoint = `email-smtp.${region}.amazonaws.com`;
+
     if (typeof mesh != 'undefined') {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
         virtualNodeName: 'SES',
@@ -89,30 +88,6 @@ export class SupabaseSES extends SupabaseMailBase {
     user.attachInlinePolicy(sendEmailPolicy);
 
     const accessKey = new iam.CfnAccessKey(this, 'AccessKey', { userName: user.userName });
-
-    if (typeof workMailAlias != 'undefined') {
-      const organization = new cr.AwsCustomResource(this, 'Organization', {
-        resourceType: 'Custom::WorkMailOrganization',
-        functionName: 'CreateWorkMailOrgFunction',
-        policy: cr.AwsCustomResourcePolicy.fromStatements([createWorkMailOrgStatement]),
-        onCreate: {
-          service: 'WorkMail',
-          action: 'createOrganization',
-          parameters: {
-            Alias: workMailAlias,
-          },
-          physicalResourceId: cr.PhysicalResourceId.fromResponse('OrganizationId'),
-        },
-        onDelete: {
-          service: 'WorkMail',
-          action: 'deleteOrganization',
-          parameters: {
-            DeleteDirectory: true,
-            OrganizationId: new cr.PhysicalResourceIdReference(),
-          },
-        },
-      });
-    }
 
     this.secret = new Secret(this, 'Secret', {
       description: 'Supabase - SES SMTP Secret',
