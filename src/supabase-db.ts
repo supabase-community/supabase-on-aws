@@ -90,7 +90,9 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
         resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
       }),
     });
-    dbScalingConfigure.node.addDependency(this.node.findChild('Instance1'));
+    this.node.children.filter(child => child.node.id.startsWith('Instance')).map(child => {
+      child.node.addDependency(dbScalingConfigure);
+    });
     // Support for Aurora Serverless v2 ---------------------------------------------------
 
     const urlGeneratorFunction = new NodejsFunction(this, 'UrlGeneratorFunction', {
