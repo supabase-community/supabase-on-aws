@@ -6,7 +6,7 @@ const env = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEFAULT_REGION,
 };
-const synthesizer = (typeof process.env.BSS_TEMPLATE_BUCKET_NAME == 'undefined')
+const synthesizer = (typeof process.env.BSS_FILE_ASSET_BUCKET_NAME == 'undefined')
   ? undefined
   : new BootstraplessStackSynthesizer();
 
