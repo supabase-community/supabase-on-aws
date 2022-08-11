@@ -5,7 +5,9 @@ import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as xray from 'aws-cdk-lib/aws-xray';
+import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
+import { ManagedPrefixList } from './managed-prefix-list';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwtSecret } from './supabase-jwt-secret';
@@ -83,7 +85,8 @@ export class SupabaseStack extends Stack {
     });
 
     const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kong.loadBalancer! });
-    kong.ecsService.connections.allowFrom(Peer.prefixList('pl-82a045eb'), Port.tcp(kong.listenerPort), 'CloudFront');
+    const cloudFrontManagedPrefixList = new ManagedPrefixList(this, 'CloudFrontManagedPrefixList', { name: 'com.amazonaws.global.cloudfront.origin-facing' });
+    kong.ecsService.connections.allowFrom(Peer.prefixList(cloudFrontManagedPrefixList.getResponseField('PrefixLists.0.PrefixListId')), Port.tcp(kong.listenerPort), 'CloudFront');
 
     const auth = new SupabaseService(this, 'Auth', {
       cluster,
