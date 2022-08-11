@@ -2,16 +2,18 @@ import { App } from 'aws-cdk-lib';
 import { BootstraplessStackSynthesizer } from 'cdk-bootstrapless-synthesizer';
 import { SupabaseStack } from './supabase-stack';
 
-const env = {
-  account: process.env.CDK_DEFAULT_ACCOUNT,
-  region: process.env.CDK_DEFAULT_REGION,
-};
-const synthesizer = (typeof process.env.BSS_FILE_ASSET_BUCKET_NAME == 'undefined')
+const isCfnPublishing: boolean = typeof process.env.BSS_FILE_ASSET_BUCKET_NAME != 'undefined';
+
+const env = (isCfnPublishing)
   ? undefined
-  : new BootstraplessStackSynthesizer();
+  : { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION };
+
+const synthesizer = (isCfnPublishing)
+  ? new BootstraplessStackSynthesizer()
+  : undefined;
 
 const app = new App();
 
-new SupabaseStack(app, 'Supabase', { synthesizer });
+new SupabaseStack(app, 'Supabase', { env, synthesizer });
 
 app.synth();
