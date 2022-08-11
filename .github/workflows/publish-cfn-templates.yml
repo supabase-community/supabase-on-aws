@@ -46,3 +46,5 @@ jobs:
 
       - name: Publish assets
         run: npx cdk-assets publish -p cdk.out/Supabase.assets.json -v
+        env:
+          AWS_REGION: us-east-1
