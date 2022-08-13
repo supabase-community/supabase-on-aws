@@ -6,12 +6,14 @@ ENV ENVSUBST_VERSION=v1.2.0
 USER root
 
 RUN apk update && apk add curl
+
 RUN case ${TARGETPLATFORM} in \
          "linux/amd64")  ENVSUBST_ARCH=Linux-x86_64  ;; \
          "linux/arm64")  ENVSUBST_ARCH=Linux-arm64  ;; \
     esac \
    && curl -L https://github.com/a8m/envsubst/releases/download/${ENVSUBST_VERSION}/envsubst-${ENVSUBST_ARCH} -o /tmp/envsubst \
    && chmod +x /tmp/envsubst
+
 RUN sed -i 1a"envsubst -i /home/kong/kong-template.yml -o /home/kong/kong.yml" /docker-entrypoint.sh
 
 FROM public.ecr.aws/docker/library/kong:2.8

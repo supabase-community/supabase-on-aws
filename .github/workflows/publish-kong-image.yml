@@ -5,7 +5,7 @@ on:
       - main
   workflow_dispatch: {}
 env:
-  ECR_PUBLIC_REGISTRY: public.ecr.aws/mats
+  ECR_PUBLIC_REGISTRY: public.ecr.aws/u3p7q2r8
   IMAGE_NAME: supabase-kong
 
 jobs:
