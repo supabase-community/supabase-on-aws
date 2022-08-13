@@ -22,7 +22,7 @@ export class SupabaseStack extends Stack {
     const sesRegion = new CfnParameter(this, 'SesRegion', {
       description: 'Region of SES endpoint used as SMTP server.',
       type: 'String',
-      //default: this.region,
+      default: 'us-west-2',
       allowedValues: sesSmtpSupportedRegions,
     });
 
@@ -61,7 +61,7 @@ export class SupabaseStack extends Stack {
     const kong = new SupabaseService(this, 'Kong', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/mats/supabase-kong:latest'),
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/supabase-kong:latest'),
         //image: ecs.ContainerImage.fromAsset('./src/containers/kong', { platform: Platform.LINUX_ARM64 }),
         portMappings: [{ containerPort: 8000 }, { containerPort: 8100 }],
         healthCheck: {

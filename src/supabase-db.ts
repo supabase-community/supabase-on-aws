@@ -52,7 +52,6 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       storageEncrypted: true,
       instances: 1,
       instanceProps: {
-        //instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MEDIUM),
         instanceType: CustomInstanceType.SERVERLESS as unknown as ec2.InstanceType,
         enablePerformanceInsights: true,
         vpc,

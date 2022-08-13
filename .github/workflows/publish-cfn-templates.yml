@@ -42,7 +42,6 @@ jobs:
 
       - name: remove old template
         run: |
-          set +e
           region_list=(${BSS_FILE_ASSET_REGION_SET//,/ })
           for region in ${region_list[@]}; do
               bucket_name=(${BSS_FILE_ASSET_BUCKET_NAME//\$\{AWS::Region\}/$region})
