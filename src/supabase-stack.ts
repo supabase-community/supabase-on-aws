@@ -269,8 +269,8 @@ export class SupabaseStack extends cdk.Stack {
         image: ecs.ContainerImage.fromRegistry('supabase/studio:latest'),
         portMappings: [{ containerPort: 3000 }],
         environment: {
-          //STUDIO_PG_META_URL: 'http://meta.supabase.local:8080',
-          STUDIO_PG_META_URL: `https://${cdn.domainName}/pg`,
+          STUDIO_PG_META_URL: 'http://meta.supabase.local:8080',
+          //STUDIO_PG_META_URL: `https://${cdn.domainName}/pg`,
           SUPABASE_URL: `https://${cdn.domainName}`, // for API Docs
           SUPABASE_REST_URL: `https://${cdn.domainName}/rest/v1/`,
         },
@@ -281,9 +281,9 @@ export class SupabaseStack extends cdk.Stack {
         },
       },
       withLoadBalancer: 'Application',
-      //mesh,
+      mesh,
     });
-    //studio.addBackend(meta);
+    studio.addBackend(meta);
 
     const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studio.loadBalancer! });
 
