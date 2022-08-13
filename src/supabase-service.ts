@@ -87,7 +87,7 @@ export class SupabaseService extends Construct {
 
     const autoscaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 20 });
     autoscaling.scaleOnCpuUtilization('ScaleOnCpu', {
-      targetUtilizationPercent: 60,
+      targetUtilizationPercent: 50,
       scaleInCooldown: cdk.Duration.seconds(60),
       scaleOutCooldown: cdk.Duration.seconds(60),
     });
@@ -125,6 +125,7 @@ export class SupabaseService extends Construct {
           this.ecsService.loadBalancerTarget({ containerName: 'app' }),
         ],
         healthCheck: {
+          port: (typeof mesh != 'undefined') ? '9901' : undefined,
           interval: cdk.Duration.seconds(10),
           timeout: cdk.Duration.seconds(5),
         },
@@ -136,6 +137,9 @@ export class SupabaseService extends Construct {
         port: 80,
         defaultTargetGroups: [targetGroup],
       });
+      if (typeof mesh != 'undefined') {
+        loadBalancer.connections.allowTo(this.ecsService, ec2.Port.tcp(9901), 'HealthCheck');
+      }
       this.loadBalancer = loadBalancer;
     }
 
