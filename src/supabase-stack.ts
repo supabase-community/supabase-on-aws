@@ -1,4 +1,4 @@
-import { Stack, StackProps, Aws, Duration, CfnOutput, CfnParameter } from 'aws-cdk-lib';
+import * as cdk from 'aws-cdk-lib';
 import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
@@ -15,22 +15,38 @@ import { SupabaseMail } from './supabase-mail';
 import { SupabaseService } from './supabase-service';
 import { sesSmtpSupportedRegions } from './utils';
 
-export class SupabaseStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps = {}) {
+export class SupabaseStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
     super(scope, id, props);
 
-    const sesRegion = new CfnParameter(this, 'SesRegion', {
+    const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
       description: 'Region of SES endpoint used as SMTP server.',
       type: 'String',
       default: 'us-west-2',
       allowedValues: sesSmtpSupportedRegions,
     });
 
-    const supabaseAdminEmail = new CfnParameter(this, 'SupabaseAdminEmail', {
+    const smtpAdminEmail = new cdk.CfnParameter(this, 'SmtpAdminEmail', {
       description: 'The From email address for all emails sent.',
       type: 'String',
       default: 'noreply@supabase.awsapps.com',
       //allowedPattern: '/[^\s@]+@[^\s@]+\.[^\s@]+/',
+    });
+
+    const SmtpSenderName = new cdk.CfnParameter(this, 'SmtpSenderName', {
+      description: 'The From email sender name for all emails sent.',
+      type: 'String',
+      default: 'Supabase',
+    });
+
+    const studioUserPoolId = new cdk.CfnParameter(this, 'StudioUserPoolId', {
+      description: 'User pool for Supabase Studio',
+      type: 'String',
+      default: 'CREATE_NEW_USER_POOL',
+    });
+
+    const createUserPoolCondition = new cdk.CfnCondition(this, 'CreateUserPool', {
+      expression: cdk.Fn.conditionEquals(studioUserPoolId.valueAsString, 'CREATE_NEW_USER_POOL'),
     });
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
@@ -51,7 +67,7 @@ export class SupabaseStack extends Stack {
       vpc,
     });
 
-    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString, email: supabaseAdminEmail.valueAsString, mesh });
+    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString, email: smtpAdminEmail.valueAsString, mesh });
 
     const db = new SupabaseDatabase(this, 'DB', { vpc, mesh });
     const dbSecret = db.secret!;
@@ -66,8 +82,8 @@ export class SupabaseStack extends Stack {
         portMappings: [{ containerPort: 8000 }, { containerPort: 8100 }],
         healthCheck: {
           command: ['CMD', 'kong', 'health'],
-          interval: Duration.seconds(10),
-          timeout: Duration.seconds(10),
+          interval: cdk.Duration.seconds(10),
+          timeout: cdk.Duration.seconds(10),
           retries: 3,
         },
         environment: {
@@ -111,8 +127,8 @@ export class SupabaseStack extends Stack {
           GOTRUE_MAILER_AUTOCONFIRM: 'false',
           GOTRUE_SMTP_HOST: `email-smtp.${sesRegion.valueAsString}.amazonaws.com`,
           GOTRUE_SMTP_PORT: '465',
-          GOTRUE_SMTP_ADMIN_EMAIL: supabaseAdminEmail.valueAsString,
-          GOTRUE_SMTP_SENDER_NAME: 'Supabase',
+          GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmail.valueAsString,
+          GOTRUE_SMTP_SENDER_NAME: SmtpSenderName.valueAsString,
           GOTRUE_MAILER_URLPATHS_INVITE: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_RECOVERY: '/auth/v1/verify',
@@ -152,7 +168,7 @@ export class SupabaseStack extends Stack {
     const realtime = new SupabaseService(this, 'Realtime', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry('supabase/realtime:v0.22.7'),
+        image: ecs.ContainerImage.fromRegistry('supabase/realtime:v0.24.0'),
         portMappings: [{ containerPort: 4000 }],
         environment: {
           DB_SSL: 'false',
@@ -271,8 +287,8 @@ export class SupabaseStack extends Stack {
 
     const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studio.loadBalancer! });
 
-    new CfnOutput(this, 'Url', { value: `https://${cdn.domainName}` });
-    new CfnOutput(this, 'StudioUrl', { value: `https://${studioCdn.domainName}` });
+    new cdk.CfnOutput(this, 'Url', { value: `https://${cdn.domainName}` });
+    new cdk.CfnOutput(this, 'StudioUrl', { value: `https://${studioCdn.domainName}` });
 
   }
 }
