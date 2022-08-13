@@ -85,8 +85,8 @@ export class SupabaseStack extends Stack {
     });
 
     const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kong.loadBalancer! });
-    const cloudFrontManagedPrefixList = new ManagedPrefixList(this, 'CloudFrontManagedPrefixList', { name: 'com.amazonaws.global.cloudfront.origin-facing' });
-    kong.ecsService.connections.allowFrom(Peer.prefixList(cloudFrontManagedPrefixList.getResponseField('PrefixLists.0.PrefixListId')), Port.tcp(kong.listenerPort), 'CloudFront');
+    const cfPrefixList = new ManagedPrefixList(this, 'CloudFrontManagedPrefixList', { name: 'com.amazonaws.global.cloudfront.origin-facing' });
+    kong.ecsService.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
 
     const auth = new SupabaseService(this, 'Auth', {
       cluster,

@@ -34,9 +34,6 @@ jobs:
       - name: Install dependencies
         run: yarn install --check-files
 
-      #- name: cdk build
-      #  run: npx projen build
-
       - name: cdk synth
         run: $(npm bin)/cdk synth --no-version-reporting
 

@@ -8,11 +8,12 @@ interface ManagedPrefixListProps {
 }
 
 export class ManagedPrefixList extends cr.AwsCustomResource {
+  prefixListId: string;
 
   constructor(scope: Construct, id: string, props: ManagedPrefixListProps) {
     super(scope, id, {
       resourceType: 'Custom::ManagedPrefixList',
-      //functionName: 'LookupManagedPrefixList',
+      functionName: 'LookupManagedPrefixList',
       policy: cr.AwsCustomResourcePolicy.fromSdkCalls({ resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE }),
       onCreate: {
         service: 'EC2',
@@ -25,5 +26,6 @@ export class ManagedPrefixList extends cr.AwsCustomResource {
       },
     });
 
+    this.prefixListId = this.getResponseField('PrefixLists.0.PrefixListId');
   }
 }
