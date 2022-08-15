@@ -208,8 +208,16 @@ export class SupabaseService extends Construct {
       deregistrationDelay: cdk.Duration.seconds(30),
       vpc,
     });
-    const securityGroup = new ec2.SecurityGroup(this, 'LoadBalancerSecurityGroup', { allowAllOutbound: true, vpc }); // allowAllOutbound needed for cognito auth
-    const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', { internetFacing: true, securityGroup, vpc });
+    const securityGroup = new ec2.SecurityGroup(this, 'LoadBalancerSecurityGroup', {
+      allowAllOutbound: true, // needed for cognito auth
+      vpc,
+    });
+    const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', {
+      internetFacing: true,
+      ipAddressType: elb.IpAddressType.DUAL_STACK,
+      securityGroup,
+      vpc,
+    });
     const listener = loadBalancer.addListener('Listener', {
       protocol: elb.ApplicationProtocol.HTTP,
       defaultTargetGroups: [targetGroup],
@@ -221,7 +229,6 @@ export class SupabaseService extends Construct {
       default: 'NO_CERT',
     });
     const isHttp = new cdk.CfnCondition(this, 'isHttp', { expression: cdk.Fn.conditionEquals(certArn, 'NO_CERT') });
-    const cfnListener = listener.node.defaultChild as elb.CfnListener;
     const userPoolClient = new cognito.UserPoolClient(this, 'Client', {
       userPool: cognito.UserPool.fromUserPoolArn(this, 'UserPool', userPoolArn),
       generateSecret: true,
@@ -236,6 +243,7 @@ export class SupabaseService extends Construct {
         scopes: [cognito.OAuthScope.OPENID],
       },
     });
+    const cfnListener = listener.node.defaultChild as elb.CfnListener;
     cfnListener.addPropertyOverride('Protocol', cdk.Fn.conditionIf(isHttp.logicalId, 'HTTP', 'HTTPS'));
     cfnListener.addPropertyOverride('Port', cdk.Fn.conditionIf(isHttp.logicalId, 80, 443));
     cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, [{ CertificateArn: certArn.valueAsString }]));
