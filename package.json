@@ -30,7 +30,7 @@
     "@types/node": "^14",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
-    "aws-cdk": "^2.35.0",
+    "aws-cdk": "^2.37.1",
     "esbuild": "^0.14.49",
     "eslint": "^8",
     "eslint-import-resolver-node": "^0.3.6",
@@ -51,7 +51,7 @@
     "@aws-sdk/client-workmail": "^3.137.0",
     "@databases/pg": "^5.4.1",
     "@types/aws-lambda": "^8.10.101",
-    "aws-cdk-lib": "^2.35.0",
+    "aws-cdk-lib": "^2.37.1",
     "cdk-bootstrapless-synthesizer": "^2.2.2",
     "constructs": "^10.0.5",
     "jsonwebtoken": "^8.5.1"
