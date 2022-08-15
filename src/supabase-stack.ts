@@ -33,7 +33,7 @@ export class SupabaseStack extends cdk.Stack {
       //allowedPattern: '/[^\s@]+@[^\s@]+\.[^\s@]+/',
     });
 
-    const SmtpSenderName = new cdk.CfnParameter(this, 'SmtpSenderName', {
+    const smtpSenderName = new cdk.CfnParameter(this, 'SmtpSenderName', {
       description: 'The From email sender name for all emails sent.',
       type: 'String',
       default: 'Supabase',
@@ -128,7 +128,7 @@ export class SupabaseStack extends cdk.Stack {
           GOTRUE_SMTP_HOST: `email-smtp.${sesRegion.valueAsString}.amazonaws.com`,
           GOTRUE_SMTP_PORT: '465',
           GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmail.valueAsString,
-          GOTRUE_SMTP_SENDER_NAME: SmtpSenderName.valueAsString,
+          GOTRUE_SMTP_SENDER_NAME: smtpSenderName.valueAsString,
           GOTRUE_MAILER_URLPATHS_INVITE: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_RECOVERY: '/auth/v1/verify',
