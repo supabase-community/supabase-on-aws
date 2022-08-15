@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as appmesh from 'aws-cdk-lib/aws-appmesh';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
@@ -283,7 +284,17 @@ export class SupabaseStack extends cdk.Stack {
     });
     studio.addBackend(meta);
 
-    const studioLoadBalancer = studio.addApplicationLoadBalancer();
+    const userPool = new cognito.UserPool(this, 'UserPool', {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      userPoolName: 'SupabaseStudio-UserPool',
+      signInAliases: { username: false, email: true },
+    });
+    const domainPrefix = `supabase-studio-${cdk.Aws.ACCOUNT_ID}`;
+    userPool.addDomain('Domain', {
+      cognitoDomain: { domainPrefix },
+    });
+
+    const studioLoadBalancer = studio.addApplicationLoadBalancer(userPool.userPoolArn, domainPrefix);
 
     const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studioLoadBalancer, basicAuth: true });
 

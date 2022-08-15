@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as appmesh from 'aws-cdk-lib/aws-appmesh';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
@@ -190,7 +191,18 @@ export class SupabaseService extends Construct {
     return loadBalancer;
   }
 
-  addApplicationLoadBalancer() {
+  addApplicationLoadBalancer(userPoolArn: string, userPoolDomain: string) {
+    const certArn = new cdk.CfnParameter(this, 'CertificateArn', {
+      type: 'String',
+      default: 'NO_CERT',
+    });
+    const isHttp = new cdk.CfnCondition(this, 'isHttp', { expression: cdk.Fn.conditionEquals(certArn, 'NO_CERT') });
+
+    const userPool = cognito.UserPool.fromUserPoolArn(this, 'UserPool', userPoolArn);
+    const userPoolClient = userPool.addClient('Client', {
+      generateSecret: true,
+    });
+
     const meshEnabled = (typeof this.virtualService == 'undefined') ? false : true;
     const vpc = this.ecsService.cluster.vpc;
     const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
@@ -208,10 +220,25 @@ export class SupabaseService extends Construct {
       vpc,
     });
     const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
-    loadBalancer.addListener('Listener', {
+    const listener = loadBalancer.addListener('Listener', {
       protocol: elb.ApplicationProtocol.HTTP,
       defaultTargetGroups: [targetGroup],
     });
+    const cfnListener = listener.node.defaultChild as elb.CfnListener;
+    cfnListener.addPropertyOverride('Protocol', cdk.Fn.conditionIf(isHttp.logicalId, 'HTTP', 'HTTPS'));
+    cfnListener.addPropertyOverride('Port', cdk.Fn.conditionIf(isHttp.logicalId, 80, 443));
+    cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, [{ CertificateArn: certArn.valueAsString }]));
+    cfnListener.addPropertyOverride('DefaultActions.0.Order', cdk.Fn.conditionIf(isHttp.logicalId, 1, 2));
+    cfnListener.addPropertyOverride('DefaultActions.1', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, {
+      Order: 1,
+      Type: 'authenticate-cognito',
+      AuthenticateCognitoConfig: {
+        UserPoolArn: userPoolArn,
+        UserPoolClientId: userPoolClient.userPoolClientId,
+        UserPoolDomain: userPoolDomain,
+      },
+    }));
+    loadBalancer.connections.allowFromAnyIpv4(ec2.Port.tcp(443));
     if (meshEnabled) {
       loadBalancer.connections.allowTo(this.ecsService, ec2.Port.tcp(9901), 'HealthCheck');
     }
