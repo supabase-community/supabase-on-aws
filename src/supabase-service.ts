@@ -4,11 +4,12 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseMailBase } from './supabase-mail';
 
-interface SupabaseServiceProps {
+export interface SupabaseServiceProps {
   cluster: ecs.ICluster;
   containerDefinition: ecs.ContainerDefinitionOptions;
   cpu?: number;
@@ -21,6 +22,7 @@ interface SupabaseServiceProps {
 export class SupabaseService extends Construct {
   listenerPort: number;
   ecsService: ecs.FargateService;
+  cloudMapService: servicediscovery.Service;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
   loadBalancer?: elb.BaseLoadBalancer;
@@ -78,12 +80,16 @@ export class SupabaseService extends Construct {
         { capacityProvider: 'FARGATE', base: 1, weight: 1 },
         { capacityProvider: 'FARGATE_SPOT', base: 0, weight: 0 },
       ],
-      cloudMapOptions: {
-        dnsTtl: cdk.Duration.seconds(10),
-        name: serviceName,
-      },
       healthCheckGracePeriod: (typeof withLoadBalancer == 'undefined') ? undefined : cdk.Duration.seconds(10),
     });
+
+    this.cloudMapService = this.ecsService.enableCloudMap({
+      name: serviceName,
+      dnsRecordType: servicediscovery.DnsRecordType.SRV,
+      container: appContainer,
+      dnsTtl: cdk.Duration.seconds(10),
+    });
+    (this.cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
 
     const autoscaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 20 });
     autoscaling.scaleOnCpuUtilization('ScaleOnCpu', {
