@@ -4,11 +4,8 @@ import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Construct } from 'constructs';
 
-const b64encode = (text: string) => Buffer.from(text).toString('base64');
-
 interface SupabaseCdnProps {
   originLoadBalancer: elb.ILoadBalancerV2;
-  basicAuth?: boolean;
 }
 
 export class SupabaseCdn extends Construct {
@@ -17,7 +14,7 @@ export class SupabaseCdn extends Construct {
   constructor(scope: Construct, id: string, props: SupabaseCdnProps) {
     super(scope, id);
 
-    const { originLoadBalancer, basicAuth } = props;
+    const { originLoadBalancer } = props;
 
     const defaultBehavior: cf.BehaviorOptions = {
       origin: new LoadBalancerV2Origin(originLoadBalancer, {
@@ -29,37 +26,6 @@ export class SupabaseCdn extends Construct {
       originRequestPolicy: cf.OriginRequestPolicy.ALL_VIEWER,
       functionAssociations: [],
     };
-
-    if (basicAuth == true) {
-      const basicAuthFunction = new cf.Function(this, 'BasicAuthFunction', {
-        comment: 'Basic authentication',
-        code: cf.FunctionCode.fromInline(`
-function handler(event) {
-  var request = event.request;
-  var headers = request.headers;
-
-  var authString = "Basic ${b64encode('supabase:supabase')}";
-
-  if (
-    typeof headers.authorization === "undefined" ||
-    headers.authorization.value !== authString
-  ) {
-    return {
-      statusCode: 401,
-      statusDescription: "Unauthorized",
-      headers: { "www-authenticate": { value: "Basic" } }
-    };
-  }
-
-  return request;
-}
-        `),
-      });
-      defaultBehavior.functionAssociations?.push({
-        eventType: cf.FunctionEventType.VIEWER_REQUEST,
-        function: basicAuthFunction,
-      });
-    }
 
     this.distribution = new cf.Distribution(this, 'Distribution', {
       comment: `Supabase - ${id}`,
