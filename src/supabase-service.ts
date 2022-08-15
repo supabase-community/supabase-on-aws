@@ -190,8 +190,7 @@ export class SupabaseService extends Construct {
     return loadBalancer;
   }
 
-  addApplicationLoadBalancer(acmCertArn?: string) {
-    const sslEnabled = (typeof acmCertArn == 'undefined') ? false : true;
+  addApplicationLoadBalancer() {
     const meshEnabled = (typeof this.virtualService == 'undefined') ? false : true;
     const vpc = this.ecsService.cluster.vpc;
     const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
@@ -210,10 +209,8 @@ export class SupabaseService extends Construct {
     });
     const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
     loadBalancer.addListener('Listener', {
-      protocol: (sslEnabled) ? elb.ApplicationProtocol.HTTPS : elb.ApplicationProtocol.HTTP,
-      port: (sslEnabled) ? 443 : 80,
+      protocol: elb.ApplicationProtocol.HTTP,
       defaultTargetGroups: [targetGroup],
-      certificates: (sslEnabled) ? [elb.ListenerCertificate.fromArn(acmCertArn!)] : undefined,
     });
     if (meshEnabled) {
       loadBalancer.connections.allowTo(this.ecsService, ec2.Port.tcp(9901), 'HealthCheck');

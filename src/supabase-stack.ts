@@ -5,7 +5,6 @@ import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as xray from 'aws-cdk-lib/aws-xray';
-import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 import { ManagedPrefixList } from './managed-prefix-list';
 import { SupabaseCdn } from './supabase-cdn';
@@ -112,7 +111,7 @@ export class SupabaseStack extends cdk.Stack {
         environment: {
           GOTRUE_API_HOST: '0.0.0.0',
           GOTRUE_API_PORT: '9999',
-          API_EXTERNAL_URL: `https://${cdn.domainName}`,
+          API_EXTERNAL_URL: `https://${cdn.distribution.domainName}`,
           GOTRUE_DB_DRIVER: 'postgres',
           GOTRUE_SITE_URL: 'http://localhost:3000',
           GOTRUE_URI_ALLOW_LIST: '',
@@ -271,8 +270,8 @@ export class SupabaseStack extends cdk.Stack {
         environment: {
           STUDIO_PG_META_URL: 'http://meta.supabase.local:8080',
           //STUDIO_PG_META_URL: `https://${cdn.domainName}/pg`,
-          SUPABASE_URL: `https://${cdn.domainName}`, // for API Docs
-          SUPABASE_REST_URL: `https://${cdn.domainName}/rest/v1/`,
+          SUPABASE_URL: `https://${cdn.distribution.domainName}`, // for API Docs
+          SUPABASE_REST_URL: `https://${cdn.distribution.domainName}/rest/v1/`,
         },
         secrets: {
           POSTGRES_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
@@ -286,10 +285,10 @@ export class SupabaseStack extends cdk.Stack {
 
     const studioLoadBalancer = studio.addApplicationLoadBalancer();
 
-    const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studioLoadBalancer });
+    const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studioLoadBalancer, basicAuth: true });
 
-    new cdk.CfnOutput(this, 'Url', { value: `https://${cdn.domainName}` });
-    new cdk.CfnOutput(this, 'StudioUrl', { value: `https://${studioCdn.domainName}` });
+    new cdk.CfnOutput(this, 'Url', { value: `https://${cdn.distribution.domainName}` });
+    new cdk.CfnOutput(this, 'StudioUrl', { value: `https://${studioCdn.distribution.domainName}` });
 
   }
 }
