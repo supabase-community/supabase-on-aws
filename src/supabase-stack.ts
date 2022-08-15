@@ -296,10 +296,8 @@ export class SupabaseStack extends cdk.Stack {
 
     const studioLoadBalancer = studio.addApplicationLoadBalancer(userPool.userPoolArn, domainPrefix);
 
-    const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studioLoadBalancer, basicAuth: true });
-
-    new cdk.CfnOutput(this, 'Url', { value: `https://${cdn.distribution.domainName}` });
-    new cdk.CfnOutput(this, 'StudioUrl', { value: `https://${studioCdn.distribution.domainName}` });
+    new cdk.CfnOutput(this, 'SupabaseApi', { value: `https://${cdn.distribution.domainName}` });
+    new cdk.CfnOutput(this, 'SupabaseStudio', { value: `http://${studioLoadBalancer.loadBalancerDnsName}` });
 
   }
 }

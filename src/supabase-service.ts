@@ -192,17 +192,6 @@ export class SupabaseService extends Construct {
   }
 
   addApplicationLoadBalancer(userPoolArn: string, userPoolDomain: string) {
-    const certArn = new cdk.CfnParameter(this, 'CertificateArn', {
-      type: 'String',
-      default: 'NO_CERT',
-    });
-    const isHttp = new cdk.CfnCondition(this, 'isHttp', { expression: cdk.Fn.conditionEquals(certArn, 'NO_CERT') });
-
-    const userPool = cognito.UserPool.fromUserPoolArn(this, 'UserPool', userPoolArn);
-    const userPoolClient = userPool.addClient('Client', {
-      generateSecret: true,
-    });
-
     const meshEnabled = (typeof this.virtualService == 'undefined') ? false : true;
     const vpc = this.ecsService.cluster.vpc;
     const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
@@ -219,12 +208,34 @@ export class SupabaseService extends Construct {
       deregistrationDelay: cdk.Duration.seconds(30),
       vpc,
     });
-    const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
+    const securityGroup = new ec2.SecurityGroup(this, 'LoadBalancerSecurityGroup', { allowAllOutbound: true, vpc }); // allowAllOutbound needed for cognito auth
+    const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', { internetFacing: true, securityGroup, vpc });
     const listener = loadBalancer.addListener('Listener', {
       protocol: elb.ApplicationProtocol.HTTP,
       defaultTargetGroups: [targetGroup],
     });
+    // for HTTPS
+    const certArn = new cdk.CfnParameter(this, 'CertificateArn', {
+      description: 'ACM Certificate ARN for Supabase studio',
+      type: 'String',
+      default: 'NO_CERT',
+    });
+    const isHttp = new cdk.CfnCondition(this, 'isHttp', { expression: cdk.Fn.conditionEquals(certArn, 'NO_CERT') });
     const cfnListener = listener.node.defaultChild as elb.CfnListener;
+    const userPoolClient = new cognito.UserPoolClient(this, 'Client', {
+      userPool: cognito.UserPool.fromUserPoolArn(this, 'UserPool', userPoolArn),
+      generateSecret: true,
+      authFlows: {
+        userPassword: true,
+        userSrp: true,
+      },
+      oAuth: {
+        callbackUrls: [`https://${loadBalancer.loadBalancerDnsName}/oauth2/idpresponse`],
+        logoutUrls: ['https://example.com'],
+        flows: { authorizationCodeGrant: true },
+        scopes: [cognito.OAuthScope.OPENID],
+      },
+    });
     cfnListener.addPropertyOverride('Protocol', cdk.Fn.conditionIf(isHttp.logicalId, 'HTTP', 'HTTPS'));
     cfnListener.addPropertyOverride('Port', cdk.Fn.conditionIf(isHttp.logicalId, 80, 443));
     cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, [{ CertificateArn: certArn.valueAsString }]));
@@ -238,7 +249,7 @@ export class SupabaseService extends Construct {
         UserPoolDomain: userPoolDomain,
       },
     }));
-    loadBalancer.connections.allowFromAnyIpv4(ec2.Port.tcp(443));
+    loadBalancer.connections.allowFromAnyIpv4(ec2.Port.tcp(443), 'Allow from anyone on port 443');
     if (meshEnabled) {
       loadBalancer.connections.allowTo(this.ecsService, ec2.Port.tcp(9901), 'HealthCheck');
     }
