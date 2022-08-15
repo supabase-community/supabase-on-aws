@@ -214,7 +214,7 @@ export class SupabaseService extends Construct {
     });
     const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', {
       internetFacing: true,
-      ipAddressType: elb.IpAddressType.DUAL_STACK,
+      //ipAddressType: elb.IpAddressType.DUAL_STACK,
       securityGroup,
       vpc,
     });
@@ -257,7 +257,8 @@ export class SupabaseService extends Construct {
         UserPoolDomain: userPoolDomain,
       },
     }));
-    loadBalancer.connections.allowFromAnyIpv4(ec2.Port.tcp(443), 'Allow from anyone on port 443');
+    loadBalancer.connections.allowFrom(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow from anyone on port 443');
+    //loadBalancer.connections.allowFrom(ec2.Peer.anyIpv6(), ec2.Port.tcp(443));
     if (meshEnabled) {
       loadBalancer.connections.allowTo(this.ecsService, ec2.Port.tcp(9901), 'HealthCheck');
     }
