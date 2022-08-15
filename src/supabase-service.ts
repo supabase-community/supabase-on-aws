@@ -15,7 +15,6 @@ export interface SupabaseServiceProps {
   cpu?: number;
   memory?: number;
   cpuArchitecture?: ecs.CpuArchitecture;
-  withLoadBalancer?: 'Network'|'Application';
   mesh?: appmesh.Mesh;
 }
 
@@ -25,14 +24,12 @@ export class SupabaseService extends Construct {
   cloudMapService: servicediscovery.Service;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
-  loadBalancer?: elb.BaseLoadBalancer;
-  internalDnsName?: string;
 
   constructor(scope: Construct, id: string, props: SupabaseServiceProps) {
     super(scope, id);
 
     const serviceName = id.toLowerCase();
-    const { cluster, containerDefinition, cpu, memory, withLoadBalancer, mesh } = props;
+    const { cluster, containerDefinition, cpu, memory, mesh } = props;
     const cpuArchitecture = props.cpuArchitecture || ecs.CpuArchitecture.ARM64;
     const vpc = cluster.vpc;
 
@@ -80,7 +77,6 @@ export class SupabaseService extends Construct {
         { capacityProvider: 'FARGATE', base: 1, weight: 1 },
         { capacityProvider: 'FARGATE_SPOT', base: 0, weight: 0 },
       ],
-      healthCheckGracePeriod: (typeof withLoadBalancer == 'undefined') ? undefined : cdk.Duration.seconds(10),
     });
 
     this.cloudMapService = this.ecsService.enableCloudMap({
@@ -97,57 +93,6 @@ export class SupabaseService extends Construct {
       scaleInCooldown: cdk.Duration.seconds(60),
       scaleOutCooldown: cdk.Duration.seconds(60),
     });
-
-    this.internalDnsName = (typeof this.ecsService.cloudMapService != 'undefined') ? `${this.ecsService.cloudMapService.serviceName}.${this.ecsService.cloudMapService.namespace.namespaceName}` : undefined;
-
-    if (withLoadBalancer == 'Network') {
-      const vpcInternal = ec2.Peer.ipv4(cluster.vpc.vpcCidrBlock);
-      const healthCheckPort = ec2.Port.tcp(containerDefinition.portMappings!.slice(-1)[0].containerPort);
-      this.ecsService.connections.allowFrom(vpcInternal, healthCheckPort, 'NLB healthcheck');
-
-      const targetGroup = new elb.NetworkTargetGroup(this, 'TargetGroup', {
-        port: 80,
-        targets: [
-          this.ecsService.loadBalancerTarget({ containerName: 'app' }),
-        ],
-        healthCheck: {
-          port: healthCheckPort.toString(),
-          interval: cdk.Duration.seconds(10),
-        },
-        deregistrationDelay: cdk.Duration.seconds(30),
-        preserveClientIp: true,
-        vpc,
-      });
-      const loadBalancer = new elb.NetworkLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
-      loadBalancer.addListener('Listener', {
-        port: 80,
-        defaultTargetGroups: [targetGroup],
-      });
-      this.loadBalancer = loadBalancer;
-    } else if (withLoadBalancer == 'Application') {
-      const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
-        port: 80,
-        targets: [
-          this.ecsService.loadBalancerTarget({ containerName: 'app' }),
-        ],
-        healthCheck: {
-          port: (typeof mesh != 'undefined') ? '9901' : undefined,
-          interval: cdk.Duration.seconds(10),
-          timeout: cdk.Duration.seconds(5),
-        },
-        deregistrationDelay: cdk.Duration.seconds(30),
-        vpc,
-      });
-      const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
-      loadBalancer.addListener('Listener', {
-        port: 80,
-        defaultTargetGroups: [targetGroup],
-      });
-      if (typeof mesh != 'undefined') {
-        loadBalancer.connections.allowTo(this.ecsService, ec2.Port.tcp(9901), 'HealthCheck');
-      }
-      this.loadBalancer = loadBalancer;
-    }
 
     if (typeof mesh != 'undefined') {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
@@ -217,6 +162,65 @@ export class SupabaseService extends Construct {
     }
 
   }
+
+  addNetworkLoadBalancer() {
+    const vpc = this.ecsService.cluster.vpc;
+    const vpcInternal = ec2.Peer.ipv4(vpc.vpcCidrBlock);
+    const healthCheckPort = ec2.Port.tcp(this.ecsService.taskDefinition.defaultContainer!.portMappings.slice(-1)[0].containerPort); // 2nd port
+    this.ecsService.connections.allowFrom(vpcInternal, healthCheckPort, 'NLB healthcheck');
+
+    const targetGroup = new elb.NetworkTargetGroup(this, 'TargetGroup', {
+      port: this.listenerPort,
+      targets: [
+        this.ecsService.loadBalancerTarget({ containerName: 'app' }),
+      ],
+      healthCheck: {
+        port: healthCheckPort.toString(),
+        interval: cdk.Duration.seconds(10),
+      },
+      deregistrationDelay: cdk.Duration.seconds(30),
+      preserveClientIp: true,
+      vpc,
+    });
+    const loadBalancer = new elb.NetworkLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
+    loadBalancer.addListener('Listener', {
+      port: 80,
+      defaultTargetGroups: [targetGroup],
+    });
+    return loadBalancer;
+  }
+
+  addApplicationLoadBalancer(acmCertArn?: string) {
+    const sslEnabled = (typeof acmCertArn == 'undefined') ? false : true;
+    const meshEnabled = (typeof this.virtualService == 'undefined') ? false : true;
+    const vpc = this.ecsService.cluster.vpc;
+    const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
+      protocol: elb.ApplicationProtocol.HTTP,
+      port: this.listenerPort,
+      targets: [
+        this.ecsService.loadBalancerTarget({ containerName: 'app' }),
+      ],
+      healthCheck: {
+        port: (meshEnabled) ? '9901' : undefined,
+        interval: cdk.Duration.seconds(10),
+        timeout: cdk.Duration.seconds(5),
+      },
+      deregistrationDelay: cdk.Duration.seconds(30),
+      vpc,
+    });
+    const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
+    loadBalancer.addListener('Listener', {
+      protocol: (sslEnabled) ? elb.ApplicationProtocol.HTTPS : elb.ApplicationProtocol.HTTP,
+      port: (sslEnabled) ? 443 : 80,
+      defaultTargetGroups: [targetGroup],
+      certificates: (sslEnabled) ? [elb.ListenerCertificate.fromArn(acmCertArn!)] : undefined,
+    });
+    if (meshEnabled) {
+      loadBalancer.connections.allowTo(this.ecsService, ec2.Port.tcp(9901), 'HealthCheck');
+    }
+    return loadBalancer;
+  }
+
   addBackend(backend: SupabaseService) {
     this.ecsService.connections.allowTo(backend.ecsService, ec2.Port.tcp(backend.listenerPort));
     if (typeof backend.virtualService != 'undefined') {

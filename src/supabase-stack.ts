@@ -96,11 +96,11 @@ export class SupabaseStack extends cdk.Stack {
           SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
         },
       },
-      withLoadBalancer: 'Network',
       mesh,
     });
+    const kongLoadBalancer = kong.addNetworkLoadBalancer();
 
-    const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kong.loadBalancer! });
+    const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kongLoadBalancer });
     const cfPrefixList = new ManagedPrefixList(this, 'CloudFrontManagedPrefixList', { name: 'com.amazonaws.global.cloudfront.origin-facing' });
     kong.ecsService.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
 
@@ -280,12 +280,13 @@ export class SupabaseStack extends cdk.Stack {
           SUPABASE_SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
         },
       },
-      withLoadBalancer: 'Application',
       mesh,
     });
     studio.addBackend(meta);
 
-    const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studio.loadBalancer! });
+    const studioLoadBalancer = studio.addApplicationLoadBalancer();
+
+    const studioCdn = new SupabaseCdn(this, 'StudioCDN', { originLoadBalancer: studioLoadBalancer });
 
     new cdk.CfnOutput(this, 'Url', { value: `https://${cdn.domainName}` });
     new cdk.CfnOutput(this, 'StudioUrl', { value: `https://${studioCdn.domainName}` });
