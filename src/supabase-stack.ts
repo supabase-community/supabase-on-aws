@@ -32,7 +32,8 @@ export class SupabaseStack extends cdk.Stack {
       description: 'The From email address for all emails sent.',
       type: 'String',
       default: 'noreply@supabase.awsapps.com',
-      //allowedPattern: '/[^\s@]+@[^\s@]+\.[^\s@]+/',
+      allowedPattern: '^[\\x20-\\x45]?[\\w-\\+]+(\\.[\\w]+)*@[\\w-]+(\\.[\\w]+)*(\\.[a-z]{2,})$',
+      constraintDescription: 'must be a valid email address',
     });
 
     const smtpSenderName = new cdk.CfnParameter(this, 'SmtpSenderName', {
