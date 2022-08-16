@@ -46,12 +46,12 @@ export class SupabaseStack extends cdk.Stack {
       default: 'Supabase',
     });
 
-    const supabaseKongImage = new cdk.CfnParameter(this, 'SupabaseKongImage', { type: 'String', default: 'public.ecr.aws/u3p7q2r8/supabase-kong:latest' });
-    const supabaseAuthImage = new cdk.CfnParameter(this, 'SupabaseAuthImage', { type: 'String', default: 'supabase/gotrue:v2.10.3' });
-    const supabaseResrImage = new cdk.CfnParameter(this, 'SupabaseResrImage', { type: 'String', default: 'postgrest/postgrest:v9.0.1' });
-    const supabaseRealtimeImage = new cdk.CfnParameter(this, 'SupabaseRealtimeImage', { type: 'String', default: 'supabase/realtime:v0.24.0' });
-    const supabaseStorageImage = new cdk.CfnParameter(this, 'SupabaseStorageImage', { type: 'String', default: 'supabase/storage-api:v0.19.0' });
-    const supabaseMetaImage = new cdk.CfnParameter(this, 'SupabaseMetaImage', { type: 'String', default: 'supabase/postgres-meta:v0.42.1' });
+    const supabaseKongImageParameter = new cdk.CfnParameter(this, 'SupabaseKongImage', { type: 'String', default: 'public.ecr.aws/u3p7q2r8/supabase-kong:latest' });
+    const supabaseAuthImageParameter = new cdk.CfnParameter(this, 'SupabaseAuthImage', { type: 'String', default: 'supabase/gotrue:v2.10.3' });
+    const supabaseResrImageParameter = new cdk.CfnParameter(this, 'SupabaseResrImage', { type: 'String', default: 'postgrest/postgrest:v9.0.1' });
+    const supabaseRealtimeImageParameter = new cdk.CfnParameter(this, 'SupabaseRealtimeImage', { type: 'String', default: 'supabase/realtime:v0.24.0' });
+    const supabaseStorageImageParameter = new cdk.CfnParameter(this, 'SupabaseStorageImage', { type: 'String', default: 'supabase/storage-api:v0.19.0' });
+    const supabaseMetaImageParameter = new cdk.CfnParameter(this, 'SupabaseMetaImage', { type: 'String', default: 'supabase/postgres-meta:v0.42.1' });
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
@@ -81,7 +81,7 @@ export class SupabaseStack extends cdk.Stack {
     const kong = new SupabaseService(this, 'Kong', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseKongImage.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(supabaseKongImageParameter.valueAsString),
         //image: ecs.ContainerImage.fromAsset('./src/containers/kong', { platform: Platform.LINUX_ARM64 }),
         portMappings: [{ containerPort: 8000 }, { containerPort: 8100 }],
         healthCheck: {
@@ -111,7 +111,7 @@ export class SupabaseStack extends cdk.Stack {
     const auth = new SupabaseService(this, 'Auth', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseAuthImage.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(supabaseAuthImageParameter.valueAsString),
         portMappings: [{ containerPort: 9999 }],
         environment: {
           GOTRUE_API_HOST: '0.0.0.0',
@@ -154,7 +154,7 @@ export class SupabaseStack extends cdk.Stack {
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseResrImage.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(supabaseResrImageParameter.valueAsString),
         portMappings: [{ containerPort: 3000 }],
         environment: {
           PGRST_DB_SCHEMAS: 'public,storage,graphql_public',
@@ -172,7 +172,7 @@ export class SupabaseStack extends cdk.Stack {
     const realtime = new SupabaseService(this, 'Realtime', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseRealtimeImage.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(supabaseRealtimeImageParameter.valueAsString),
         portMappings: [{ containerPort: 4000 }],
         environment: {
           DB_SSL: 'false',
@@ -208,7 +208,7 @@ export class SupabaseStack extends cdk.Stack {
     const storage = new SupabaseService(this, 'Storage', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseStorageImage.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(supabaseStorageImageParameter.valueAsString),
         portMappings: [{ containerPort: 5000 }],
         environment: {
           POSTGREST_URL: 'http://rest.supabase.local:3000',
@@ -228,7 +228,7 @@ export class SupabaseStack extends cdk.Stack {
           DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
         },
       },
-      cpuArchitecture: ecs.CpuArchitecture.X86_64, // patch for supabase-storage
+      cpuArchitecture: ecs.CpuArchitecture.X86_64, // storage-api does not work on ARM64
       mesh,
     });
     bucket.grantReadWrite(storage.ecsService.taskDefinition.taskRole);
@@ -236,7 +236,7 @@ export class SupabaseStack extends cdk.Stack {
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseMetaImage.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(supabaseMetaImageParameter.valueAsString),
         portMappings: [{ containerPort: 8080 }],
         environment: {
           PG_META_PORT: '8080',
@@ -268,7 +268,7 @@ export class SupabaseStack extends cdk.Stack {
     storage.addDatabaseBackend(db);
     meta.addDatabaseBackend(db);
 
-    const supabaseStudioImage = new cdk.CfnParameter(this, 'SupabaseStudioImage', {
+    const supabaseStudioImageParameter = new cdk.CfnParameter(this, 'SupabaseStudioImage', {
       type: 'String',
       default: 'supabase/studio:latest',
     });
@@ -277,7 +277,7 @@ export class SupabaseStack extends cdk.Stack {
       cluster,
       dbSecret,
       jwtSecret,
-      imageUri: supabaseStudioImage.valueAsString,
+      imageUri: supabaseStudioImageParameter.valueAsString,
       supabaseUrl: `https://${cdn.distribution.domainName}`,
     });
 
@@ -313,18 +313,18 @@ export class SupabaseStack extends cdk.Stack {
           {
             Label: { default: 'Docker Image Parameters' },
             Parameters: [
-              supabaseKongImage.logicalId,
-              supabaseAuthImage.logicalId,
-              supabaseResrImage.logicalId,
-              supabaseRealtimeImage.logicalId,
-              supabaseStorageImage.logicalId,
-              supabaseMetaImage.logicalId,
+              supabaseKongImageParameter.logicalId,
+              supabaseAuthImageParameter.logicalId,
+              supabaseResrImageParameter.logicalId,
+              supabaseRealtimeImageParameter.logicalId,
+              supabaseStorageImageParameter.logicalId,
+              supabaseMetaImageParameter.logicalId,
             ],
           },
           {
             Label: { default: 'Supabase Studio Parameters' },
             Parameters: [
-              supabaseStudioImage.logicalId,
+              supabaseStudioImageParameter.logicalId,
               studio.acmCertArnParameter.logicalId,
             ],
           },
