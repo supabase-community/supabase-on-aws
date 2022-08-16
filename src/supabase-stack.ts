@@ -20,7 +20,7 @@ export class SupabaseStack extends cdk.Stack {
     super(scope, id, props);
 
     const siteUrlParameter = new cdk.CfnParameter(this, 'SiteUrl', {
-      //description: 'Region of SES endpoint used as SMTP server.',
+      description: 'The base URL your site is located at. Currently used in combination with other settings to construct URLs used in emails.',
       type: 'String',
       default: 'http://localhost:3000',
     });
@@ -296,7 +296,7 @@ export class SupabaseStack extends cdk.Stack {
             ],
           },
           {
-            Label: { default: 'Email Settings Parameters (SMTP)' },
+            Label: { default: 'Email Parameters (SMTP)' },
             Parameters: [
               sesRegion.logicalId,
               smtpAdminEmail.logicalId,
@@ -304,14 +304,14 @@ export class SupabaseStack extends cdk.Stack {
             ],
           },
           {
-            Label: { default: 'Platform Settings Parameters' },
+            Label: { default: 'Platform Parameters' },
             Parameters: [
               db.multiAzParameter.logicalId,
               cdn.wafWebAclArnParameter.logicalId,
             ],
           },
           {
-            Label: { default: 'Docker Images Parameters' },
+            Label: { default: 'Docker Image Parameters' },
             Parameters: [
               supabaseKongImage.logicalId,
               supabaseAuthImage.logicalId,
@@ -330,6 +330,7 @@ export class SupabaseStack extends cdk.Stack {
           },
         ],
         ParameterLabels: {
+          [siteUrlParameter.logicalId]: { default: 'Site URL' },
         },
       },
     };
