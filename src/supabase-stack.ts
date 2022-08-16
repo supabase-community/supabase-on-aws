@@ -268,7 +268,7 @@ export class SupabaseStack extends cdk.Stack {
     storage.addDatabaseBackend(db);
     meta.addDatabaseBackend(db);
 
-    const supabaseStudioImage = new cdk.CfnParameter(scope, 'SupabaseStudioImage', {
+    const supabaseStudioImage = new cdk.CfnParameter(this, 'SupabaseStudioImage', {
       type: 'String',
       default: 'supabase/studio:latest',
     });
