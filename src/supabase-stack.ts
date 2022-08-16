@@ -15,11 +15,9 @@ import { SupabaseService } from './supabase-service';
 import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
 
-const description = 'Self-hosted Supabase powered by ECS Fargate, Aurora Serverless v2, App Mesh and X-Ray';
-
 export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
-    super(scope, id, { ...props, description });
+    super(scope, id, props);
 
     const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
       description: 'Region of SES endpoint used as SMTP server.',
@@ -275,5 +273,25 @@ export class SupabaseStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'StudioUrl', { value: `http://${studio.loadBalancer.loadBalancerDnsName}` });
     new cdk.CfnOutput(this, 'StudioUserPool', { value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users` });
 
+    this.templateOptions.description = 'Self-hosted Supabase powered by ECS Fargate, Aurora Serverless v2, App Mesh and X-Ray';
+    this.templateOptions.metadata = {
+      'AWS::CloudFormation::Interface': {
+        ParameterGroups: [
+          {
+            Label: { default: 'Docker Images' },
+            Parameters: [
+              supabaseKongImage.logicalId,
+              supabaseAuthImage.logicalId,
+              supabaseResrImage.logicalId,
+              supabaseRealtimeImage.logicalId,
+              supabaseStorageImage.logicalId,
+              supabaseMetaImage.logicalId,
+            ],
+          },
+        ],
+        ParameterLabels: {
+        },
+      },
+    };
   }
 }
