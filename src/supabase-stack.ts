@@ -196,6 +196,7 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     const bucket = new s3.Bucket(this, 'Bucket', {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
