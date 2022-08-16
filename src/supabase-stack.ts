@@ -334,6 +334,8 @@ export class SupabaseStack extends cdk.Stack {
           [sesRegionParameter.logicalId]: { default: 'Amazon SES Region' },
           [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
           [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
+          [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
+          [cdn.wafWebAclArnParameter.logicalId]: { default: 'WAF Web ACL ARN' },
         },
       },
     };
