@@ -16,6 +16,7 @@ export interface SupabaseServiceProps {
   cpu?: number;
   memory?: number;
   cpuArchitecture?: ecs.CpuArchitecture;
+  autoScalingEnabled?: boolean;
   mesh?: appmesh.Mesh;
 }
 
@@ -34,6 +35,7 @@ export class SupabaseService extends Construct {
     const cpu = props.cpu || 512;
     const memory = props.memory || 1024;
     const cpuArchitecture = props.cpuArchitecture || ecs.CpuArchitecture.ARM64;
+    const autoScalingEnabled = (typeof props.autoScalingEnabled == 'undefined') ? true : props.autoScalingEnabled;
 
     this.listenerPort = containerDefinition.portMappings![0].containerPort;
 
@@ -89,12 +91,14 @@ export class SupabaseService extends Construct {
     });
     (this.cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
 
-    const autoscaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 20 });
-    autoscaling.scaleOnCpuUtilization('ScaleOnCpu', {
-      targetUtilizationPercent: 50,
-      scaleInCooldown: cdk.Duration.seconds(60),
-      scaleOutCooldown: cdk.Duration.seconds(60),
-    });
+    if (autoScalingEnabled) {
+      const autoScaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 20 });
+      autoScaling.scaleOnCpuUtilization('ScaleOnCpu', {
+        targetUtilizationPercent: 50,
+        scaleInCooldown: cdk.Duration.seconds(60),
+        scaleOutCooldown: cdk.Duration.seconds(60),
+      });
+    }
 
     if (typeof mesh != 'undefined') {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {

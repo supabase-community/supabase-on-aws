@@ -188,6 +188,7 @@ export class SupabaseStack extends cdk.Stack {
         },
         command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
       },
+      autoScalingEnabled: false,
       mesh,
     });
 
