@@ -48,6 +48,8 @@ export class SupabaseStudio extends SupabaseService {
           SUPABASE_SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
         },
       },
+      cpu: 256,
+      memory: 512,
     });
 
     const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {

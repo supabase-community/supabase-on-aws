@@ -219,7 +219,6 @@ export class SupabaseStack extends cdk.Stack {
           DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
         },
       },
-      memory: 1024, // patch for supabase-storage
       cpuArchitecture: ecs.CpuArchitecture.X86_64, // patch for supabase-storage
       mesh,
     });

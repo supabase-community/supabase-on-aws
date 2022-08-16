@@ -30,13 +30,14 @@ export class SupabaseService extends Construct {
     super(scope, id);
 
     const serviceName = id.toLowerCase();
-    const { cluster, containerDefinition, cpu, memory, mesh } = props;
+    const { cluster, containerDefinition, mesh } = props;
+    const cpu = props.cpu || 512;
+    const memory = props.memory || 1024;
     const cpuArchitecture = props.cpuArchitecture || ecs.CpuArchitecture.ARM64;
-    const vpc = cluster.vpc;
 
     this.listenerPort = containerDefinition.portMappings![0].containerPort;
 
-    const proxyConfiguration = (typeof mesh == 'undefined') ? undefined : new ecs.AppMeshProxyConfiguration({
+    const proxyConfiguration = new ecs.AppMeshProxyConfiguration({
       containerName: 'envoy',
       properties: {
         ignoredUID: 1337,
@@ -53,7 +54,7 @@ export class SupabaseService extends Construct {
       cpu,
       memoryLimitMiB: memory,
       runtimePlatform: { cpuArchitecture },
-      proxyConfiguration,
+      proxyConfiguration: (typeof mesh != 'undefined') ? proxyConfiguration : undefined,
     });
 
     const logGroup = new logs.LogGroup(this, 'Logs', {
