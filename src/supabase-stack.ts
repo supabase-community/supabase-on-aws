@@ -25,14 +25,14 @@ export class SupabaseStack extends cdk.Stack {
       default: 'http://localhost:3000',
     });
 
-    const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
+    const sesRegionParameter = new cdk.CfnParameter(this, 'SesRegion', {
       description: 'Region of SES endpoint used as SMTP server.',
       type: 'String',
       default: 'us-west-2',
       allowedValues: sesSmtpSupportedRegions,
     });
 
-    const smtpAdminEmail = new cdk.CfnParameter(this, 'SmtpAdminEmail', {
+    const smtpAdminEmailParameter = new cdk.CfnParameter(this, 'SmtpAdminEmail', {
       description: 'The From email address for all emails sent.',
       type: 'String',
       default: 'noreply@supabase.awsapps.com',
@@ -40,7 +40,7 @@ export class SupabaseStack extends cdk.Stack {
       constraintDescription: 'must be a valid email address',
     });
 
-    const smtpSenderName = new cdk.CfnParameter(this, 'SmtpSenderName', {
+    const smtpSenderNameParameter = new cdk.CfnParameter(this, 'SmtpSenderName', {
       description: 'The From email sender name for all emails sent.',
       type: 'String',
       default: 'Supabase',
@@ -71,7 +71,7 @@ export class SupabaseStack extends cdk.Stack {
       vpc,
     });
 
-    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString, email: smtpAdminEmail.valueAsString, mesh });
+    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, email: smtpAdminEmailParameter.valueAsString, mesh });
 
     const db = new SupabaseDatabase(this, 'Database', { vpc, mesh });
     const dbSecret = db.secret!;
@@ -129,10 +129,10 @@ export class SupabaseStack extends cdk.Stack {
           // mail
           GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
           GOTRUE_MAILER_AUTOCONFIRM: 'false',
-          GOTRUE_SMTP_HOST: `email-smtp.${sesRegion.valueAsString}.amazonaws.com`,
+          GOTRUE_SMTP_HOST: `email-smtp.${sesRegionParameter.valueAsString}.amazonaws.com`,
           GOTRUE_SMTP_PORT: '465',
-          GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmail.valueAsString,
-          GOTRUE_SMTP_SENDER_NAME: smtpSenderName.valueAsString,
+          GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmailParameter.valueAsString,
+          GOTRUE_SMTP_SENDER_NAME: smtpSenderNameParameter.valueAsString,
           GOTRUE_MAILER_URLPATHS_INVITE: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_RECOVERY: '/auth/v1/verify',
@@ -298,9 +298,9 @@ export class SupabaseStack extends cdk.Stack {
           {
             Label: { default: 'Email Parameters (SMTP)' },
             Parameters: [
-              sesRegion.logicalId,
-              smtpAdminEmail.logicalId,
-              smtpSenderName.logicalId,
+              sesRegionParameter.logicalId,
+              smtpAdminEmailParameter.logicalId,
+              smtpSenderNameParameter.logicalId,
             ],
           },
           {
@@ -331,6 +331,9 @@ export class SupabaseStack extends cdk.Stack {
         ],
         ParameterLabels: {
           [siteUrlParameter.logicalId]: { default: 'Site URL' },
+          [sesRegionParameter.logicalId]: { default: 'Amazon SES Region' },
+          [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
+          [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
         },
       },
     };
