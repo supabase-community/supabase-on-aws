@@ -1,5 +1,7 @@
 # Supabase on AWS
 
+![architecture-diagram](docs/images/architecture-diagram.png)
+
 ## Deploy via CloudFormation template
 
 | Region | View | Launch |
