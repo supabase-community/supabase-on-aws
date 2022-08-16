@@ -17,27 +17,38 @@ jobs:
       contents: read
     steps:
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: ${{ secrets.CDK_PUBLISHING_ROLE }}
-          aws-region: us-west-2
-
       - name: Checkout
         uses: actions/checkout@v2
 
+      - uses: technote-space/get-diff-action@v6
+        with:
+          PATTERNS: |
+            src/**/*
+            .projenrc.js
+
       - name: node.js setup
+        if: env.GIT_DIFF
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
       - name: Install dependencies
+        if: env.GIT_DIFF
         run: yarn install --check-files
 
+      - name: Configure AWS credentials
+        if: env.GIT_DIFF
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CDK_PUBLISHING_ROLE }}
+          aws-region: us-west-2
+
       - name: cdk synth
+        if: env.GIT_DIFF
         run: $(npm bin)/cdk synth --no-version-reporting
 
       - name: remove old template
+        if: env.GIT_DIFF
         run: |
           region_list=(${BSS_FILE_ASSET_REGION_SET//,/ })
           for region in ${region_list[@]}; do
@@ -46,4 +57,5 @@ jobs:
           done
 
       - name: Publish assets
+        if: env.GIT_DIFF
         run: npx cdk-assets publish --path cdk.out/Supabase.assets.json --verbose
