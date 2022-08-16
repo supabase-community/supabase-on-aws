@@ -50,7 +50,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       engine,
       parameterGroup,
       storageEncrypted: true,
-      instances: 1,
+      instances: 2,
       instanceProps: {
         instanceType: CustomInstanceType.SERVERLESS as unknown as ec2.InstanceType,
         enablePerformanceInsights: true,
@@ -60,10 +60,19 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       defaultDatabaseName: 'postgres',
     });
 
+    const multiAz = new cdk.CfnParameter(this, 'MultiAz', {
+      description: 'Create a replica at another AZ',
+      type: 'String',
+      default: 'false',
+      allowedValues: ['true', 'false'],
+    });
+    const isMultiAz = new cdk.CfnCondition(this, 'MultiAzCondition', { expression: cdk.Fn.conditionEquals(multiAz, 'true') });
+    (this.node.findChild('Instance2') as rds.CfnDBInstance).addOverride('Condition', isMultiAz.logicalId);
+
     // Support for Aurora Serverless v2 ---------------------------------------------------
     const serverlessV2ScalingConfiguration = {
       MinCapacity: 0.5,
-      MaxCapacity: 16,
+      MaxCapacity: 32,
     };
     const dbScalingConfigure = new cr.AwsCustomResource(this, 'DbScalingConfigure', {
       resourceType: 'Custom::AuroraServerlessV2ScalingConfiguration',
