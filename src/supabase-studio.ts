@@ -27,10 +27,15 @@ export class SupabaseStudio extends SupabaseService {
     const { cluster, dbSecret, jwtSecret, supabaseUrl } = props;
     const vpc = cluster.vpc;
 
+    const supabaseStudioImage = new cdk.CfnParameter(scope, 'SupabaseStudioImage', {
+      type: 'String',
+      default: 'supabase/studio:latest',
+    });
+
     super(scope, id, {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry('supabase/studio:latest'),
+        image: ecs.ContainerImage.fromRegistry(supabaseStudioImage.valueAsString),
         portMappings: [{ containerPort: 3000 }],
         environment: {
           STUDIO_PG_META_URL: `${supabaseUrl}/pg`,
@@ -83,7 +88,7 @@ export class SupabaseStudio extends SupabaseService {
       default: 'NO_CERT',
     });
 
-    const isHttp = new cdk.CfnCondition(this, 'isHttp', { expression: cdk.Fn.conditionEquals(certArn, 'NO_CERT') });
+    const isHttp = new cdk.CfnCondition(this, 'HttpCondition', { expression: cdk.Fn.conditionEquals(certArn, 'NO_CERT') });
 
     this.userPool = new cognito.UserPool(this, 'UserPool', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
