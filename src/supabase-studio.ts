@@ -84,13 +84,15 @@ export class SupabaseStudio extends SupabaseService {
     });
 
     // for HTTPS
+    const dummyCertArn = 'arn:aws:acm:us-west-2:123456789012:certificate/no-cert-it-is-not-secure-to-use-http';
     const certArn = new cdk.CfnParameter(this, 'CertificateArn', {
       description: 'ACM Certificate ARN for Supabase studio',
       type: 'String',
-      default: 'NO_CERT',
+      default: dummyCertArn,
+      allowedPattern: '^arn:aws:acm:[\\w-]+:[0-9]{12}:certificate/[\\w-]{36}$',
     });
 
-    const isHttp = new cdk.CfnCondition(this, 'HttpCondition', { expression: cdk.Fn.conditionEquals(certArn, 'NO_CERT') });
+    const isHttp = new cdk.CfnCondition(this, 'HttpCondition', { expression: cdk.Fn.conditionEquals(certArn, dummyCertArn) });
 
     this.userPool = new cognito.UserPool(this, 'UserPool', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
