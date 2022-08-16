@@ -21,7 +21,9 @@ jobs:
 
       - uses: technote-space/get-diff-action@v6
         with:
-          PATTERNS: src/containers/kong/**/*
+          PATTERNS: |
+            src/containers/kong/**/*
+            .github/workflows/publish.yml
 
       - name: Set up QEMU
         if: env.GIT_DIFF
@@ -81,6 +83,7 @@ jobs:
           PATTERNS: |
             src/**/*
             .projenrc.js
+            .github/workflows/publish.yml
 
       - name: node.js setup
         if: env.GIT_DIFF
