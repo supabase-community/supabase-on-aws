@@ -39,8 +39,11 @@ export class SupabaseCdn extends Construct {
         '*.js': { ...defaultBehavior, cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED },
       },
       errorResponses: [
-        { httpStatus: 400, ttl: Duration.seconds(10) },
-        { httpStatus: 500, ttl: Duration.seconds(10) },
+        { httpStatus: 500, ttl: Duration.seconds(60) },
+        { httpStatus: 501, ttl: Duration.seconds(60) },
+        { httpStatus: 502, ttl: Duration.seconds(60) },
+        { httpStatus: 503, ttl: Duration.seconds(60) },
+        { httpStatus: 504, ttl: Duration.seconds(60) },
       ],
       enableIpv6: true,
     });
