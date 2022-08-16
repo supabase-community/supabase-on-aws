@@ -15,9 +15,11 @@ import { SupabaseService } from './supabase-service';
 import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
 
+const description = 'Self-hosted Supabase powered by ECS Fargate, Aurora Serverless v2, App Mesh and X-Ray';
+
 export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
-    super(scope, id, props);
+    super(scope, id, { ...props, description });
 
     const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
       description: 'Region of SES endpoint used as SMTP server.',
