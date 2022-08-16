@@ -19,6 +19,12 @@ export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
     super(scope, id, props);
 
+    const siteUrlParameter = new cdk.CfnParameter(this, 'SiteUrl', {
+      //description: 'Region of SES endpoint used as SMTP server.',
+      type: 'String',
+      default: 'http://localhost:3000',
+    });
+
     const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
       description: 'Region of SES endpoint used as SMTP server.',
       type: 'String',
@@ -112,7 +118,7 @@ export class SupabaseStack extends cdk.Stack {
           GOTRUE_API_PORT: '9999',
           API_EXTERNAL_URL: `https://${cdn.distribution.domainName}`,
           GOTRUE_DB_DRIVER: 'postgres',
-          GOTRUE_SITE_URL: 'http://localhost:3000',
+          GOTRUE_SITE_URL: siteUrlParameter.valueAsString,
           GOTRUE_URI_ALLOW_LIST: '',
           GOTRUE_DISABLE_SIGNUP: 'false',
           // JWT
@@ -284,10 +290,9 @@ export class SupabaseStack extends cdk.Stack {
       'AWS::CloudFormation::Interface': {
         ParameterGroups: [
           {
-            Label: { default: 'Platform Settings Parameters' },
+            Label: { default: 'Supabase Parameters' },
             Parameters: [
-              db.multiAzParameter.logicalId,
-              cdn.wafWebAclArnParameter.logicalId,
+              siteUrlParameter.logicalId,
             ],
           },
           {
@@ -296,6 +301,13 @@ export class SupabaseStack extends cdk.Stack {
               sesRegion.logicalId,
               smtpAdminEmail.logicalId,
               smtpSenderName.logicalId,
+            ],
+          },
+          {
+            Label: { default: 'Platform Settings Parameters' },
+            Parameters: [
+              db.multiAzParameter.logicalId,
+              cdn.wafWebAclArnParameter.logicalId,
             ],
           },
           {
