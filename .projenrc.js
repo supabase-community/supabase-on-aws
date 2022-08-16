@@ -22,5 +22,8 @@ const project = new awscdk.AwsCdkTypeScriptApp({
       noUnusedParameters: false,
     },
   },
+  gitignore: [
+    'cdk.context.json',
+  ],
 });
 project.synth();
