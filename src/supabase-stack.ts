@@ -67,7 +67,7 @@ export class SupabaseStack extends cdk.Stack {
 
     const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString, email: smtpAdminEmail.valueAsString, mesh });
 
-    const db = new SupabaseDatabase(this, 'DB', { vpc, mesh });
+    const db = new SupabaseDatabase(this, 'Database', { vpc, mesh });
     const dbSecret = db.secret!;
 
     const jwtSecret = new SupabaseJwtSecret(this, 'SupabaseJwtSecret');
@@ -262,10 +262,16 @@ export class SupabaseStack extends cdk.Stack {
     storage.addDatabaseBackend(db);
     meta.addDatabaseBackend(db);
 
+    const supabaseStudioImage = new cdk.CfnParameter(scope, 'SupabaseStudioImage', {
+      type: 'String',
+      default: 'supabase/studio:latest',
+    });
+
     const studio = new SupabaseStudio(this, 'Studio', {
       cluster,
       dbSecret,
       jwtSecret,
+      imageUri: supabaseStudioImage.valueAsString,
       supabaseUrl: `https://${cdn.distribution.domainName}`,
     });
 
@@ -278,7 +284,22 @@ export class SupabaseStack extends cdk.Stack {
       'AWS::CloudFormation::Interface': {
         ParameterGroups: [
           {
-            Label: { default: 'Docker Images' },
+            Label: { default: 'Platform Settings Parameters' },
+            Parameters: [
+              db.multiAzParameter.logicalId,
+              cdn.wafWebAclArnParameter.logicalId,
+            ],
+          },
+          {
+            Label: { default: 'Email Settings Parameters (SMTP)' },
+            Parameters: [
+              sesRegion.logicalId,
+              smtpAdminEmail.logicalId,
+              smtpSenderName.logicalId,
+            ],
+          },
+          {
+            Label: { default: 'Docker Images Parameters' },
             Parameters: [
               supabaseKongImage.logicalId,
               supabaseAuthImage.logicalId,
@@ -286,6 +307,13 @@ export class SupabaseStack extends cdk.Stack {
               supabaseRealtimeImage.logicalId,
               supabaseStorageImage.logicalId,
               supabaseMetaImage.logicalId,
+            ],
+          },
+          {
+            Label: { default: 'Supabase Studio Parameters' },
+            Parameters: [
+              supabaseStudioImage.logicalId,
+              studio.acmCertArnParameter.logicalId,
             ],
           },
         ],

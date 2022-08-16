@@ -18,8 +18,10 @@ interface SupabaseDatabaseProps {
 }
 
 export class SupabaseDatabase extends rds.DatabaseCluster {
+  multiAzParameter: cdk.CfnParameter;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
+
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
 
     const { vpc, mesh } = props;
@@ -60,13 +62,13 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       defaultDatabaseName: 'postgres',
     });
 
-    const multiAz = new cdk.CfnParameter(this, 'MultiAz', {
+    this.multiAzParameter = new cdk.CfnParameter(this, 'MultiAz', {
       description: 'Create a replica at another AZ',
       type: 'String',
       default: 'false',
       allowedValues: ['true', 'false'],
     });
-    const isMultiAz = new cdk.CfnCondition(this, 'MultiAzCondition', { expression: cdk.Fn.conditionEquals(multiAz, 'true') });
+    const isMultiAz = new cdk.CfnCondition(this, 'MultiAzCondition', { expression: cdk.Fn.conditionEquals(this.multiAzParameter, 'true') });
     (this.node.findChild('Instance2') as rds.CfnDBInstance).addOverride('Condition', isMultiAz.logicalId);
 
     // Support for Aurora Serverless v2 ---------------------------------------------------

@@ -10,6 +10,7 @@ interface SupabaseCdnProps {
 
 export class SupabaseCdn extends Construct {
   distribution: cf.Distribution;
+  wafWebAclArnParameter: cdk.CfnParameter;
 
   constructor(scope: Construct, id: string, props: SupabaseCdnProps) {
     super(scope, id);
@@ -17,14 +18,14 @@ export class SupabaseCdn extends Construct {
     const { originLoadBalancer } = props;
 
     const dummyWebAclArn = 'arn:aws:wafv2:us-east-1:123456789012:global/webacl/this-is-dummy/00000000-0000-0000-0000-000000000000';
-    const wafWebAclArn = new cdk.CfnParameter(this, 'WafWebAclArn', {
+    this.wafWebAclArnParameter = new cdk.CfnParameter(this, 'WafWebAclArn', {
       description: 'WAF Web ACL ARN for CDN',
       type: 'String',
       default: dummyWebAclArn,
       allowedPattern: '^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\w-]+/[\\w-]{36}$',
     });
 
-    const wafEnabled = new cdk.CfnCondition(this, 'WafEnabled', { expression: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(wafWebAclArn, dummyWebAclArn)) });
+    const wafEnabled = new cdk.CfnCondition(this, 'WafEnabled', { expression: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(this.wafWebAclArnParameter, dummyWebAclArn)) });
 
     const defaultBehavior: cf.BehaviorOptions = {
       origin: new LoadBalancerV2Origin(originLoadBalancer, {
@@ -57,6 +58,6 @@ export class SupabaseCdn extends Construct {
       ],
       enableIpv6: true,
     });
-    (this.distribution.node.defaultChild as cf.CfnDistribution).addPropertyOverride('DistributionConfig.WebACLId', cdk.Fn.conditionIf(wafEnabled.logicalId, wafWebAclArn.valueAsString, cdk.Aws.NO_VALUE));
+    (this.distribution.node.defaultChild as cf.CfnDistribution).addPropertyOverride('DistributionConfig.WebACLId', cdk.Fn.conditionIf(wafEnabled.logicalId, this.wafWebAclArnParameter.valueAsString, cdk.Aws.NO_VALUE));
   }
 };

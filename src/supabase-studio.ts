@@ -12,30 +12,27 @@ interface SupabaseStudioProps {
   cluster: ecs.Cluster;
   dbSecret: ISecret;
   jwtSecret: ISecret;
+  imageUri: string;
   supabaseUrl: string;
 }
 
 export class SupabaseStudio extends SupabaseService {
   loadBalancer: elb.ApplicationLoadBalancer;
   userPool: cognito.UserPool;
+  acmCertArnParameter: cdk.CfnParameter;
 
   /**
    * Deploy Next.js on ECS Fargate with ApplicationLoadBalancer.
    * It is better, if you can deploy Next.js with Amplify Hosting or Lambda@edge.
    */
   constructor(scope: Construct, id: string, props: SupabaseStudioProps) {
-    const { cluster, dbSecret, jwtSecret, supabaseUrl } = props;
+    const { cluster, dbSecret, jwtSecret, imageUri, supabaseUrl } = props;
     const vpc = cluster.vpc;
-
-    const supabaseStudioImage = new cdk.CfnParameter(scope, 'SupabaseStudioImage', {
-      type: 'String',
-      default: 'supabase/studio:latest',
-    });
 
     super(scope, id, {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseStudioImage.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(imageUri),
         portMappings: [{ containerPort: 3000 }],
         environment: {
           STUDIO_PG_META_URL: `${supabaseUrl}/pg`,
@@ -85,14 +82,14 @@ export class SupabaseStudio extends SupabaseService {
 
     // for HTTPS
     const dummyCertArn = 'arn:aws:acm:us-west-2:123456789012:certificate/no-cert-it-is-not-secure-to-use-http';
-    const certArn = new cdk.CfnParameter(this, 'CertificateArn', {
+    this.acmCertArnParameter = new cdk.CfnParameter(this, 'CertificateArn', {
       description: 'ACM Certificate ARN for Supabase studio',
       type: 'String',
       default: dummyCertArn,
       allowedPattern: '^arn:aws:acm:[\\w-]+:[0-9]{12}:certificate/[\\w-]{36}$',
     });
 
-    const isHttp = new cdk.CfnCondition(this, 'HttpCondition', { expression: cdk.Fn.conditionEquals(certArn, dummyCertArn) });
+    const isHttp = new cdk.CfnCondition(this, 'HttpCondition', { expression: cdk.Fn.conditionEquals(this.acmCertArnParameter, dummyCertArn) });
 
     this.userPool = new cognito.UserPool(this, 'UserPool', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -122,7 +119,7 @@ export class SupabaseStudio extends SupabaseService {
     const cfnListener = listener.node.defaultChild as elb.CfnListener;
     cfnListener.addPropertyOverride('Protocol', cdk.Fn.conditionIf(isHttp.logicalId, 'HTTP', 'HTTPS'));
     cfnListener.addPropertyOverride('Port', cdk.Fn.conditionIf(isHttp.logicalId, 80, 443));
-    cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, [{ CertificateArn: certArn.valueAsString }]));
+    cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, [{ CertificateArn: this.acmCertArnParameter.valueAsString }]));
     cfnListener.addPropertyOverride('DefaultActions.0.Order', cdk.Fn.conditionIf(isHttp.logicalId, 1, 2));
     cfnListener.addPropertyOverride('DefaultActions.1', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, {
       Order: 1,
