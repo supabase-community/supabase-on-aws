@@ -67,9 +67,10 @@ export class SupabaseStack extends cdk.Stack {
 
     const cluster = new ecs.Cluster(this, 'Cluster', {
       enableFargateCapacityProviders: true,
-      defaultCloudMapNamespace: { name: 'supabase.local' },
+      containerInsights: false,
       vpc,
     });
+    const cloudMapNamespace = cluster.addDefaultCloudMapNamespace({ name: 'supabase.local' });
 
     const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, email: smtpAdminEmailParameter.valueAsString, mesh });
 
