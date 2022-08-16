@@ -16,5 +16,4 @@ export const sesSmtpSupportedRegions = [
   'eu-west-3',
   'eu-north-1',
   'sa-east-1',
-  'us-gov-west-1',
 ];
