@@ -16,12 +16,13 @@
 [ap-northeast-1]: https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-northeast-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-northeast-1
 [ap-southeast-1]: https://ap-southeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-southeast-1
 
-## How to build and deploy
+## Deploy via CDK
 
 ```bash
-yarn install
+git clone https://github.com/mats16/supabase-on-aws.git
+cd supabase-on-aws
 
-npx projen
+yarn install
 
 npx projen deploy
 ```
