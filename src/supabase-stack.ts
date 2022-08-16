@@ -1,6 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
 import * as appmesh from 'aws-cdk-lib/aws-appmesh';
-import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
@@ -13,6 +12,7 @@ import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwtSecret } from './supabase-jwt-secret';
 import { SupabaseMail } from './supabase-mail';
 import { SupabaseService } from './supabase-service';
+import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
 
 export class SupabaseStack extends cdk.Stack {
@@ -37,16 +37,6 @@ export class SupabaseStack extends cdk.Stack {
       description: 'The From email sender name for all emails sent.',
       type: 'String',
       default: 'Supabase',
-    });
-
-    const studioUserPoolId = new cdk.CfnParameter(this, 'StudioUserPoolId', {
-      description: 'User pool for Supabase Studio',
-      type: 'String',
-      default: 'CREATE_NEW_USER_POOL',
-    });
-
-    const createUserPoolCondition = new cdk.CfnCondition(this, 'CreateUserPool', {
-      expression: cdk.Fn.conditionEquals(studioUserPoolId.valueAsString, 'CREATE_NEW_USER_POOL'),
     });
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
@@ -263,41 +253,16 @@ export class SupabaseStack extends cdk.Stack {
     storage.addDatabaseBackend(db);
     meta.addDatabaseBackend(db);
 
-    const studio = new SupabaseService(this, 'Studio', {
+    const studio = new SupabaseStudio(this, 'Studio', {
       cluster,
-      containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry('supabase/studio:latest'),
-        portMappings: [{ containerPort: 3000 }],
-        environment: {
-          STUDIO_PG_META_URL: 'http://meta.supabase.local:8080',
-          //STUDIO_PG_META_URL: `https://${cdn.domainName}/pg`,
-          SUPABASE_URL: `https://${cdn.distribution.domainName}`, // for API Docs
-          SUPABASE_REST_URL: `https://${cdn.distribution.domainName}/rest/v1/`,
-        },
-        secrets: {
-          POSTGRES_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
-          SUPABASE_ANON_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'anon_key'),
-          SUPABASE_SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
-        },
-      },
-      mesh,
-    });
-    studio.addBackend(meta);
-
-    const userPool = new cognito.UserPool(this, 'UserPool', {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      userPoolName: 'SupabaseStudio-UserPool',
-      signInAliases: { username: false, email: true },
-    });
-    const domainPrefix = `supabase-studio-${cdk.Aws.ACCOUNT_ID}`;
-    userPool.addDomain('Domain', {
-      cognitoDomain: { domainPrefix },
+      dbSecret,
+      jwtSecret,
+      supabaseUrl: `https://${cdn.distribution.domainName}`,
     });
 
-    const studioLoadBalancer = studio.addApplicationLoadBalancer(userPool.userPoolArn, domainPrefix);
-
-    new cdk.CfnOutput(this, 'SupabaseApi', { value: `https://${cdn.distribution.domainName}` });
-    new cdk.CfnOutput(this, 'SupabaseStudio', { value: `http://${studioLoadBalancer.loadBalancerDnsName}` });
+    new cdk.CfnOutput(this, 'Url', { value: `https://${cdn.distribution.domainName}` });
+    new cdk.CfnOutput(this, 'StudioUrl', { value: `http://${studio.loadBalancer.loadBalancerDnsName}` });
+    new cdk.CfnOutput(this, 'StudioUserPool', { value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users` });
 
   }
 }
