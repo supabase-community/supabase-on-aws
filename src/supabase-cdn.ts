@@ -57,11 +57,11 @@ export class SupabaseCdn extends Construct {
         '*.js': staticContentBehavior,
       },
       errorResponses: [
-        { httpStatus: 500, ttl: cdk.Duration.seconds(60) },
-        { httpStatus: 501, ttl: cdk.Duration.seconds(60) },
-        { httpStatus: 502, ttl: cdk.Duration.seconds(60) },
-        { httpStatus: 503, ttl: cdk.Duration.seconds(60) },
-        { httpStatus: 504, ttl: cdk.Duration.seconds(60) },
+        { httpStatus: 500, ttl: cdk.Duration.seconds(0) },
+        { httpStatus: 501, ttl: cdk.Duration.seconds(0) },
+        { httpStatus: 502, ttl: cdk.Duration.seconds(0) },
+        { httpStatus: 503, ttl: cdk.Duration.seconds(0) },
+        { httpStatus: 504, ttl: cdk.Duration.seconds(0) },
       ],
       enableIpv6: true,
     });
