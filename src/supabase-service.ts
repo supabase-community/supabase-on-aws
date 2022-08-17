@@ -1,6 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
 import * as appmesh from 'aws-cdk-lib/aws-appmesh';
-import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
@@ -208,6 +207,7 @@ export class SupabaseService extends Construct {
     if (typeof backend.virtualService != 'undefined') {
       this.virtualNode?.addBackend(appmesh.Backend.virtualService(backend.virtualService));
     }
+    this.ecsService.node.defaultChild?.node.addDependency(backend.node.findChild('Instance1'));
   }
 
   addExternalBackend(backend: SupabaseMailBase) {
