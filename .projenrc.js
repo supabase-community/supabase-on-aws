@@ -12,9 +12,11 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     '@types/aws-lambda',
     'cdk-bootstrapless-synthesizer@^2.2.2',
     'jsonwebtoken@^8.5.1',
+    'utf8',
   ],
   devDeps: [
     '@types/jsonwebtoken',
+    '@types/utf8',
   ],
   tsconfig: {
     compilerOptions: {

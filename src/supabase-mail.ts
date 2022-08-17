@@ -46,7 +46,6 @@ export class SupabaseMailBase extends Construct {
 
 interface SupabaseMailProps {
   region: string;
-  email: string;
   mesh?: appmesh.IMesh;
 }
 
@@ -56,7 +55,6 @@ export class SupabaseMail extends SupabaseMailBase {
     super(scope, id);
 
     const { region, mesh } = props;
-    const email = props.email;
 
     const smtpEndpoint = `email-smtp.${region}.amazonaws.com`;
 
@@ -79,7 +77,7 @@ export class SupabaseMail extends SupabaseMailBase {
       statements: [
         new iam.PolicyStatement({
           actions: ['ses:SendRawEmail'],
-          resources: [`arn:aws:ses:${region}:${cdk.Aws.ACCOUNT_ID}:*`],
+          resources: ['*'],
         }),
       ],
     });
@@ -92,11 +90,27 @@ export class SupabaseMail extends SupabaseMailBase {
     this.secret = new Secret(this, 'Secret', {
       description: 'Supabase - SES SMTP Secret',
       secretObjectValue: {
-        host: cdk.SecretValue.unsafePlainText(smtpEndpoint),
-        port: cdk.SecretValue.unsafePlainText('465'),
-        username: cdk.SecretValue.resourceAttribute(accessKey.ref),
-        password: cdk.SecretValue.resourceAttribute(accessKey.attrSecretAccessKey),
-        email: cdk.SecretValue.unsafePlainText(email),
+        access_key: cdk.SecretValue.resourceAttribute(accessKey.ref),
+        secret_access_key: cdk.SecretValue.resourceAttribute(accessKey.attrSecretAccessKey),
+      },
+    });
+
+    const genSmtpPasswordFunction = new NodejsFunction(this, 'GenSmtpPasswordFunction', {
+      description: 'Supabase - Generate SMTP Password Function',
+      entry: './src/functions/gen-smtp-password.ts',
+      runtime: lambda.Runtime.NODEJS_16_X,
+    });
+    this.secret.grantWrite(genSmtpPasswordFunction);
+    this.secret.grantRead(genSmtpPasswordFunction);
+
+    const genSmtpPasswordProvider = new cr.Provider(this, 'GenSmtpPasswordProvider', { onEventHandler: genSmtpPasswordFunction });
+
+    new cdk.CustomResource(this, 'SmtpPassword', {
+      resourceType: 'Custom::SmtpPassword',
+      serviceToken: genSmtpPasswordProvider.serviceToken,
+      properties: {
+        SecretId: this.secret.secretArn,
+        Region: region,
       },
     });
 

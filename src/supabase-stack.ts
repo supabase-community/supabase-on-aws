@@ -72,7 +72,7 @@ export class SupabaseStack extends cdk.Stack {
     });
     const cloudMapNamespace = cluster.addDefaultCloudMapNamespace({ name: 'supabase.local' });
 
-    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, email: smtpAdminEmailParameter.valueAsString, mesh });
+    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, mesh });
 
     const db = new SupabaseDatabase(this, 'Database', { vpc, mesh });
     const dbSecret = db.secret!;
