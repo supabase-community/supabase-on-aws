@@ -35,19 +35,26 @@ export class SupabaseCdn extends Construct {
       allowedMethods: cf.AllowedMethods.ALLOW_ALL,
       cachePolicy: cf.CachePolicy.CACHING_DISABLED,
       originRequestPolicy: cf.OriginRequestPolicy.ALL_VIEWER,
-      functionAssociations: [],
+    };
+
+    const staticContentBehavior: cf.BehaviorOptions = {
+      ...defaultBehavior,
+      cachedMethods: cf.CachedMethods.CACHE_GET_HEAD_OPTIONS,
+      cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
     };
 
     this.distribution = new cf.Distribution(this, 'Distribution', {
       comment: `Supabase - ${id}`,
       defaultBehavior,
       additionalBehaviors: {
-        '*.css': { ...defaultBehavior, cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED },
-        '*.png': { ...defaultBehavior, cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED },
-        '*.svg': { ...defaultBehavior, cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED },
-        '*.woff': { ...defaultBehavior, cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED },
-        '*.woff2': { ...defaultBehavior, cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED },
-        '*.js': { ...defaultBehavior, cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED },
+        '*.css': staticContentBehavior,
+        '*.png': staticContentBehavior,
+        '*.jpg': staticContentBehavior,
+        '*.jpeg': staticContentBehavior,
+        '*.svg': staticContentBehavior,
+        '*.woff': staticContentBehavior,
+        '*.woff2': staticContentBehavior,
+        '*.js': staticContentBehavior,
       },
       errorResponses: [
         { httpStatus: 500, ttl: cdk.Duration.seconds(60) },
