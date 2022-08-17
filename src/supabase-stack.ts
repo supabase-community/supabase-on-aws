@@ -216,9 +216,8 @@ export class SupabaseStack extends cdk.Stack {
           PGOPTIONS: '-c search_path=storage,public',
           FILE_SIZE_LIMIT: '52428800',
           STORAGE_BACKEND: 's3', // default: file
-          FILE_STORAGE_BACKEND_PATH: './data',
-          TENANT_ID: 'stub',
-          // TODO: https://github.com/supabase/storage-api/issues/55
+          TENANT_ID: 'default',
+
           REGION: bucket.env.region,
           GLOBAL_S3_BUCKET: bucket.bucketName,
         },
