@@ -44,6 +44,8 @@ export class SupabaseCdn extends Construct {
     };
 
     this.distribution = new cf.Distribution(this, 'Distribution', {
+      httpVersion: cf.HttpVersion.HTTP2_AND_3,
+      enableIpv6: true,
       comment: `Supabase - ${id}`,
       defaultBehavior,
       additionalBehaviors: {
@@ -63,7 +65,6 @@ export class SupabaseCdn extends Construct {
         { httpStatus: 503, ttl: cdk.Duration.seconds(0) },
         { httpStatus: 504, ttl: cdk.Duration.seconds(0) },
       ],
-      enableIpv6: true,
     });
     (this.distribution.node.defaultChild as cf.CfnDistribution).addPropertyOverride('DistributionConfig.WebACLId', cdk.Fn.conditionIf(wafEnabled.logicalId, this.wafWebAclArnParameter.valueAsString, cdk.Aws.NO_VALUE));
   }
