@@ -88,6 +88,10 @@
       "type": "build"
     },
     {
+      "name": "@aws-sdk/client-ecs",
+      "type": "runtime"
+    },
+    {
       "name": "@aws-sdk/client-secrets-manager",
       "type": "runtime"
     },

@@ -3,7 +3,11 @@ import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
@@ -27,6 +31,7 @@ export class SupabaseService extends Construct {
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
   logGroup: logs.LogGroup;
+  forceDeployFunction: targets.LambdaFunction;
 
   constructor(scope: Construct, id: string, props: SupabaseServiceProps) {
     super(scope, id);
@@ -98,6 +103,33 @@ export class SupabaseService extends Construct {
         resources: [`arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/${cdk.Aws.STACK_NAME}/${id}/*`],
       })],
     }));
+
+    this.forceDeployFunction = new targets.LambdaFunction(new NodejsFunction(this, 'ForceDeployFunction', {
+      description: 'Supabase - Force deploy ECS service function',
+      entry: 'src/functions/ecs-force-deploy.ts',
+      runtime: lambda.Runtime.NODEJS_16_X,
+      architecture: lambda.Architecture.ARM_64,
+      environment: {
+        ECS_CLUSTER_NAME: cluster.clusterName,
+        ECS_SERVICE_NAME: this.ecsService.serviceName,
+      },
+      initialPolicy: [new iam.PolicyStatement({
+        actions: ['ecs:UpdateService'],
+        resources: [this.ecsService.serviceArn],
+      })],
+    }));
+    new events.Rule(this, 'ParameterChange', {
+      description: 'Supabase - Force deploy ECS service when parameters changed',
+      eventPattern: {
+        source: ['aws.ssm'],
+        detailType: ['Parameter Store Change'],
+        detail: {
+          name: [{ prefix: `/${cdk.Aws.STACK_NAME}/${id}/` }],
+          operation: ['Update'],
+        },
+      },
+      targets: [this.forceDeployFunction],
+    });
 
     if (autoScalingEnabled) {
       const autoScaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 20 });

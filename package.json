@@ -47,6 +47,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@aws-sdk/client-ecs": "^3.154.0",
     "@aws-sdk/client-secrets-manager": "^3.137.0",
     "@aws-sdk/client-ses": "^3.141.0",
     "@aws-sdk/client-workmail": "^3.137.0",
