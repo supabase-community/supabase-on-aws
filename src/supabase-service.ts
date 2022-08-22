@@ -38,10 +38,11 @@ export class SupabaseService extends Construct {
 
     const serviceName = id.toLowerCase();
     const { cluster, containerDefinition, mesh } = props;
-    const cpu = props.cpu || 512;
-    const memory = props.memory || 1024;
+    const cpu = props.cpu || 1024;
+    const memory = props.memory || 2048;
     const cpuArchitecture = props.cpuArchitecture || ecs.CpuArchitecture.ARM64;
     const autoScalingEnabled = (typeof props.autoScalingEnabled == 'undefined') ? true : props.autoScalingEnabled;
+    const meshEnabled = typeof props.mesh != 'undefined';
 
     this.listenerPort = containerDefinition.portMappings![0].containerPort;
 
@@ -62,7 +63,7 @@ export class SupabaseService extends Construct {
       cpu,
       memoryLimitMiB: memory,
       runtimePlatform: { cpuArchitecture },
-      proxyConfiguration: (typeof mesh != 'undefined') ? proxyConfiguration : undefined,
+      proxyConfiguration: (meshEnabled) ? proxyConfiguration : undefined,
     });
 
     this.logGroup = new logs.LogGroup(this, 'Logs', {
@@ -74,6 +75,8 @@ export class SupabaseService extends Construct {
 
     const appContainer = taskDefinition.addContainer('app', {
       ...containerDefinition,
+      cpu: (meshEnabled) ? Math.round(cpu * 0.6) : undefined,
+      memoryReservationMiB: (meshEnabled) ? Math.round(memory * 0.8) : undefined,
       essential: true,
       logging,
     });
@@ -140,13 +143,13 @@ export class SupabaseService extends Construct {
       });
     }
 
-    if (typeof mesh != 'undefined') {
+    if (meshEnabled) {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
         virtualNodeName: id,
         serviceDiscovery: appmesh.ServiceDiscovery.cloudMap(this.ecsService.cloudMapService!),
         listeners: [appmesh.VirtualNodeListener.http({ port: this.listenerPort })],
         accessLog: appmesh.AccessLog.fromFilePath('/dev/stdout'),
-        mesh,
+        mesh: mesh!,
       });
 
       this.virtualService = new appmesh.VirtualService(this, 'VirtualService', {
@@ -160,8 +163,8 @@ export class SupabaseService extends Construct {
       const proxyContainer = taskDefinition.addContainer('envoy', {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/appmesh/aws-appmesh-envoy:v1.22.2.0-prod'),
         user: '1337',
-        cpu: 64,
-        memoryReservationMiB: 128,
+        cpu: Math.round(cpu * 0.3),
+        memoryReservationMiB: Math.round(memory * 0.1),
         essential: true,
         healthCheck: {
           command: ['CMD-SHELL', 'curl -s http://localhost:9901/server_info | grep state | grep -q LIVE'],
@@ -171,7 +174,7 @@ export class SupabaseService extends Construct {
           retries: 3,
         },
         environment: {
-          APPMESH_VIRTUAL_NODE_NAME: `mesh/${mesh.meshName}/virtualNode/${this.virtualNode.virtualNodeName}`,
+          APPMESH_VIRTUAL_NODE_NAME: `mesh/${mesh!.meshName}/virtualNode/${this.virtualNode.virtualNodeName}`,
           ENVOY_ADMIN_ACCESS_LOG_FILE: '/dev/null',
           ENABLE_ENVOY_XRAY_TRACING: '1',
           XRAY_SAMPLING_RATE: '1.00',
@@ -189,11 +192,11 @@ export class SupabaseService extends Construct {
       taskDefinition.addContainer('xray-daemon', {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/xray/aws-xray-daemon:latest'),
         // TODO: Using ADOT collector, the console can't display well as App Mesh objects.
-        //image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:v0.20.0'),
-        //command: ['--config=/etc/ecs/ecs-default-config.yaml'],
+        // image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:v0.20.0'),
+        // command: ['--config=/etc/ecs/ecs-default-config.yaml'],
         user: '1337',
-        cpu: 64,
-        memoryReservationMiB: 128,
+        cpu: Math.round(cpu * 0.1),
+        memoryReservationMiB: Math.round(memory * 0.1),
         essential: true,
         healthCheck: {
           command: ['CMD', '/xray', '--version', '||', 'exit 1'], // https://github.com/aws/aws-xray-daemon/issues/9
