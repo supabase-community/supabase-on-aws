@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "allowJs": true,
+    "rootDir": "./src/",
+    "outDir": "./lib/",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "pg": [
+        "./src/pg.ts"
+      ]
+    },
+  },
+  "include": ["src", "test"]
+}
