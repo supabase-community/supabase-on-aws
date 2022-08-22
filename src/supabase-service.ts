@@ -25,6 +25,7 @@ export class SupabaseService extends Construct {
   cloudMapService: servicediscovery.Service;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
+  logGroup: logs.LogGroup;
 
   constructor(scope: Construct, id: string, props: SupabaseServiceProps) {
     super(scope, id);
@@ -58,12 +59,12 @@ export class SupabaseService extends Construct {
       proxyConfiguration: (typeof mesh != 'undefined') ? proxyConfiguration : undefined,
     });
 
-    const logGroup = new logs.LogGroup(this, 'Logs', {
+    this.logGroup = new logs.LogGroup(this, 'Logs', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       retention: logs.RetentionDays.ONE_MONTH,
     });
 
-    const logging = new ecs.AwsLogDriver({ logGroup, streamPrefix: 'ecs' });
+    const logging = new ecs.AwsLogDriver({ logGroup: this.logGroup, streamPrefix: 'ecs' });
 
     const appContainer = taskDefinition.addContainer('app', {
       ...containerDefinition,
@@ -119,7 +120,7 @@ export class SupabaseService extends Construct {
       const proxyContainer = taskDefinition.addContainer('envoy', {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/appmesh/aws-appmesh-envoy:v1.22.2.0-prod'),
         user: '1337',
-        cpu: 80,
+        cpu: 64,
         memoryReservationMiB: 128,
         essential: true,
         healthCheck: {
@@ -135,6 +136,7 @@ export class SupabaseService extends Construct {
           ENABLE_ENVOY_XRAY_TRACING: '1',
           XRAY_SAMPLING_RATE: '1.00',
         },
+        readonlyRootFilesystem: false, // Envoy create a config file at bootstraping.
         logging,
       });
       proxyContainer.addUlimits({ name: ecs.UlimitName.NOFILE, hardLimit: 1024000, softLimit: 1024000 });
@@ -146,14 +148,13 @@ export class SupabaseService extends Construct {
 
       taskDefinition.addContainer('xray-daemon', {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/xray/aws-xray-daemon:latest'),
+        // TODO: Using ADOT collector, the console can't display well as App Mesh objects.
+        //image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:v0.20.0'),
+        //command: ['--config=/etc/ecs/ecs-default-config.yaml'],
         user: '1337',
-        cpu: 16,
-        memoryReservationMiB: 64,
+        cpu: 64,
+        memoryReservationMiB: 128,
         essential: true,
-        portMappings: [{
-          containerPort: 2000,
-          protocol: ecs.Protocol.UDP,
-        }],
         healthCheck: {
           command: ['CMD', '/xray', '--version', '||', 'exit 1'], // https://github.com/aws/aws-xray-daemon/issues/9
           interval: cdk.Duration.seconds(5),
@@ -161,11 +162,20 @@ export class SupabaseService extends Construct {
           startPeriod: cdk.Duration.seconds(10),
           retries: 3,
         },
+        readonlyRootFilesystem: true,
         logging,
       });
 
     }
 
+  }
+
+  addContainer(id: string, props: ecs.ContainerDefinitionOptions) {
+    const container = this.ecsService.taskDefinition.addContainer(id, {
+      ...props,
+      logging: new ecs.AwsLogDriver({ logGroup: this.logGroup, streamPrefix: 'ecs' }),
+    });
+    return container;
   }
 
   addNetworkLoadBalancer() {

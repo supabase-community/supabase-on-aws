@@ -68,9 +68,9 @@ export class SupabaseStack extends cdk.Stack {
     const cluster = new ecs.Cluster(this, 'Cluster', {
       enableFargateCapacityProviders: true,
       containerInsights: false,
+      defaultCloudMapNamespace: { name: 'supabase.local' },
       vpc,
     });
-    const cloudMapNamespace = cluster.addDefaultCloudMapNamespace({ name: 'supabase.local' });
 
     const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, mesh });
 
@@ -285,6 +285,7 @@ export class SupabaseStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'StudioUrl', { value: `http://${studio.loadBalancer.loadBalancerDnsName}` });
     new cdk.CfnOutput(this, 'StudioUserPool', { value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users` });
 
+    // for CloudFormation
     this.templateOptions.description = 'Self-hosted Supabase powered by ECS Fargate, Aurora Serverless v2, App Mesh and X-Ray';
     this.templateOptions.metadata = {
       'AWS::CloudFormation::Interface': {
