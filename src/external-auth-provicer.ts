@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-//import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import { SupabaseService } from './supabase-service';
 
@@ -49,21 +49,22 @@ export class ExternalAuthProvider extends Construct {
       noEcho: true,
     });
 
-    // Todo: CDK does not support addSecret, addEnvironment only allowed.
-    //const clientId = new StringParameter(this, 'ClientId', {
-    //  description: 'The OAuth2 Client ID registered with the external provider.',
-    //  parameterName: `/${cdk.Aws.STACK_NAME}/Auth/External/${id}/ClientId`,
-    //  stringValue: clientIdParameter.valueAsString,
-    //});
-    //const secret = new StringParameter(this, 'ClientId', {
-    //  description: 'The OAuth2 Client Secret provided by the external provider when you registered.',
-    //  parameterName: `/${cdk.Aws.STACK_NAME}/Auth/External/${id}/ClientId`,
-    //  stringValue: secretParameter.valueAsString,
-    //});
+    const clientIdSsmParameter = new StringParameter(this, 'ClientIdParameter', {
+      description: 'The OAuth2 Client ID registered with the external provider.',
+      simpleName: false,
+      parameterName: `/${cdk.Aws.STACK_NAME}/Auth/External/${id}/ClientId`,
+      stringValue: clientIdParameter.valueAsString,
+    });
+    const secretSsmParameter = new StringParameter(this, 'SecretParameter', {
+      description: 'The OAuth2 Client Secret provided by the external provider when you registered.',
+      simpleName: false,
+      parameterName: `/${cdk.Aws.STACK_NAME}/Auth/External/${id}/Secret`,
+      stringValue: secretParameter.valueAsString,
+    });
 
     goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_ENABLED`, enabledParameter.valueAsString);
-    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_CLIENT_ID`, clientIdParameter.valueAsString);
-    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_SECRET`, secretParameter.valueAsString);
+    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_CLIENT_ID`, clientIdSsmParameter.parameterArn);
+    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_SECRET`, secretSsmParameter.parameterArn);
     goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_REDIRECT_URI`, `${apiExternalUrl}/auth/v1/callback`);
 
     const { ParameterGroups, ParameterLabels } = metadata['AWS::CloudFormation::Interface'] as CfnInterface;

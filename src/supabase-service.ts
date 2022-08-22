@@ -3,6 +3,7 @@ import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
@@ -90,6 +91,13 @@ export class SupabaseService extends Construct {
       dnsTtl: cdk.Duration.seconds(10),
     });
     (this.cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
+
+    taskDefinition.executionRole!.attachInlinePolicy(new iam.Policy(this, 'SSMParameterPolicy', {
+      statements: [new iam.PolicyStatement({
+        actions: ['ssm:GetParameters'],
+        resources: [`arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/${cdk.Aws.STACK_NAME}/${id}/*`],
+      })],
+    }));
 
     if (autoScalingEnabled) {
       const autoScaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 20 });
