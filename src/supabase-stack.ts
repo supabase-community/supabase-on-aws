@@ -6,6 +6,7 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as xray from 'aws-cdk-lib/aws-xray';
 import { Construct } from 'constructs';
+import { ExternalAuthProvider, ExternalAuthProviderProps } from './external-auth-provicer';
 import { ManagedPrefixList } from './managed-prefix-list';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
@@ -19,10 +20,25 @@ export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
     super(scope, id, props);
 
+    const disableSignupParameter = new cdk.CfnParameter(this, 'DisableSignup', {
+      description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
+      type: 'String',
+      default: 'false',
+      allowedValues: ['true', 'false'],
+    });
+
     const siteUrlParameter = new cdk.CfnParameter(this, 'SiteUrl', {
       description: 'The base URL your site is located at. Currently used in combination with other settings to construct URLs used in emails.',
       type: 'String',
       default: 'http://localhost:3000',
+    });
+
+    const passwordMinLengthParameter = new cdk.CfnParameter(this, 'PasswordMinLength', {
+      description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
+      type: 'Number',
+      default: '16',
+      minValue: 8,
+      maxValue: 128,
     });
 
     const sesRegionParameter = new cdk.CfnParameter(this, 'SesRegion', {
@@ -115,31 +131,36 @@ export class SupabaseStack extends cdk.Stack {
         image: ecs.ContainerImage.fromRegistry(supabaseAuthImageParameter.valueAsString),
         portMappings: [{ containerPort: 9999 }],
         environment: {
+          // Top-Level - https://github.com/supabase/gotrue#top-level
+          GOTRUE_SITE_URL: siteUrlParameter.valueAsString,
+          GOTRUE_URI_ALLOW_LIST: '',
+          GOTRUE_DISABLE_SIGNUP: disableSignupParameter.valueAsString,
+          GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
+          GOTRUE_EXTERNAL_PHONE_ENABLED: 'false', // Amazon SNS not supported
+          GOTRUE_RATE_LIMIT_EMAIL_SENT: '3600', // SES Limit: 1msg/s
+          GOTRUE_PASSWORD_MIN_LENGTH: passwordMinLengthParameter.valueAsString,
+          // API - https://github.com/supabase/gotrue#api
           GOTRUE_API_HOST: '0.0.0.0',
           GOTRUE_API_PORT: '9999',
           API_EXTERNAL_URL: `https://${cdn.distribution.domainName}`,
+          // Database - https://github.com/supabase/gotrue#database
           GOTRUE_DB_DRIVER: 'postgres',
-          GOTRUE_SITE_URL: siteUrlParameter.valueAsString,
-          GOTRUE_URI_ALLOW_LIST: '',
-          GOTRUE_DISABLE_SIGNUP: 'false',
-          // JWT
-          GOTRUE_JWT_ADMIN_ROLES: 'service_role',
-          GOTRUE_JWT_AUD: 'authenticated',
-          GOTRUE_JWT_DEFAULT_GROUP_NAME: 'authenticated',
+          // JWT - https://github.com/supabase/gotrue#json-web-tokens-jwt
           GOTRUE_JWT_EXP: '3600',
-          // mail
-          GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
-          GOTRUE_MAILER_AUTOCONFIRM: 'false',
+          GOTRUE_JWT_AUD: 'authenticated',
+          GOTRUE_JWT_ADMIN_ROLES: 'service_role',
+          GOTRUE_JWT_DEFAULT_GROUP_NAME: 'authenticated',
+          // E-Mail - https://github.com/supabase/gotrue#e-mail
+          GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmailParameter.valueAsString,
           GOTRUE_SMTP_HOST: `email-smtp.${sesRegionParameter.valueAsString}.amazonaws.com`,
           GOTRUE_SMTP_PORT: '465',
-          GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmailParameter.valueAsString,
           GOTRUE_SMTP_SENDER_NAME: smtpSenderNameParameter.valueAsString,
+          GOTRUE_MAILER_AUTOCONFIRM: 'false',
           GOTRUE_MAILER_URLPATHS_INVITE: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_RECOVERY: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: '/auth/v1/verify',
-          // other
-          GOTRUE_EXTERNAL_PHONE_ENABLED: 'true',
+          // Phone Auth - https://github.com/supabase/gotrue#phone-auth
           GOTRUE_SMS_AUTOCONFIRM: 'true',
         },
         secrets: {
@@ -291,13 +312,15 @@ export class SupabaseStack extends cdk.Stack {
       'AWS::CloudFormation::Interface': {
         ParameterGroups: [
           {
-            Label: { default: 'Supabase Parameters' },
+            Label: { default: 'General settings' },
             Parameters: [
+              disableSignupParameter.logicalId,
               siteUrlParameter.logicalId,
+              passwordMinLengthParameter.logicalId,
             ],
           },
           {
-            Label: { default: 'Email Parameters (SMTP)' },
+            Label: { default: 'E-mail Parameters (SMTP)' },
             Parameters: [
               sesRegionParameter.logicalId,
               smtpAdminEmailParameter.logicalId,
@@ -312,7 +335,7 @@ export class SupabaseStack extends cdk.Stack {
             ],
           },
           {
-            Label: { default: 'Docker Image Parameters' },
+            Label: { default: 'Docker Images' },
             Parameters: [
               supabaseKongImageParameter.logicalId,
               supabaseAuthImageParameter.logicalId,
@@ -331,7 +354,9 @@ export class SupabaseStack extends cdk.Stack {
           },
         ],
         ParameterLabels: {
+          [disableSignupParameter.logicalId]: { default: 'Deny new users to sign up' },
           [siteUrlParameter.logicalId]: { default: 'Site URL' },
+          [passwordMinLengthParameter.logicalId]: { default: 'Min password length' },
           [sesRegionParameter.logicalId]: { default: 'Amazon SES Region' },
           [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
           [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
@@ -340,5 +365,15 @@ export class SupabaseStack extends cdk.Stack {
         },
       },
     };
+
+    const extAuthProps: ExternalAuthProviderProps = {
+      apiExternalUrl: `https://${cdn.distribution.domainName}`,
+      authService: auth,
+      metadata: this.templateOptions.metadata,
+    };
+    new ExternalAuthProvider(this, 'Google', extAuthProps);
+    new ExternalAuthProvider(this, 'Facebook', extAuthProps);
+    new ExternalAuthProvider(this, 'Twitter', extAuthProps);
+    new ExternalAuthProvider(this, 'GitHub', extAuthProps);
   }
 }
