@@ -62,7 +62,7 @@ export class SupabaseStack extends cdk.Stack {
       default: 'Supabase',
     });
 
-    const supabaseKongImageParameter = new cdk.CfnParameter(this, 'SupabaseKongImage', { type: 'String', default: 'public.ecr.aws/u3p7q2r8/supabase-kong:latest' });
+    const supabaseKongImageParameter = new cdk.CfnParameter(this, 'SupabaseKongImage', { type: 'String', default: 'public.ecr.aws/u3p7q2r8/kong:latest' });
     const supabaseAuthImageParameter = new cdk.CfnParameter(this, 'SupabaseAuthImage', { type: 'String', default: 'supabase/gotrue:v2.10.3' });
     const supabaseResrImageParameter = new cdk.CfnParameter(this, 'SupabaseResrImage', { type: 'String', default: 'postgrest/postgrest:v9.0.1' });
     const supabaseRealtimeImageParameter = new cdk.CfnParameter(this, 'SupabaseRealtimeImage', { type: 'String', default: 'supabase/realtime:v0.24.0' });
@@ -111,6 +111,7 @@ export class SupabaseStack extends cdk.Stack {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
           KONG_PLUGINS: 'request-transformer,cors,key-auth,acl',
           KONG_STATUS_LISTEN: '0.0.0.0:8100',
+          SUPABASE_GRAPHQL_URL: 'http://graphql.supabase.local:5000/graphql',
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'anon_key'),
@@ -186,6 +187,31 @@ export class SupabaseStack extends cdk.Stack {
         secrets: {
           PGRST_DB_URI: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
+        },
+      },
+      mesh,
+    });
+
+    // GraphQL - use postgraphile insted of pg_graphql
+    const graphql = new SupabaseService(this, 'GraphQL', {
+      cluster,
+      containerDefinition: {
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/postgraphile:latest'),
+        //image: ecs.ContainerImage.fromAsset('./src/containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
+        portMappings: [{ containerPort: 5000 }],
+        //healthCheck: {
+        //  command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1'],
+        //  interval: cdk.Duration.seconds(5),
+        //  timeout: cdk.Duration.seconds(5),
+        //  retries: 3,
+        //},
+        environment: {
+          PG_IGNORE_RBAC: '0',
+          ENABLE_XRAY_TRACING: '1',
+        },
+        secrets: {
+          DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
+          JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
         },
       },
       mesh,
@@ -275,6 +301,7 @@ export class SupabaseStack extends cdk.Stack {
 
     kong.addBackend(auth);
     kong.addBackend(rest);
+    kong.addBackend(graphql);
     kong.addBackend(realtime);
     kong.addBackend(storage);
     kong.addBackend(meta);
@@ -285,10 +312,12 @@ export class SupabaseStack extends cdk.Stack {
 
     auth.addDatabaseBackend(db);
     rest.addDatabaseBackend(db);
+    graphql.addDatabaseBackend(db);
     realtime.addDatabaseBackend(db);
     storage.addDatabaseBackend(db);
     meta.addDatabaseBackend(db);
 
+    // Supabase Studio
     const supabaseStudioImageParameter = new cdk.CfnParameter(this, 'SupabaseStudioImage', {
       type: 'String',
       default: 'supabase/studio:latest',
@@ -301,6 +330,7 @@ export class SupabaseStack extends cdk.Stack {
       imageUri: supabaseStudioImageParameter.valueAsString,
       supabaseUrl: `https://${cdn.distribution.domainName}`,
     });
+    studio.addDatabaseBackend(db);
 
     new cdk.CfnOutput(this, 'Url', { value: `https://${cdn.distribution.domainName}` });
     new cdk.CfnOutput(this, 'StudioUrl', { value: `http://${studio.loadBalancer.loadBalancerDnsName}` });

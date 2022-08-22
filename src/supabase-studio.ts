@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
@@ -78,6 +79,42 @@ export class SupabaseStudio extends SupabaseService {
     const listener = this.loadBalancer.addListener('Listener', {
       protocol: elb.ApplicationProtocol.HTTP,
       defaultTargetGroups: [targetGroup],
+    });
+
+    // Graphiql - GraphQL Playground
+    const gqlContainer = this.addContainer('postgraphile', {
+      image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/postgraphile:latest'),
+      //image: ecs.ContainerImage.fromAsset('./src/containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
+      portMappings: [{ containerPort: 5000 }],
+      healthCheck: {
+        command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1'],
+        interval: cdk.Duration.seconds(5),
+        timeout: cdk.Duration.seconds(5),
+        retries: 3,
+      },
+      environment: {
+        PG_IGNORE_RBAC: '1',
+      },
+      secrets: {
+        DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
+      },
+    });
+    const gqlTargetGroup = new elb.ApplicationTargetGroup(this, 'GqlTargetGroup', {
+      protocol: elb.ApplicationProtocol.HTTP,
+      port: gqlContainer.containerPort,
+      targets: [this.ecsService.loadBalancerTarget({ containerName: 'postgraphile' })],
+      healthCheck: {
+        path: '/health',
+        interval: cdk.Duration.seconds(10),
+        timeout: cdk.Duration.seconds(5),
+      },
+      deregistrationDelay: cdk.Duration.seconds(30),
+      vpc,
+    });
+    listener.addAction('GraphqlAction', {
+      priority: 1,
+      conditions: [elb.ListenerCondition.pathPatterns(['/graphql', '/graphiql'])],
+      action: elb.ListenerAction.forward([gqlTargetGroup]),
     });
 
     // for HTTPS
