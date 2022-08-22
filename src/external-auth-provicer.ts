@@ -40,7 +40,6 @@ export class ExternalAuthProvider extends Construct {
       description: 'The OAuth2 Client ID registered with the external provider.',
       type: 'String',
       default: 'replace-with-your-client-id',
-      noEcho: true,
     });
 
     const secretParameter = new cdk.CfnParameter(this, 'Secret', {
@@ -64,7 +63,7 @@ export class ExternalAuthProvider extends Construct {
 
     goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_ENABLED`, enabledParameter.valueAsString);
     goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_CLIENT_ID`, clientIdParameter.valueAsString);
-    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_SECRE`, secretParameter.valueAsString);
+    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_SECRET`, secretParameter.valueAsString);
     goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_REDIRECT_URI`, `${apiExternalUrl}/auth/v1/callback`);
 
     const { ParameterGroups, ParameterLabels } = metadata['AWS::CloudFormation::Interface'] as CfnInterface;

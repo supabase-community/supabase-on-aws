@@ -59,6 +59,7 @@ export class SupabaseCdn extends Construct {
         '*.js': staticContentBehavior,
       },
       errorResponses: [
+        { httpStatus: 400, ttl: cdk.Duration.seconds(0) },
         { httpStatus: 500, ttl: cdk.Duration.seconds(0) },
         { httpStatus: 501, ttl: cdk.Duration.seconds(0) },
         { httpStatus: 502, ttl: cdk.Duration.seconds(0) },
