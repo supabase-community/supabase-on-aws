@@ -165,7 +165,7 @@ export class SupabaseStack extends cdk.Stack {
           GOTRUE_SMS_AUTOCONFIRM: 'true',
         },
         secrets: {
-          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url_auth'),
+          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.urlAuth),
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
           GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(mail.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(mail.secret, 'password'),
@@ -185,7 +185,7 @@ export class SupabaseStack extends cdk.Stack {
           PGRST_DB_USE_LEGACY_GUCS: 'false',
         },
         secrets: {
-          PGRST_DB_URI: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
+          PGRST_DB_URI: ecs.Secret.fromSsmParameter(db.url),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
         },
       },
@@ -210,7 +210,7 @@ export class SupabaseStack extends cdk.Stack {
           ENABLE_XRAY_TRACING: '1',
         },
         secrets: {
-          DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
+          DATABASE_URL: ecs.Secret.fromSsmParameter(db.url),
           JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
         },
       },
@@ -272,7 +272,7 @@ export class SupabaseStack extends cdk.Stack {
           ANON_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'anon_key'),
           SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret, 'jwt_secret'),
-          DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
+          DATABASE_URL: ecs.Secret.fromSsmParameter(db.url),
         },
       },
       cpuArchitecture: ecs.CpuArchitecture.X86_64, // storage-api does not work on ARM64

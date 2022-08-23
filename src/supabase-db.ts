@@ -4,6 +4,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as rds from 'aws-cdk-lib/aws-rds';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
@@ -21,6 +22,8 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
   multiAzParameter: cdk.CfnParameter;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
+  url: ssm.StringParameter;
+  urlAuth: ssm.StringParameter;
 
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
 
@@ -104,6 +107,20 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       child.node.addDependency(dbScalingConfigure);
     });
     // Support for Aurora Serverless v2 ---------------------------------------------------
+
+    this.url = new ssm.StringParameter(this, 'UrlParameter', {
+      parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/Default`,
+      description: 'The standard connection PostgreSQL URI format.',
+      stringValue: `postgres://${this.secret?.secretValueFromJson('username').toString()}:${this.secret?.secretValueFromJson('password').toString()}@${this.secret?.secretValueFromJson('host').toString()}:${this.secret?.secretValueFromJson('port').toString()}/${this.secret?.secretValueFromJson('dbname').toString()}`,
+      simpleName: false,
+    });
+
+    this.urlAuth = new ssm.StringParameter(this, 'authUrlParameter', {
+      parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/Auth`,
+      description: 'The standard connection PostgreSQL URI format with "?search_path=auth".',
+      stringValue: `postgres://${this.secret?.secretValueFromJson('username').toString()}:${this.secret?.secretValueFromJson('password').toString()}@${this.secret?.secretValueFromJson('host').toString()}:${this.secret?.secretValueFromJson('port').toString()}/${this.secret?.secretValueFromJson('dbname').toString()}?search_path=auth`,
+      simpleName: false,
+    });
 
     const urlGeneratorFunction = new NodejsFunction(this, 'UrlGeneratorFunction', {
       description: 'Supabase - Database URL generator function',
