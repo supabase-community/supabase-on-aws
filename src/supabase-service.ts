@@ -122,7 +122,7 @@ export class SupabaseService extends Construct {
       })],
     }));
     new events.Rule(this, 'ParameterChange', {
-      description: 'Supabase - Force deploy ECS service when parameters changed',
+      description: `Supabase - Force deploy ${id}, when parameters changed`,
       eventPattern: {
         source: ['aws.ssm'],
         detailType: ['Parameter Store Change'],
@@ -255,12 +255,28 @@ export class SupabaseService extends Construct {
     }
   }
 
-  addDatabaseBackend(backend: SupabaseDatabase) {
+  addDatabaseBackend(backend: SupabaseDatabase, forceDeploy: boolean = true) {
     this.ecsService.connections.allowToDefaultPort(backend);
     if (typeof backend.virtualService != 'undefined') {
       this.virtualNode?.addBackend(appmesh.Backend.virtualService(backend.virtualService));
     }
     this.ecsService.node.defaultChild?.node.addDependency(backend.node.findChild('Instance1'));
+    if (forceDeploy) {
+      new events.Rule(this, 'SecretChangeRule', {
+        description: `Supabase - Force deploy ${this.node.id}, when DB secret changed`,
+        eventPattern: {
+          source: ['aws.secretsmanager'],
+          detailType: ['AWS API Call via CloudTrail'],
+          detail: {
+            eventName: ['UpdateSecret', 'PutSecretValue'],
+            requestParameters: {
+              secretId: [backend.secret?.secretArn],
+            },
+          },
+        },
+        targets: [this.forceDeployFunction],
+      });
+    }
   }
 
   addExternalBackend(backend: SupabaseMailBase) {

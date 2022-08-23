@@ -138,8 +138,8 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     this.urlAuth.grantWrite(syncSecretFunction);
     this.secret?.grantRead(syncSecretFunction);
 
-    new events.Rule(this, 'SecretChange', {
-      description: 'Supabase - DB secret changed',
+    new events.Rule(this, 'SecretChangeRule', {
+      description: 'Supabase - Update parameter store, when DB secret changed',
       eventPattern: {
         source: ['aws.secretsmanager'],
         detailType: ['AWS API Call via CloudTrail'],
@@ -157,7 +157,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     this.secret?.addRotationSchedule('Rotation', {
       automaticallyAfter: cdk.Duration.days(30),
       hostedRotation: secretsmanager.HostedRotation.postgreSqlSingleUser({
-        functionName: 'DatabaseSecretRotationFunction',
+        functionName: 'SupabaseDatabaseSecretRotationFunction',
         securityGroups: [rotationSecurityGroup],
         vpc,
       }),
