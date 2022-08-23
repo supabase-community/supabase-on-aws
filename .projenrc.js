@@ -8,6 +8,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     '@aws-sdk/client-ecs',
     '@aws-sdk/client-secrets-manager',
     '@aws-sdk/client-ses',
+    '@aws-sdk/client-ssm',
     '@aws-sdk/client-workmail',
     '@databases/pg',
     '@types/aws-lambda',

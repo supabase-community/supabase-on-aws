@@ -100,6 +100,10 @@
       "type": "runtime"
     },
     {
+      "name": "@aws-sdk/client-ssm",
+      "type": "runtime"
+    },
+    {
       "name": "@aws-sdk/client-workmail",
       "type": "runtime"
     },

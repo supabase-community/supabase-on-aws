@@ -1,9 +1,12 @@
 import * as cdk from 'aws-cdk-lib';
 import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as rds from 'aws-cdk-lib/aws-rds';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
@@ -122,24 +125,44 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       simpleName: false,
     });
 
-    const urlGeneratorFunction = new NodejsFunction(this, 'UrlGeneratorFunction', {
-      description: 'Supabase - Database URL generator function',
-      entry: './src/functions/db-url-generate.ts',
+    const syncSecretFunction = new NodejsFunction(this, 'ForceDeployFunction', {
+      description: 'Supabase - Sync DB secret to parameter store',
+      entry: 'src/functions/db-secret-sync.ts',
       runtime: lambda.Runtime.NODEJS_16_X,
-    });
-    this.secret?.grantWrite(urlGeneratorFunction);
-    this.secret?.grantRead(urlGeneratorFunction);
-
-    const urlProvider = new cr.Provider(this, 'UrlProvider', { onEventHandler: urlGeneratorFunction });
-
-    new cdk.CustomResource(this, 'URL', {
-      serviceToken: urlProvider.serviceToken,
-      resourceType: 'Custom::SupabaseDatabaseUrl',
-      properties: {
-        SecretId: this.secret?.secretArn,
-        Hostname: this.clusterEndpoint.hostname,
+      architecture: lambda.Architecture.ARM_64,
+      environment: {
+        URL_PARAMETER_NAME: this.url.parameterName,
       },
     });
+    this.url.grantWrite(syncSecretFunction);
+    this.urlAuth.grantWrite(syncSecretFunction);
+    this.secret?.grantRead(syncSecretFunction);
+
+    new events.Rule(this, 'SecretChange', {
+      description: 'Supabase - DB secret changed',
+      eventPattern: {
+        source: ['aws.secretsmanager'],
+        detailType: ['AWS API Call via CloudTrail'],
+        detail: {
+          eventName: ['UpdateSecret', 'PutSecretValue'],
+          requestParameters: {
+            secretId: [this.secret?.secretArn],
+          },
+        },
+      },
+      targets: [new targets.LambdaFunction(syncSecretFunction)],
+    });
+
+    const rotationSecurityGroup = new ec2.SecurityGroup(this, 'RotationSecurityGroup', { vpc });
+    this.secret?.addRotationSchedule('Rotation', {
+      automaticallyAfter: cdk.Duration.days(30),
+      hostedRotation: secretsmanager.HostedRotation.postgreSqlSingleUser({
+        functionName: 'DatabaseSecretRotationFunction',
+        securityGroups: [rotationSecurityGroup],
+        vpc,
+      }),
+    });
+    this.connections.allowDefaultPortFrom(rotationSecurityGroup, 'Lambda to rotate secrets');
 
     const initFunction = new NodejsFunction(this, 'InitFunction', {
       description: 'Supabase - Database init function',
