@@ -86,6 +86,8 @@ export class SupabaseService extends Construct {
       cluster,
       taskDefinition,
       circuitBreaker: { rollback: true },
+      enableECSManagedTags: true,
+      propagateTags: ecs.PropagatedTagSource.SERVICE,
       //capacityProviderStrategies: [
       //  { capacityProvider: 'FARGATE', base: 1, weight: 1 },
       //  { capacityProvider: 'FARGATE_SPOT', base: 0, weight: 0 },
