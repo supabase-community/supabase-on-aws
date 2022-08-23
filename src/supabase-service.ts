@@ -265,13 +265,14 @@ export class SupabaseService extends Construct {
     this.ecsService.node.defaultChild?.node.addDependency(backend.node.findChild('Instance1'));
     if (forceDeploy) {
       new events.Rule(this, 'SecretChangeRule', {
-        description: `Supabase - Force deploy ${this.node.id}, when DB secret changed`,
+        description: `Supabase - Force deploy ${this.node.id}, when DB secret rotated`,
         eventPattern: {
           source: ['aws.secretsmanager'],
           detailType: ['AWS API Call via CloudTrail'],
           detail: {
-            eventName: ['UpdateSecret', 'PutSecretValue'],
+            eventName: ['UpdateSecretVersionStage'],
             requestParameters: {
+              versionStage: ['AWSCURRENT'],
               secretId: [backend.secret?.secretArn],
             },
           },

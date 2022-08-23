@@ -139,13 +139,14 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     this.secret?.grantRead(syncSecretFunction);
 
     new events.Rule(this, 'SecretChangeRule', {
-      description: 'Supabase - Update parameter store, when DB secret changed',
+      description: 'Supabase - Update parameter store, when DB secret rotated',
       eventPattern: {
         source: ['aws.secretsmanager'],
         detailType: ['AWS API Call via CloudTrail'],
         detail: {
-          eventName: ['UpdateSecret', 'PutSecretValue'],
+          eventName: ['UpdateSecretVersionStage'],
           requestParameters: {
+            versionStage: ['AWSCURRENT'],
             secretId: [this.secret?.secretArn],
           },
         },
