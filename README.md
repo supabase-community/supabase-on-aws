@@ -28,5 +28,5 @@ cd supabase-on-aws
 
 yarn install
 
-npx projen deploy
+cdk deploy Supabase
 ```
