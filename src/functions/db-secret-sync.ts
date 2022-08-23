@@ -79,9 +79,9 @@ const putParameter = async (name: string, value: string) => {
 };
 
 
-export const handler: EventBridgeHandler<'AWS API Call via CloudTrail', RotationSucceededDetail, any> = async (event, _context) => {
+export const handler: EventBridgeHandler<'AWS Service Event via CloudTrail', RotationSucceededDetail, any> = async (event, _context) => {
   console.log(JSON.stringify(event));
-  const secretId: string = event.detail.additionalEventData.secretId;
+  const secretId: string = event.detail.additionalEventData.SecretId;
   const secret = await getSecret(secretId);
   const url = `postgres://${secret.username}:${secret.password}@${secret.host}:${secret.port}/${secret.dbname||'postgres'}`;
   await putParameter(urlParameterName, url);
