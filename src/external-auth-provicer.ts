@@ -69,7 +69,7 @@ export class ExternalAuthProvider extends Construct {
 
     const { ParameterGroups, ParameterLabels } = metadata['AWS::CloudFormation::Interface'] as CfnInterface;
     ParameterGroups.push({
-      Label: { default: `External Auth Provider - ${id}` },
+      Label: { default: `Supabase - External Auth Provider - ${id}` },
       Parameters: [enabledParameter.logicalId, clientIdParameter.logicalId, secretParameter.logicalId],
     });
     ParameterLabels[enabledParameter.logicalId] = { default: `${id} Enabled` };

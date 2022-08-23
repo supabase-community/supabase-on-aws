@@ -33,6 +33,14 @@ export class SupabaseStack extends cdk.Stack {
       default: 'http://localhost:3000',
     });
 
+    const jwtExpiryLimitParameter = new cdk.CfnParameter(this, 'JWTExpiryLimit', {
+      description: 'How long tokens are valid for. Defaults to 3600 (1 hour), maximum 604,800 seconds (one week).',
+      type: 'Number',
+      default: 3600,
+      minValue: 300,
+      maxValue: 604800,
+    });
+
     const passwordMinLengthParameter = new cdk.CfnParameter(this, 'PasswordMinLength', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
       type: 'Number',
@@ -147,7 +155,7 @@ export class SupabaseStack extends cdk.Stack {
           // Database - https://github.com/supabase/gotrue#database
           GOTRUE_DB_DRIVER: 'postgres',
           // JWT - https://github.com/supabase/gotrue#json-web-tokens-jwt
-          GOTRUE_JWT_EXP: '3600',
+          GOTRUE_JWT_EXP: jwtExpiryLimitParameter.valueAsString,
           GOTRUE_JWT_AUD: 'authenticated',
           GOTRUE_JWT_ADMIN_ROLES: 'service_role',
           GOTRUE_JWT_DEFAULT_GROUP_NAME: 'authenticated',
@@ -342,15 +350,16 @@ export class SupabaseStack extends cdk.Stack {
       'AWS::CloudFormation::Interface': {
         ParameterGroups: [
           {
-            Label: { default: 'General settings' },
+            Label: { default: 'Supabase - Auth Settings' },
             Parameters: [
               disableSignupParameter.logicalId,
               siteUrlParameter.logicalId,
+              jwtExpiryLimitParameter.logicalId,
               passwordMinLengthParameter.logicalId,
             ],
           },
           {
-            Label: { default: 'E-mail Parameters (SMTP)' },
+            Label: { default: 'Supabase - Auth E-mail Settings' },
             Parameters: [
               sesRegionParameter.logicalId,
               smtpAdminEmailParameter.logicalId,
@@ -358,7 +367,7 @@ export class SupabaseStack extends cdk.Stack {
             ],
           },
           {
-            Label: { default: 'Platform Parameters' },
+            Label: { default: 'Platform Settings' },
             Parameters: [
               db.multiAzParameter.logicalId,
               cdn.wafWebAclArnParameter.logicalId,
@@ -376,7 +385,7 @@ export class SupabaseStack extends cdk.Stack {
             ],
           },
           {
-            Label: { default: 'Supabase Studio Parameters' },
+            Label: { default: 'Supabase - Studio Settings' },
             Parameters: [
               supabaseStudioImageParameter.logicalId,
               studio.acmCertArnParameter.logicalId,
@@ -384,8 +393,9 @@ export class SupabaseStack extends cdk.Stack {
           },
         ],
         ParameterLabels: {
-          [disableSignupParameter.logicalId]: { default: 'Deny new users to sign up' },
+          [disableSignupParameter.logicalId]: { default: 'Disable User Signups' },
           [siteUrlParameter.logicalId]: { default: 'Site URL' },
+          [jwtExpiryLimitParameter.logicalId]: { default: 'JWT expiry limit' },
           [passwordMinLengthParameter.logicalId]: { default: 'Min password length' },
           [sesRegionParameter.logicalId]: { default: 'Amazon SES Region' },
           [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
