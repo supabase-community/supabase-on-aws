@@ -142,12 +142,10 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       description: 'Supabase - Update parameter store, when DB secret rotated',
       eventPattern: {
         source: ['aws.secretsmanager'],
-        detailType: ['AWS API Call via CloudTrail'],
         detail: {
-          eventName: ['UpdateSecretVersionStage'],
-          requestParameters: {
-            versionStage: ['AWSCURRENT'],
-            secretId: [this.secret?.secretArn],
+          eventName: ['RotationSucceeded'],
+          additionalEventData: {
+            SecretId: [this.secret?.secretArn],
           },
         },
       },
@@ -216,45 +214,6 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
         virtualServiceProvider: appmesh.VirtualServiceProvider.virtualNode(this.virtualNode),
       });
     }
-
-    // test
-    //const testEngine = rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_14_2 });
-    //const testParameterGroup = new rds.ParameterGroup(this, 'TestParameterGroup', {
-    //  engine: testEngine,
-    //  parameters: {
-    //    'rds.logical_replication': '1',
-    //    'max_logical_replication_workers': '2',
-    //    'max_slot_wal_keep_size': '1024',
-    //  },
-    //});
-    //const testInstance = new rds.DatabaseInstance(this, 'TestInstance2', {
-    //  engine: testEngine,
-    //  parameterGroup: testParameterGroup,
-    //  securityGroups: this.securityGroups,
-    //  credentials: rds.Credentials.fromGeneratedSecret('supabase_admin'),
-    //  databaseName: 'postgres',
-    //  vpc,
-    //});
-    //testInstance.secret?.grantWrite(urlGeneratorFunction);
-    //testInstance.secret?.grantRead(urlGeneratorFunction);
-    //new cdk.CustomResource(this, 'TestUrl', {
-    //  serviceToken: urlProvider.serviceToken,
-    //  resourceType: 'Custom::SupabaseDatabaseUrl',
-    //  properties: {
-    //    SecretId: testInstance.secret?.secretArn,
-    //    Hostname: testInstance.dbInstanceEndpointAddress,
-    //  },
-    //});
-    //testInstance.secret?.grantRead(initFunction);
-    //new cdk.CustomResource(this, 'TestInit', {
-    //  serviceToken: initProvider.serviceToken,
-    //  resourceType: 'Custom::SupabaseDatabaseInit',
-    //  properties: {
-    //    SecretId: testInstance.secret?.secretArn,
-    //    Hostname: testInstance.dbInstanceEndpointAddress,
-    //  },
-    //});
-    //this.secret = testInstance.secret;
 
   }
 }

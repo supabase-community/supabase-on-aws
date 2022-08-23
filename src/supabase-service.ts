@@ -268,12 +268,10 @@ export class SupabaseService extends Construct {
         description: `Supabase - Force deploy ${this.node.id}, when DB secret rotated`,
         eventPattern: {
           source: ['aws.secretsmanager'],
-          detailType: ['AWS API Call via CloudTrail'],
           detail: {
-            eventName: ['UpdateSecretVersionStage'],
-            requestParameters: {
-              versionStage: ['AWSCURRENT'],
-              secretId: [backend.secret?.secretArn],
+            eventName: ['RotationSucceeded'],
+            additionalEventData: {
+              SecretId: [backend.secret?.secretArn],
             },
           },
         },

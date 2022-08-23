@@ -5,13 +5,44 @@ import { EventBridgeHandler } from 'aws-lambda';
 const region = process.env.AWS_REGION;
 const urlParameterName = process.env.URL_PARAMETER_NAME!;
 
-interface Detail {
+//interface PutSecretValueDetail {
+//  eventTime: string;
+//  eventSource: string;
+//  eventName: string;
+//  awsRegion: string;
+//  requestParameters: {
+//    versionStages: string[];
+//    clientRequestToken: string;
+//    secretId: string;
+//  };
+//  requestID: string;
+//  eventID: string;
+//  eventType: string;
+//}
+
+//interface UpdateSecretVersionStageDetail {
+//  eventTime: string;
+//  eventSource: string;
+//  eventName: string;
+//  awsRegion: string;
+//  requestParameters: {
+//    versionStage: string;
+//    moveToVersionId: string;
+//    removeFromVersionId: string;
+//    secretId: string;
+//  };
+//  requestID: string;
+//  eventID: string;
+//  eventType: string;
+//}
+
+interface RotationSucceededDetail {
   eventTime: string;
   eventSource: string;
   eventName: string;
   awsRegion: string;
-  requestParameters: {
-    secretId: string;
+  additionalEventData: {
+    SecretId: string;
   };
   requestID: string;
   eventID: string;
@@ -48,9 +79,9 @@ const putParameter = async (name: string, value: string) => {
 };
 
 
-export const handler: EventBridgeHandler<'AWS API Call via CloudTrail', Detail, any> = async (event, _context) => {
+export const handler: EventBridgeHandler<'AWS API Call via CloudTrail', RotationSucceededDetail, any> = async (event, _context) => {
   console.log(JSON.stringify(event));
-  const secretId: string = event.detail.requestParameters.secretId;
+  const secretId: string = event.detail.additionalEventData.secretId;
   const secret = await getSecret(secretId);
   const url = `postgres://${secret.username}:${secret.password}@${secret.host}:${secret.port}/${secret.dbname||'postgres'}`;
   await putParameter(urlParameterName, url);
