@@ -15,5 +15,6 @@ const synthesizer = (isCfnPublishing)
 const app = new App();
 
 new SupabaseStack(app, 'Supabase', { env, synthesizer });
+new SupabaseStack(app, 'SupabaseNoMesh', { env, synthesizer, meshDisabled: true });
 
 app.synth();

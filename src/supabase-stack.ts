@@ -4,7 +4,6 @@ import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as xray from 'aws-cdk-lib/aws-xray';
 import { Construct } from 'constructs';
 import { ExternalAuthProvider, ExternalAuthProviderProps } from './external-auth-provicer';
 import { ManagedPrefixList } from './managed-prefix-list';
@@ -16,9 +15,15 @@ import { SupabaseService } from './supabase-service';
 import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
 
+interface SupabaseStackProps extends cdk.StackProps {
+  meshDisabled?: boolean;
+}
+
 export class SupabaseStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
+  constructor(scope: Construct, id: string, props: SupabaseStackProps = {}) {
     super(scope, id, props);
+
+    const meshDisabled = props.meshDisabled;
 
     const disableSignupParameter = new cdk.CfnParameter(this, 'DisableSignup', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
@@ -80,14 +85,11 @@ export class SupabaseStack extends cdk.Stack {
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
-    const mesh = new appmesh.Mesh(this, 'Mesh', {
+    const mesh = (meshDisabled)
+      ? undefined
+      : new appmesh.Mesh(this, 'Mesh', {
       meshName: this.stackName,
       egressFilter: appmesh.MeshFilterType.ALLOW_ALL,
-    });
-    new xray.CfnGroup(this, 'XrayGroup', {
-      groupName: mesh.meshName,
-      filterExpression: `annotation.node_id BEGINSWITH "mesh/${mesh.meshName}/"`,
-      insightsConfiguration: { insightsEnabled: true },
     });
 
     const cluster = new ecs.Cluster(this, 'Cluster', {
@@ -273,7 +275,6 @@ export class SupabaseStack extends cdk.Stack {
           FILE_SIZE_LIMIT: '52428800',
           STORAGE_BACKEND: 's3', // default: file
           TENANT_ID: 'default',
-
           REGION: bucket.env.region,
           GLOBAL_S3_BUCKET: bucket.bucketName,
         },
