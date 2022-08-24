@@ -16,14 +16,14 @@ import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
 
 interface SupabaseStackProps extends cdk.StackProps {
-  meshDisabled?: boolean;
+  meshEnabled?: boolean;
 }
 
 export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: SupabaseStackProps = {}) {
     super(scope, id, props);
 
-    const meshDisabled = props.meshDisabled;
+    const meshEnabled = props.meshEnabled;
 
     const disableSignupParameter = new cdk.CfnParameter(this, 'DisableSignup', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
@@ -85,12 +85,12 @@ export class SupabaseStack extends cdk.Stack {
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
-    const mesh = (meshDisabled)
-      ? undefined
-      : new appmesh.Mesh(this, 'Mesh', {
+    const mesh = (meshEnabled)
+      ? new appmesh.Mesh(this, 'Mesh', {
       meshName: this.stackName,
       egressFilter: appmesh.MeshFilterType.ALLOW_ALL,
-    });
+      })
+      : undefined;
 
     const cluster = new ecs.Cluster(this, 'Cluster', {
       enableFargateCapacityProviders: true,
