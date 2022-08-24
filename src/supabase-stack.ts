@@ -342,7 +342,7 @@ export class SupabaseStack extends cdk.Stack {
     });
     studio.addDatabaseBackend(db);
 
-    new cdk.CfnOutput(this, 'Url', { value: `https://${cdn.distribution.domainName}` });
+    this.exportValue(`https://${cdn.distribution.domainName}`, { name: 'Url' });
     new cdk.CfnOutput(this, 'StudioUrl', { value: `http://${studio.loadBalancer.loadBalancerDnsName}` });
     new cdk.CfnOutput(this, 'StudioUserPool', { value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users` });
 

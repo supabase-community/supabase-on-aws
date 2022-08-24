@@ -257,27 +257,26 @@ export class SupabaseService extends Construct {
     }
   }
 
-  addDatabaseBackend(backend: SupabaseDatabase, forceDeploy: boolean = true) {
+  addDatabaseBackend(backend: SupabaseDatabase) {
     this.ecsService.connections.allowToDefaultPort(backend);
     if (typeof backend.virtualService != 'undefined') {
       this.virtualNode?.addBackend(appmesh.Backend.virtualService(backend.virtualService));
     }
     this.ecsService.node.defaultChild?.node.addDependency(backend.node.findChild('Instance1'));
-    if (forceDeploy) {
-      new events.Rule(this, 'SecretChangeRule', {
-        description: `Supabase - Force deploy ${this.node.id}, when DB secret rotated`,
-        eventPattern: {
-          source: ['aws.secretsmanager'],
-          detail: {
-            eventName: ['RotationSucceeded'],
-            additionalEventData: {
-              SecretId: [backend.secret?.secretArn],
-            },
-          },
-        },
-        targets: [this.forceDeployFunction],
-      });
-    }
+    // TODO: Confirm the need to force deploy when secret rotated
+    //new events.Rule(this, 'SecretChangeRule', {
+    //  description: `Supabase - Force deploy ${this.node.id}, when DB secret rotated`,
+    //  eventPattern: {
+    //    source: ['aws.secretsmanager'],
+    //    detail: {
+    //      eventName: ['RotationSucceeded'],
+    //      additionalEventData: {
+    //        SecretId: [backend.secret?.secretArn],
+    //      },
+    //    },
+    //  },
+    //  targets: [this.forceDeployFunction],
+    //});
   }
 
   addExternalBackend(backend: SupabaseMailBase) {
