@@ -77,11 +77,11 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     const supabaseKongImageParameter = new cdk.CfnParameter(this, 'SupabaseKongImage', { type: 'String', default: 'public.ecr.aws/u3p7q2r8/kong:latest' });
-    const supabaseAuthImageParameter = new cdk.CfnParameter(this, 'SupabaseAuthImage', { type: 'String', default: 'supabase/gotrue:v2.13.1' });
+    const supabaseAuthImageParameter = new cdk.CfnParameter(this, 'SupabaseAuthImage', { type: 'String', default: 'public.ecr.aws/t3w2s2c9/gotrue:v2.15.3' });
     const supabaseResrImageParameter = new cdk.CfnParameter(this, 'SupabaseResrImage', { type: 'String', default: 'postgrest/postgrest:v9.0.1' });
-    const supabaseRealtimeImageParameter = new cdk.CfnParameter(this, 'SupabaseRealtimeImage', { type: 'String', default: 'supabase/realtime:v0.24.0' });
-    const supabaseStorageImageParameter = new cdk.CfnParameter(this, 'SupabaseStorageImage', { type: 'String', default: 'supabase/storage-api:v0.19.1' });
-    const supabaseMetaImageParameter = new cdk.CfnParameter(this, 'SupabaseMetaImage', { type: 'String', default: 'supabase/postgres-meta:v0.42.3' });
+    const supabaseRealtimeImageParameter = new cdk.CfnParameter(this, 'SupabaseRealtimeImage', { type: 'String', default: 'public.ecr.aws/t3w2s2c9/realtime:v0.24.1' });
+    const supabaseStorageImageParameter = new cdk.CfnParameter(this, 'SupabaseStorageImage', { type: 'String', default: 'public.ecr.aws/t3w2s2c9/storage-api:v0.19.1' });
+    const supabaseMetaImageParameter = new cdk.CfnParameter(this, 'SupabaseMetaImage', { type: 'String', default: 'public.ecr.aws/t3w2s2c9/postgres-meta:v0.42.3' });
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
