@@ -23,14 +23,21 @@
 ### Specification and Limitation
 
 - API
+  - All containers run on ECS Fargate (Graviton2).
+    - Only Storage API run on x86 pratform.
   - All containers are allocated 1 vCPU/2GB memory.
   - All components are configured with AutoScaling.
     - Only Realtime API does not autoscale
   - GraphQL is not supported, because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
     - You can enable GraphQL using [PostGraphile](https://www.graphile.org/postgraphile/) via CDK.
 - Database
-  - Use Aurora Serverless v2.
+  - Use [Aurora Serverless v2](https://aws.amazon.com/rds/aurora/serverless/).
   - DB password will be rotated automatically every 30 days.
+- Service Discovery
+  - Use [Cloud Map](https://aws.amazon.com/cloud-map/) as internal DNS.
+    - Each component is discovered as `***.supabase.local`.
+  - By default, [App Mesh](https://aws.amazon.com/app-mesh/) is used as service mesh.
+    - You can disable App Mesh via CDK.
 
 
 ## Deploy via CDK
