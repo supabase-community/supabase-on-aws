@@ -6,17 +6,17 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
-interface SupabaseApiKeysProps {
+interface ApiKeysProps {
   issuer?: string;
   expiresIn?: string;
 }
 
-export class SupabaseApiKeys extends Construct {
+export class ApiKeys extends Construct {
   jwtSecret: Secret;
   anonKey: ssm.StringParameter;
   serviceRoleKey: ssm.StringParameter;
 
-  constructor(scope: cdk.Stack, id: string, props: SupabaseApiKeysProps = {}) {
+  constructor(scope: cdk.Stack, id: string, props: ApiKeysProps = {}) {
     super(scope, id);
 
     const { issuer, expiresIn } = props;
@@ -60,14 +60,14 @@ export class SupabaseApiKeys extends Construct {
     });
 
     this.anonKey = new ssm.StringParameter(this, 'AnonKey', {
-      parameterName: `/${cdk.Aws.STACK_NAME}/API/Key/anon`,
+      parameterName: `/${cdk.Aws.STACK_NAME}/${id}/anon`,
       description: 'This key is safe to use in a browser if you have enabled Row Level Security for your tables and configured policies.',
       stringValue: anon.getAttString('Token'),
       simpleName: false,
     });
 
     this.serviceRoleKey = new ssm.StringParameter(this, 'ServiceRoleKey', {
-      parameterName: `/${cdk.Aws.STACK_NAME}/API/Key/service_role`,
+      parameterName: `/${cdk.Aws.STACK_NAME}/${id}/service_role`,
       description: 'This key has the ability to bypass Row Level Security. Never share it publicly.',
       stringValue: serviceRole.getAttString('Token'),
       simpleName: false,

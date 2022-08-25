@@ -7,7 +7,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { ExternalAuthProvider, ExternalAuthProviderProps } from './external-auth-provicer';
 import { ManagedPrefixList } from './managed-prefix-list';
-import { SupabaseApiKeys } from './supabase-api-keys';
+import { ApiKeys } from './supabase-api-keys';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseMail } from './supabase-mail';
@@ -17,13 +17,14 @@ import { sesSmtpSupportedRegions } from './utils';
 
 interface SupabaseStackProps extends cdk.StackProps {
   meshEnabled?: boolean;
+  gqlEnabled?: boolean;
 }
 
 export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: SupabaseStackProps = {}) {
     super(scope, id, props);
 
-    const meshEnabled = props.meshEnabled;
+    const { meshEnabled, gqlEnabled } = props;
 
     const disableSignupParameter = new cdk.CfnParameter(this, 'DisableSignup', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
@@ -78,7 +79,6 @@ export class SupabaseStack extends cdk.Stack {
     const supabaseKongImageParameter = new cdk.CfnParameter(this, 'SupabaseKongImage', { type: 'String', default: 'public.ecr.aws/u3p7q2r8/kong:latest' });
     const supabaseAuthImageParameter = new cdk.CfnParameter(this, 'SupabaseAuthImage', { type: 'String', default: 'supabase/gotrue:v2.13.1' });
     const supabaseResrImageParameter = new cdk.CfnParameter(this, 'SupabaseResrImage', { type: 'String', default: 'postgrest/postgrest:v9.0.1' });
-    const supabaseGraphQLImageParameter = new cdk.CfnParameter(this, 'SupabaseGraphQLImage', { type: 'String', default: 'public.ecr.aws/u3p7q2r8/postgraphile:latest', description: 'Experimental - pg_graphql not supported with Amazon RDS/Aurora' });
     const supabaseRealtimeImageParameter = new cdk.CfnParameter(this, 'SupabaseRealtimeImage', { type: 'String', default: 'supabase/realtime:v0.24.0' });
     const supabaseStorageImageParameter = new cdk.CfnParameter(this, 'SupabaseStorageImage', { type: 'String', default: 'supabase/storage-api:v0.19.1' });
     const supabaseMetaImageParameter = new cdk.CfnParameter(this, 'SupabaseMetaImage', { type: 'String', default: 'supabase/postgres-meta:v0.42.3' });
@@ -104,7 +104,7 @@ export class SupabaseStack extends cdk.Stack {
     const db = new SupabaseDatabase(this, 'Database', { vpc, mesh });
     const dbSecret = db.secret!;
 
-    const apiKeys = new SupabaseApiKeys(this, 'SupabaseApiKeys', { issuer: 'supabase', expiresIn: '10y' });
+    const apiKeys = new ApiKeys(this, 'ApiKeys', { issuer: 'supabase', expiresIn: '10y' });
 
     const kong = new SupabaseService(this, 'Kong', {
       cluster,
@@ -122,7 +122,6 @@ export class SupabaseStack extends cdk.Stack {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
           KONG_PLUGINS: 'request-transformer,cors,key-auth,acl',
           KONG_STATUS_LISTEN: '0.0.0.0:8100',
-          SUPABASE_GRAPHQL_URL: 'http://graphql.supabase.local:5000/graphql',
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(apiKeys.anonKey),
@@ -203,11 +202,12 @@ export class SupabaseStack extends cdk.Stack {
       mesh,
     });
 
+    if (gqlEnabled) {
     // GraphQL - use postgraphile insted of pg_graphql
     const graphql = new SupabaseService(this, 'GraphQL', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseGraphQLImageParameter.valueAsString),
+          image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/postgraphile:latest'),
         //image: ecs.ContainerImage.fromAsset('./src/containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
         portMappings: [{ containerPort: 5000 }],
         //healthCheck: {
@@ -227,6 +227,10 @@ export class SupabaseStack extends cdk.Stack {
       },
       mesh,
     });
+      graphql.addDatabaseBackend(db);
+      kong.addBackend(graphql);
+      kong.ecsService.taskDefinition.defaultContainer?.addEnvironment('SUPABASE_GRAPHQL_URL', 'http://graphql.supabase.local:5000/graphql');
+    }
 
     const realtime = new SupabaseService(this, 'Realtime', {
       cluster,
@@ -311,7 +315,6 @@ export class SupabaseStack extends cdk.Stack {
 
     kong.addBackend(auth);
     kong.addBackend(rest);
-    kong.addBackend(graphql);
     kong.addBackend(realtime);
     kong.addBackend(storage);
     kong.addBackend(meta);
@@ -322,7 +325,7 @@ export class SupabaseStack extends cdk.Stack {
 
     auth.addDatabaseBackend(db);
     rest.addDatabaseBackend(db);
-    graphql.addDatabaseBackend(db);
+
     realtime.addDatabaseBackend(db);
     storage.addDatabaseBackend(db);
     meta.addDatabaseBackend(db);
@@ -382,7 +385,6 @@ export class SupabaseStack extends cdk.Stack {
               supabaseKongImageParameter.logicalId,
               supabaseAuthImageParameter.logicalId,
               supabaseResrImageParameter.logicalId,
-              supabaseGraphQLImageParameter.logicalId,
               supabaseRealtimeImageParameter.logicalId,
               supabaseStorageImageParameter.logicalId,
               supabaseMetaImageParameter.logicalId,

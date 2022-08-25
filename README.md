@@ -20,6 +20,19 @@
 [ap-southeast-1]: https://ap-southeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-southeast-1
 [ap-southeast-2]: https://ap-southeast-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-2.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-southeast-2
 
+### Specification and Limitation
+
+- API
+  - All containers are allocated 1 vCPU/2GB memory.
+  - All components are configured with AutoScaling.
+    - Only Realtime API does not autoscale
+  - GraphQL is not supported, because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
+    - You can enable GraphQL using [PostGraphile](https://www.graphile.org/postgraphile/) via CDK.
+- Database
+  - Use Aurora Serverless v2.
+  - DB password will be rotated automatically every 30 days.
+
+
 ## Deploy via CDK
 
 ```bash
