@@ -37,6 +37,7 @@
 
 ```bash
 git clone https://github.com/mats16/supabase-on-aws.git
+
 cd supabase-on-aws
 
 yarn install
