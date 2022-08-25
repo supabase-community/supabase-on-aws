@@ -6,13 +6,15 @@ import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import { SupabaseService } from './supabase-service';
 
 interface SupabaseStudioProps {
   cluster: ecs.Cluster;
   dbSecret: ISecret;
-  jwtSecret: ISecret;
+  anonKey: ssm.IParameter;
+  serviceRoleKey: ssm.IParameter;
   imageUri: string;
   supabaseUrl: string;
 }
@@ -27,7 +29,7 @@ export class SupabaseStudio extends SupabaseService {
    * It is better, if you can deploy Next.js with Amplify Hosting or Lambda@edge.
    */
   constructor(scope: Construct, id: string, props: SupabaseStudioProps) {
-    const { cluster, dbSecret, jwtSecret, imageUri, supabaseUrl } = props;
+    const { cluster, dbSecret, anonKey, serviceRoleKey, imageUri, supabaseUrl } = props;
     const vpc = cluster.vpc;
 
     super(scope, id, {
@@ -42,8 +44,8 @@ export class SupabaseStudio extends SupabaseService {
         },
         secrets: {
           POSTGRES_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
-          SUPABASE_ANON_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'anon_key'),
-          SUPABASE_SERVICE_KEY: ecs.Secret.fromSecretsManager(jwtSecret, 'service_role_key'),
+          SUPABASE_ANON_KEY: ecs.Secret.fromSsmParameter(anonKey),
+          SUPABASE_SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey),
         },
       },
       cpu: 256,
