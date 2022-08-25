@@ -1,0 +1,62 @@
+name: publish
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+jobs:
+  cloudformation:
+    name: CloudFormation Templates
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # needed to interact with GitHub's OIDC Token endpoint.
+      contents: read
+    env:
+      BSS_FILE_ASSET_BUCKET_NAME: 'supabase-on-aws-${AWS::Region}'
+      BSS_FILE_ASSET_REGION_SET: us-east-1,us-west-2,eu-west-1,ap-northeast-1,ap-northeast-2,ap-southeast-1,ap-southeast-2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: node.js setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: yarn install --check-files
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CDK_PUBLISHING_ROLE }}
+          aws-region: us-west-2
+
+      - name: cdk synth
+        run: $(npm bin)/cdk synth --no-version-reporting
+        env:
+          BSS_FILE_ASSET_PREFIX: stable/
+
+      - name: remove old template
+        run: |
+          region_list=(${BSS_FILE_ASSET_REGION_SET//,/ })
+          for region in ${region_list[@]}; do
+              bucket_name=(${BSS_FILE_ASSET_BUCKET_NAME//\$\{AWS::Region\}/$region})
+              aws s3 rm s3://$bucket_name/stable/Supabase.template.json
+          done
+
+      - name: Publish assets
+        run: npx cdk-assets publish --path cdk.out/Supabase.assets.json --verbose
+
+      - name: cdk synth
+        run: $(npm bin)/cdk synth --no-version-reporting
+        env:
+          BSS_FILE_ASSET_PREFIX: ${{ github.event.inputs.version }}/
+
+      - name: Publish assets
+        run: npx cdk-assets publish --path cdk.out/Supabase.assets.json --verbose
