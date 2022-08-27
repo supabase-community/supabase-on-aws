@@ -64,7 +64,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
         enablePerformanceInsights: true,
         vpc,
       },
-      credentials: rds.Credentials.fromGeneratedSecret('supabase_admin'),
+      credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', { excludeCharacters: '%+~`#$&*()|[]{}:;<>?!\'/@\"\\=' }),
       defaultDatabaseName: 'postgres',
     });
 
