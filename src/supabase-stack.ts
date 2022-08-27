@@ -8,9 +8,9 @@ import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import { ExternalAuthProvider, ExternalAuthProviderProps } from './external-auth-provicer';
 import { ManagedPrefixList } from './managed-prefix-list';
-import { ApiKeys } from './supabase-api-keys';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
+import { SupabaseJwt } from './supabase-jwt';
 import { SupabaseMail } from './supabase-mail';
 import { SupabaseService } from './supabase-service';
 import { SupabaseStudio } from './supabase-studio';
@@ -108,7 +108,7 @@ export class SupabaseStack extends cdk.Stack {
     const db = new SupabaseDatabase(this, 'DB', { vpc, mesh });
     const dbSecret = db.secret!;
 
-    const apiKeys = new ApiKeys(this, 'ApiKeys', { issuer: 'supabase', expiresIn: '10y' });
+    const jwt = new SupabaseJwt(this, 'SupabaseJwt', { issuer: 'supabase', expiresIn: '10y' });
 
     const kong = new SupabaseService(this, 'Kong', {
       cluster,
@@ -128,8 +128,8 @@ export class SupabaseStack extends cdk.Stack {
           KONG_STATUS_LISTEN: '0.0.0.0:8100',
         },
         secrets: {
-          ANON_KEY: ecs.Secret.fromSsmParameter(apiKeys.anonKey),
-          SERVICE_KEY: ecs.Secret.fromSsmParameter(apiKeys.serviceRoleKey),
+          ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
+          SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
         },
       },
       mesh,
@@ -180,7 +180,7 @@ export class SupabaseStack extends cdk.Stack {
         },
         secrets: {
           GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.urlAuth),
-          GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(apiKeys.jwtSecret),
+          GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
           GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(mail.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(mail.secret, 'password'),
         },
@@ -200,7 +200,7 @@ export class SupabaseStack extends cdk.Stack {
         },
         secrets: {
           PGRST_DB_URI: ecs.Secret.fromSsmParameter(db.url),
-          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(apiKeys.jwtSecret),
+          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
         },
       },
       mesh,
@@ -226,7 +226,7 @@ export class SupabaseStack extends cdk.Stack {
           },
           secrets: {
             DATABASE_URL: ecs.Secret.fromSsmParameter(db.url),
-            JWT_SECRET: ecs.Secret.fromSecretsManager(apiKeys.jwtSecret),
+            JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
           },
         },
         mesh,
@@ -253,7 +253,7 @@ export class SupabaseStack extends cdk.Stack {
           MAX_REPLICATION_LAG_MB: '1000',
         },
         secrets: {
-          JWT_SECRET: ecs.Secret.fromSecretsManager(apiKeys.jwtSecret),
+          JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
           DB_HOST: ecs.Secret.fromSecretsManager(dbSecret, 'host'),
           DB_PORT: ecs.Secret.fromSecretsManager(dbSecret, 'port'),
           DB_NAME: ecs.Secret.fromSecretsManager(dbSecret, 'dbname'),
@@ -287,9 +287,9 @@ export class SupabaseStack extends cdk.Stack {
           GLOBAL_S3_BUCKET: bucket.bucketName,
         },
         secrets: {
-          ANON_KEY: ecs.Secret.fromSsmParameter(apiKeys.anonKey),
-          SERVICE_KEY: ecs.Secret.fromSsmParameter(apiKeys.serviceRoleKey),
-          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(apiKeys.jwtSecret),
+          ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
+          SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
+          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
           DATABASE_URL: ecs.Secret.fromSsmParameter(db.url),
         },
       },
@@ -343,13 +343,14 @@ export class SupabaseStack extends cdk.Stack {
     const studio = new SupabaseStudio(this, 'Studio', {
       cluster,
       dbSecret,
-      anonKey: apiKeys.anonKey,
-      serviceRoleKey: apiKeys.serviceRoleKey,
+      anonKey: jwt.anonKey,
+      serviceRoleKey: jwt.serviceRoleKey,
       imageUri: supabaseStudioImageParameter.valueAsString,
       supabaseUrl: `https://${cdn.distribution.domainName}`,
     });
     studio.addDatabaseBackend(db);
 
+    this.exportValue(jwt.anonToken, { name: 'ApiKey' });
     this.exportValue(`https://${cdn.distribution.domainName}`, { name: 'Url' });
     new cdk.CfnOutput(this, 'StudioUrl', { value: `http://${studio.loadBalancer.loadBalancerDnsName}` });
     new cdk.CfnOutput(this, 'StudioUserPool', { value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users` });
