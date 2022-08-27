@@ -62,7 +62,10 @@ export class SupabaseService extends Construct {
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDefinition', {
       cpu,
       memoryLimitMiB: memory,
-      runtimePlatform: { cpuArchitecture },
+      runtimePlatform: {
+        operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
+        cpuArchitecture,
+      },
       proxyConfiguration: (meshEnabled) ? proxyConfiguration : undefined,
     });
 

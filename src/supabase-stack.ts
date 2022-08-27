@@ -4,6 +4,7 @@ import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import { ExternalAuthProvider, ExternalAuthProviderProps } from './external-auth-provicer';
 import { ManagedPrefixList } from './managed-prefix-list';
@@ -14,6 +15,9 @@ import { SupabaseMail } from './supabase-mail';
 import { SupabaseService } from './supabase-service';
 import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
+
+const ecrPublicAlias = 't3w2s2c9';
+const ecsPublicRegistry = `public.ecr.aws/${ecrPublicAlias}`;
 
 interface SupabaseStackProps extends cdk.StackProps {
   meshEnabled?: boolean;
@@ -77,18 +81,18 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     const supabaseKongImageParameter = new cdk.CfnParameter(this, 'SupabaseKongImage', { type: 'String', default: 'public.ecr.aws/u3p7q2r8/kong:latest' });
-    const supabaseAuthImageParameter = new cdk.CfnParameter(this, 'SupabaseAuthImage', { type: 'String', default: 'public.ecr.aws/t3w2s2c9/gotrue:v2.15.3' });
+    const supabaseAuthImageParameter = new cdk.CfnParameter(this, 'SupabaseAuthImage', { type: 'String', default: `${ecsPublicRegistry}/gotrue:v2.15.4` });
     const supabaseResrImageParameter = new cdk.CfnParameter(this, 'SupabaseResrImage', { type: 'String', default: 'postgrest/postgrest:v9.0.1' });
-    const supabaseRealtimeImageParameter = new cdk.CfnParameter(this, 'SupabaseRealtimeImage', { type: 'String', default: 'public.ecr.aws/t3w2s2c9/realtime:v0.24.1' });
-    const supabaseStorageImageParameter = new cdk.CfnParameter(this, 'SupabaseStorageImage', { type: 'String', default: 'public.ecr.aws/t3w2s2c9/storage-api:v0.19.1' });
-    const supabaseMetaImageParameter = new cdk.CfnParameter(this, 'SupabaseMetaImage', { type: 'String', default: 'public.ecr.aws/t3w2s2c9/postgres-meta:v0.42.3' });
+    const supabaseRealtimeImageParameter = new cdk.CfnParameter(this, 'SupabaseRealtimeImage', { type: 'String', default: `${ecsPublicRegistry}/realtime:v0.24.1` });
+    const supabaseStorageImageParameter = new cdk.CfnParameter(this, 'SupabaseStorageImage', { type: 'String', default: `${ecsPublicRegistry}/storage-api:v0.19.1` });
+    const supabaseMetaImageParameter = new cdk.CfnParameter(this, 'SupabaseMetaImage', { type: 'String', default: `${ecsPublicRegistry}/postgres-meta:v0.42.3` });
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
     const mesh = (meshEnabled)
       ? new appmesh.Mesh(this, 'Mesh', {
-      meshName: this.stackName,
-      egressFilter: appmesh.MeshFilterType.ALLOW_ALL,
+        meshName: this.stackName,
+        egressFilter: appmesh.MeshFilterType.ALLOW_ALL,
       })
       : undefined;
 
@@ -101,7 +105,7 @@ export class SupabaseStack extends cdk.Stack {
 
     const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, mesh });
 
-    const db = new SupabaseDatabase(this, 'Database', { vpc, mesh });
+    const db = new SupabaseDatabase(this, 'DB', { vpc, mesh });
     const dbSecret = db.secret!;
 
     const apiKeys = new ApiKeys(this, 'ApiKeys', { issuer: 'supabase', expiresIn: '10y' });
@@ -203,30 +207,30 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     if (gqlEnabled) {
-    // GraphQL - use postgraphile insted of pg_graphql
-    const graphql = new SupabaseService(this, 'GraphQL', {
-      cluster,
-      containerDefinition: {
+      // GraphQL - use postgraphile insted of pg_graphql
+      const graphql = new SupabaseService(this, 'GraphQL', {
+        cluster,
+        containerDefinition: {
           image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/postgraphile:latest'),
-        //image: ecs.ContainerImage.fromAsset('./src/containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
-        portMappings: [{ containerPort: 5000 }],
-        //healthCheck: {
-        //  command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1'],
-        //  interval: cdk.Duration.seconds(5),
-        //  timeout: cdk.Duration.seconds(5),
-        //  retries: 3,
-        //},
-        environment: {
-          PG_IGNORE_RBAC: '0',
-          ENABLE_XRAY_TRACING: '1',
+          //image: ecs.ContainerImage.fromAsset('./src/containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
+          portMappings: [{ containerPort: 5000 }],
+          //healthCheck: {
+          //  command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1'],
+          //  interval: cdk.Duration.seconds(5),
+          //  timeout: cdk.Duration.seconds(5),
+          //  retries: 3,
+          //},
+          environment: {
+            PG_IGNORE_RBAC: '0',
+            ENABLE_XRAY_TRACING: '1',
+          },
+          secrets: {
+            DATABASE_URL: ecs.Secret.fromSsmParameter(db.url),
+            JWT_SECRET: ecs.Secret.fromSecretsManager(apiKeys.jwtSecret),
+          },
         },
-        secrets: {
-          DATABASE_URL: ecs.Secret.fromSsmParameter(db.url),
-          JWT_SECRET: ecs.Secret.fromSecretsManager(apiKeys.jwtSecret),
-        },
-      },
-      mesh,
-    });
+        mesh,
+      });
       graphql.addDatabaseBackend(db);
       kong.addBackend(graphql);
       kong.ecsService.taskDefinition.defaultContainer?.addEnvironment('SUPABASE_GRAPHQL_URL', 'http://graphql.supabase.local:5000/graphql');
@@ -333,7 +337,7 @@ export class SupabaseStack extends cdk.Stack {
     // Supabase Studio
     const supabaseStudioImageParameter = new cdk.CfnParameter(this, 'SupabaseStudioImage', {
       type: 'String',
-      default: 'supabase/studio:latest',
+      default: 'public.ecr.aws/t3w2s2c9/studio:latest',
     });
 
     const studio = new SupabaseStudio(this, 'Studio', {
@@ -417,7 +421,7 @@ export class SupabaseStack extends cdk.Stack {
       authService: auth,
       metadata: this.templateOptions.metadata,
     };
-    new ExternalAuthProvider(this, 'Apple', extAuthProps);
+    //new ExternalAuthProvider(this, 'Apple', extAuthProps);
     new ExternalAuthProvider(this, 'Google', extAuthProps);
     new ExternalAuthProvider(this, 'Facebook', extAuthProps);
     new ExternalAuthProvider(this, 'Twitter', extAuthProps);
