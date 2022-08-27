@@ -16,8 +16,9 @@ import { SupabaseService } from './supabase-service';
 import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
 
-const ecrPublicAlias = 't3w2s2c9';
-const ecsPublicRegistry = `public.ecr.aws/${ecrPublicAlias}`;
+const ecrAlias = 't3w2s2c9';
+const ecrRegistry = `public.ecr.aws/${ecrAlias}`;
+const ecrGalleryUrl = `https://gallery.ecr.aws/${ecrAlias}`;
 
 interface SupabaseStackProps extends cdk.StackProps {
   meshEnabled?: boolean;
@@ -43,7 +44,7 @@ export class SupabaseStack extends cdk.Stack {
       default: 'http://localhost:3000',
     });
 
-    const jwtExpiryLimitParameter = new cdk.CfnParameter(this, 'JWTExpiryLimit', {
+    const jwtExpiryLimitParameter = new cdk.CfnParameter(this, 'JwtExpiryLimit', {
       description: 'How long tokens are valid for. Defaults to 3600 (1 hour), maximum 604,800 seconds (one week).',
       type: 'Number',
       default: 3600,
@@ -80,12 +81,11 @@ export class SupabaseStack extends cdk.Stack {
       default: 'Supabase',
     });
 
-    const supabaseKongImageParameter = new cdk.CfnParameter(this, 'SupabaseKongImage', { type: 'String', default: 'public.ecr.aws/u3p7q2r8/kong:latest' });
-    const supabaseAuthImageParameter = new cdk.CfnParameter(this, 'SupabaseAuthImage', { type: 'String', default: `${ecsPublicRegistry}/gotrue:v2.15.4` });
-    const supabaseResrImageParameter = new cdk.CfnParameter(this, 'SupabaseResrImage', { type: 'String', default: 'postgrest/postgrest:v9.0.1' });
-    const supabaseRealtimeImageParameter = new cdk.CfnParameter(this, 'SupabaseRealtimeImage', { type: 'String', default: `${ecsPublicRegistry}/realtime:v0.24.1` });
-    const supabaseStorageImageParameter = new cdk.CfnParameter(this, 'SupabaseStorageImage', { type: 'String', default: `${ecsPublicRegistry}/storage-api:v0.19.1` });
-    const supabaseMetaImageParameter = new cdk.CfnParameter(this, 'SupabaseMetaImage', { type: 'String', default: `${ecsPublicRegistry}/postgres-meta:v0.42.3` });
+    const goTrueVersionParameter = new cdk.CfnParameter(this, 'GoTrueVersion', { type: 'String', default: 'v2.15.4', description: `Docker image tag - ${ecrGalleryUrl}/gotrue` });
+    const postgRestVersionParameter = new cdk.CfnParameter(this, 'PostgRestVersion', { type: 'String', default: 'v9.0.1', description: 'Docker image tag - https://hub.docker.com/r/postgrest/postgrest/tags' });
+    const realtimeVersionParameter = new cdk.CfnParameter(this, 'RealtimeVersion', { type: 'String', default: 'v0.24.1', description: `Docker image tag - ${ecrGalleryUrl}/realtime` });
+    const storageVersionParameter = new cdk.CfnParameter(this, 'StorageVersion', { type: 'String', default: 'v0.20.0', description: `Docker image tag - ${ecrGalleryUrl}/storage-api` });
+    const postgresMetaVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaVersion', { type: 'String', default: 'v0.42.4', description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta` });
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
@@ -105,7 +105,7 @@ export class SupabaseStack extends cdk.Stack {
 
     const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, mesh });
 
-    const db = new SupabaseDatabase(this, 'DB', { vpc, mesh });
+    const db = new SupabaseDatabase(this, 'Database', { vpc, mesh });
     const dbSecret = db.secret!;
 
     const jwt = new SupabaseJwt(this, 'SupabaseJwt', { issuer: 'supabase', expiresIn: '10y' });
@@ -113,7 +113,7 @@ export class SupabaseStack extends cdk.Stack {
     const kong = new SupabaseService(this, 'Kong', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseKongImageParameter.valueAsString),
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/kong:latest'),
         //image: ecs.ContainerImage.fromAsset('./src/containers/kong', { platform: Platform.LINUX_ARM64 }),
         portMappings: [{ containerPort: 8000 }, { containerPort: 8100 }],
         healthCheck: {
@@ -143,7 +143,7 @@ export class SupabaseStack extends cdk.Stack {
     const auth = new SupabaseService(this, 'Auth', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseAuthImageParameter.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/gotrue:${goTrueVersionParameter.valueAsString}`),
         portMappings: [{ containerPort: 9999 }],
         environment: {
           // Top-Level - https://github.com/supabase/gotrue#top-level
@@ -191,7 +191,7 @@ export class SupabaseStack extends cdk.Stack {
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseResrImageParameter.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(`postgrest/postgrest:${postgRestVersionParameter.valueAsString}`),
         portMappings: [{ containerPort: 3000 }],
         environment: {
           PGRST_DB_SCHEMAS: 'public,storage,graphql_public',
@@ -239,7 +239,7 @@ export class SupabaseStack extends cdk.Stack {
     const realtime = new SupabaseService(this, 'Realtime', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseRealtimeImageParameter.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/realtime:${realtimeVersionParameter.valueAsString}`),
         portMappings: [{ containerPort: 4000 }],
         environment: {
           DB_SSL: 'false',
@@ -275,7 +275,7 @@ export class SupabaseStack extends cdk.Stack {
     const storage = new SupabaseService(this, 'Storage', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseStorageImageParameter.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/storage-api:${storageVersionParameter.valueAsString}`),
         portMappings: [{ containerPort: 5000 }],
         environment: {
           POSTGREST_URL: 'http://rest.supabase.local:3000',
@@ -301,7 +301,7 @@ export class SupabaseStack extends cdk.Stack {
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(supabaseMetaImageParameter.valueAsString),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/postgres-meta:${postgresMetaVersionParameter.valueAsString}`),
         portMappings: [{ containerPort: 8080 }],
         environment: {
           PG_META_PORT: '8080',
@@ -385,14 +385,13 @@ export class SupabaseStack extends cdk.Stack {
             ],
           },
           {
-            Label: { default: 'Docker Images' },
+            Label: { default: 'Platform Version' },
             Parameters: [
-              supabaseKongImageParameter.logicalId,
-              supabaseAuthImageParameter.logicalId,
-              supabaseResrImageParameter.logicalId,
-              supabaseRealtimeImageParameter.logicalId,
-              supabaseStorageImageParameter.logicalId,
-              supabaseMetaImageParameter.logicalId,
+              goTrueVersionParameter.logicalId,
+              postgRestVersionParameter.logicalId,
+              realtimeVersionParameter.logicalId,
+              storageVersionParameter.logicalId,
+              postgresMetaVersionParameter.logicalId,
             ],
           },
           {
