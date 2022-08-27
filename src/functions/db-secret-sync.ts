@@ -85,5 +85,5 @@ export const handler: EventBridgeHandler<'AWS Service Event via CloudTrail', Rot
   const secret = await getSecret(secretId);
   const url = `postgres://${secret.username}:${secret.password}@${secret.host}:${secret.port}/${secret.dbname||'postgres'}`;
   await putParameter(urlParameterName, url);
-  await putParameter(urlParameterName.replace('Default', 'Auth'), `${url}?search_path=auth`);
+  await putParameter(`${urlParameterName}/search_path/auth`, `${url}?search_path=auth`);
 };

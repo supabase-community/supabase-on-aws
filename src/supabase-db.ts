@@ -16,6 +16,8 @@ enum ServerlessInstanceType { SERVERLESS = 'serverless' }
 type CustomInstanceType = ServerlessInstanceType | ec2.InstanceType;
 const CustomInstanceType = { ...ServerlessInstanceType, ...ec2.InstanceType };
 
+const excludeCharacters = '%+~`#$&*()|[]{}:;<>?!\'/@\"\\='; // for Password
+
 interface SupabaseDatabaseProps {
   vpc: ec2.IVpc;
   mesh?: appmesh.IMesh;
@@ -64,7 +66,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
         enablePerformanceInsights: true,
         vpc,
       },
-      credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', { excludeCharacters: '%+~`#$&*()|[]{}:;<>?!\'/@\"\\=' }),
+      credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', { excludeCharacters }),
       defaultDatabaseName: 'postgres',
     });
 
@@ -111,17 +113,19 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     });
     // Support for Aurora Serverless v2 ---------------------------------------------------
 
+    // Sync to SSM Parameter Store for database_url ---------------------------------------
+    const databaseUrl = `postgres://${this.secret?.secretValueFromJson('username').toString()}:${this.secret?.secretValueFromJson('password').toString()}@${this.secret?.secretValueFromJson('host').toString()}:${this.secret?.secretValueFromJson('port').toString()}/${this.secret?.secretValueFromJson('dbname').toString()}`;
     this.url = new ssm.StringParameter(this, 'UrlParameter', {
-      parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/Default`,
+      parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url`,
       description: 'The standard connection PostgreSQL URI format.',
-      stringValue: `postgres://${this.secret?.secretValueFromJson('username').toString()}:${this.secret?.secretValueFromJson('password').toString()}@${this.secret?.secretValueFromJson('host').toString()}:${this.secret?.secretValueFromJson('port').toString()}/${this.secret?.secretValueFromJson('dbname').toString()}`,
+      stringValue: databaseUrl,
       simpleName: false,
     });
 
     this.urlAuth = new ssm.StringParameter(this, 'authUrlParameter', {
-      parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/Auth`,
+      parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/search_path/auth`,
       description: 'The standard connection PostgreSQL URI format with "?search_path=auth".',
-      stringValue: `postgres://${this.secret?.secretValueFromJson('username').toString()}:${this.secret?.secretValueFromJson('password').toString()}@${this.secret?.secretValueFromJson('host').toString()}:${this.secret?.secretValueFromJson('port').toString()}/${this.secret?.secretValueFromJson('dbname').toString()}?search_path=auth`,
+      stringValue: `${databaseUrl}?search_path=auth`,
       simpleName: false,
     });
 
@@ -151,12 +155,14 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       },
       targets: [new targets.LambdaFunction(syncSecretFunction)],
     });
+    // Sync to SSM Parameter Store for database_url ---------------------------------------
 
     const rotationSecurityGroup = new ec2.SecurityGroup(this, 'RotationSecurityGroup', { vpc });
     this.secret?.addRotationSchedule('Rotation', {
       automaticallyAfter: cdk.Duration.days(30),
       hostedRotation: secretsmanager.HostedRotation.postgreSqlSingleUser({
         functionName: 'SupabaseDatabaseSecretRotationFunction',
+        excludeCharacters,
         securityGroups: [rotationSecurityGroup],
         vpc,
       }),
