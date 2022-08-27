@@ -78,7 +78,7 @@ export class SupabaseService extends Construct {
 
     const appContainer = taskDefinition.addContainer('app', {
       ...containerDefinition,
-      cpu: (meshEnabled) ? Math.round(cpu * 0.6) : undefined,
+      cpu: (meshEnabled) ? Math.round(cpu * 0.7) : undefined,
       memoryReservationMiB: (meshEnabled) ? Math.round(memory * 0.8) : undefined,
       essential: true,
       logging,
@@ -168,7 +168,7 @@ export class SupabaseService extends Construct {
       const proxyContainer = taskDefinition.addContainer('envoy', {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/appmesh/aws-appmesh-envoy:v1.22.2.0-prod'),
         user: '1337',
-        cpu: Math.round(cpu * 0.3),
+        cpu: Math.round(cpu * 0.2),
         memoryReservationMiB: Math.round(memory * 0.1),
         essential: true,
         healthCheck: {
