@@ -16,7 +16,7 @@ enum ServerlessInstanceType { SERVERLESS = 'serverless' }
 type CustomInstanceType = ServerlessInstanceType | ec2.InstanceType;
 const CustomInstanceType = { ...ServerlessInstanceType, ...ec2.InstanceType };
 
-const excludeCharacters = '%+~`#$&*()|[]{}:;<>?!\'/@\"\\='; // for Password
+const excludeCharacters = '%+~`#$&*()|[]{}:;<>?!\'/@\"\\=^'; // for Password
 
 interface SupabaseDatabaseProps {
   vpc: ec2.IVpc;
@@ -129,7 +129,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       simpleName: false,
     });
 
-    const syncSecretFunction = new NodejsFunction(this, 'ForceDeployFunction', {
+    const syncSecretFunction = new NodejsFunction(this, 'SyncSecretFunction', {
       description: 'Supabase - Sync DB secret to parameter store',
       entry: 'src/functions/db-secret-sync.ts',
       runtime: lambda.Runtime.NODEJS_16_X,

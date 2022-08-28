@@ -27,6 +27,7 @@ export class ExternalAuthProvider extends Construct {
     super(scope, id);
 
     const { apiExternalUrl, authService, metadata } = props;
+    const authServiceId = authService.node.id;
     const goTrue = authService.ecsService.taskDefinition.defaultContainer!;
 
     const enabledParameter = new cdk.CfnParameter(this, 'Enabled', {
@@ -52,20 +53,21 @@ export class ExternalAuthProvider extends Construct {
     const clientIdSsmParameter = new StringParameter(this, 'ClientIdParameter', {
       description: 'The OAuth2 Client ID registered with the external provider.',
       simpleName: false,
-      parameterName: `/${cdk.Aws.STACK_NAME}/Auth/External/${id}/ClientId`,
+      parameterName: `/${cdk.Aws.STACK_NAME}/${authServiceId}/External/${id}/ClientId`,
       stringValue: clientIdParameter.valueAsString,
     });
     const secretSsmParameter = new StringParameter(this, 'SecretParameter', {
       description: 'The OAuth2 Client Secret provided by the external provider when you registered.',
       simpleName: false,
-      parameterName: `/${cdk.Aws.STACK_NAME}/Auth/External/${id}/Secret`,
+      parameterName: `/${cdk.Aws.STACK_NAME}/${authServiceId}/External/${id}/Secret`,
       stringValue: secretParameter.valueAsString,
     });
 
-    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_ENABLED`, enabledParameter.valueAsString);
-    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_CLIENT_ID`, clientIdSsmParameter.parameterArn);
-    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_SECRET`, secretSsmParameter.parameterArn);
-    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${id.toUpperCase()}_REDIRECT_URI`, `${apiExternalUrl}/auth/v1/callback`);
+    const idpName = id.toUpperCase();
+    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_ENABLED`, enabledParameter.valueAsString);
+    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_CLIENT_ID`, clientIdSsmParameter.parameterArn);
+    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_SECRET`, secretSsmParameter.parameterArn);
+    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_REDIRECT_URI`, `${apiExternalUrl}/auth/v1/callback`);
 
     const { ParameterGroups, ParameterLabels } = metadata['AWS::CloudFormation::Interface'] as CfnInterface;
     ParameterGroups.push({

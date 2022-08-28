@@ -355,7 +355,7 @@ export class SupabaseStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'StudioUserPool', { value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users` });
 
     // for CloudFormation
-    this.templateOptions.description = 'Self-hosted Supabase powered by ECS Fargate, Aurora Serverless v2, App Mesh and X-Ray';
+    this.templateOptions.description = 'Self-hosted Supabase on AWS';
     this.templateOptions.metadata = {
       'AWS::CloudFormation::Interface': {
         ParameterGroups: [
