@@ -425,7 +425,6 @@ export class SupabaseStack extends cdk.Stack {
       authService: auth,
       metadata: this.templateOptions.metadata,
     };
-    //new ExternalAuthProvider(this, 'Apple', extAuthProps);
     new ExternalAuthProvider(this, 'Google', extAuthProps);
     new ExternalAuthProvider(this, 'Facebook', extAuthProps);
     new ExternalAuthProvider(this, 'Twitter', extAuthProps);
