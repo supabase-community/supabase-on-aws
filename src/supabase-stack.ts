@@ -429,5 +429,6 @@ export class SupabaseStack extends cdk.Stack {
     new ExternalAuthProvider(this, 'Facebook', extAuthProps);
     new ExternalAuthProvider(this, 'Twitter', extAuthProps);
     new ExternalAuthProvider(this, 'GitHub', extAuthProps);
+    new ExternalAuthProvider(this, 'GitLab', extAuthProps);
   }
 }
