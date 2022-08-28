@@ -18,6 +18,7 @@ import { sesSmtpSupportedRegions } from './utils';
 const ecrAlias = 't3w2s2c9';
 const ecrRegistry = `public.ecr.aws/${ecrAlias}`;
 const ecrGalleryUrl = `https://gallery.ecr.aws/${ecrAlias}`;
+const imageTagPattern = '^(v[0-9]+.[0-9]+.[0-9]+(.\w)*)|latest$'; // for docker image tags
 
 interface SupabaseStackProps extends cdk.StackProps {
   meshEnabled?: boolean;
@@ -80,11 +81,11 @@ export class SupabaseStack extends cdk.Stack {
       allowedValues: sesSmtpSupportedRegions,
     });
 
-    const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersion', { type: 'String', default: 'v2.15.4', allowedPattern: '^v[0-9]+.[0-9]+.[0-9]+$', description: `Docker image tag - ${ecrGalleryUrl}/gotrue` });
-    const restApiVersionParameter = new cdk.CfnParameter(this, 'RestApiVersion', { type: 'String', default: 'v9.0.1', description: 'Docker image tag - https://hub.docker.com/r/postgrest/postgrest/tags' });
-    const realtimeApiVersionParameter = new cdk.CfnParameter(this, 'RealtimeApiVersion', { type: 'String', default: 'v0.24.1', allowedPattern: '^v[0-9]+.[0-9]+.[0-9]+$', description: `Docker image tag - ${ecrGalleryUrl}/realtime` });
-    const storageApiVersionParameter = new cdk.CfnParameter(this, 'StorageApiVersion', { type: 'String', default: 'v0.20.0', allowedPattern: '^v[0-9]+.[0-9]+.[0-9]+$', description: `Docker image tag - ${ecrGalleryUrl}/storage-api` });
-    const postgresMetaApiVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaApiVersion', { type: 'String', default: 'v0.42.4', allowedPattern: '^v[0-9]+.[0-9]+.[0-9]+$', description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta` });
+    const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersion', { type: 'String', default: 'v2.15.4', allowedPattern: imageTagPattern, description: `Docker image tag - ${ecrGalleryUrl}/gotrue` });
+    const restApiVersionParameter = new cdk.CfnParameter(this, 'RestApiVersion', { type: 'String', default: 'v9.0.1.20220802', description: 'Docker image tag - https://hub.docker.com/r/postgrest/postgrest/tags' });
+    const realtimeApiVersionParameter = new cdk.CfnParameter(this, 'RealtimeApiVersion', { type: 'String', default: 'v0.24.1', allowedPattern: imageTagPattern, description: `Docker image tag - ${ecrGalleryUrl}/realtime` });
+    const storageApiVersionParameter = new cdk.CfnParameter(this, 'StorageApiVersion', { type: 'String', default: 'v0.20.0', allowedPattern: imageTagPattern, description: `Docker image tag - ${ecrGalleryUrl}/storage-api` });
+    const postgresMetaApiVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaApiVersion', { type: 'String', default: 'v0.42.4', allowedPattern: imageTagPattern, description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta` });
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
@@ -334,9 +335,11 @@ export class SupabaseStack extends cdk.Stack {
     meta.addDatabaseBackend(db);
 
     // Supabase Studio
-    const supabaseStudioImageParameter = new cdk.CfnParameter(this, 'SupabaseStudioImage', {
+    const studioVersionParameter = new cdk.CfnParameter(this, 'StudioVersion', {
+      description: `Docker image tag - ${ecrGalleryUrl}/studio`,
       type: 'String',
-      default: 'public.ecr.aws/t3w2s2c9/studio:latest',
+      default: 'latest',
+      allowedPattern: imageTagPattern,
     });
 
     const studio = new SupabaseStudio(this, 'Studio', {
@@ -344,7 +347,7 @@ export class SupabaseStack extends cdk.Stack {
       dbSecret,
       anonKey: jwt.anonKey,
       serviceRoleKey: jwt.serviceRoleKey,
-      imageUri: supabaseStudioImageParameter.valueAsString,
+      imageUri: `${ecrRegistry}/studio:${studioVersionParameter.valueAsString}`,
       supabaseUrl: `https://${cdn.distribution.domainName}`,
     });
     studio.addDatabaseBackend(db);
@@ -396,7 +399,7 @@ export class SupabaseStack extends cdk.Stack {
           {
             Label: { default: 'Supabase - Studio Settings' },
             Parameters: [
-              supabaseStudioImageParameter.logicalId,
+              studioVersionParameter.logicalId,
               studio.acmCertArnParameter.logicalId,
             ],
           },
