@@ -4,7 +4,6 @@ import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
-import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import { ExternalAuthProvider, ExternalAuthProviderProps } from './external-auth-provicer';
 import { ManagedPrefixList } from './managed-prefix-list';
@@ -60,13 +59,6 @@ export class SupabaseStack extends cdk.Stack {
       maxValue: 128,
     });
 
-    const sesRegionParameter = new cdk.CfnParameter(this, 'SesRegion', {
-      description: 'Region of SES endpoint used as SMTP server.',
-      type: 'String',
-      default: 'us-west-2',
-      allowedValues: sesSmtpSupportedRegions,
-    });
-
     const smtpAdminEmailParameter = new cdk.CfnParameter(this, 'SmtpAdminEmail', {
       description: 'The From email address for all emails sent.',
       type: 'String',
@@ -81,11 +73,18 @@ export class SupabaseStack extends cdk.Stack {
       default: 'Supabase',
     });
 
-    const goTrueVersionParameter = new cdk.CfnParameter(this, 'GoTrueVersion', { type: 'String', default: 'v2.15.4', description: `Docker image tag - ${ecrGalleryUrl}/gotrue` });
-    const postgRestVersionParameter = new cdk.CfnParameter(this, 'PostgRestVersion', { type: 'String', default: 'v9.0.1', description: 'Docker image tag - https://hub.docker.com/r/postgrest/postgrest/tags' });
-    const realtimeVersionParameter = new cdk.CfnParameter(this, 'RealtimeVersion', { type: 'String', default: 'v0.24.1', description: `Docker image tag - ${ecrGalleryUrl}/realtime` });
-    const storageVersionParameter = new cdk.CfnParameter(this, 'StorageVersion', { type: 'String', default: 'v0.20.0', description: `Docker image tag - ${ecrGalleryUrl}/storage-api` });
-    const postgresMetaVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaVersion', { type: 'String', default: 'v0.42.4', description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta` });
+    const sesRegionParameter = new cdk.CfnParameter(this, 'SesRegion', {
+      description: 'Use Amazon SES as SMTP server. You must choose a region.',
+      type: 'String',
+      default: 'us-west-2',
+      allowedValues: sesSmtpSupportedRegions,
+    });
+
+    const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersion', { type: 'String', default: 'v2.15.4', allowedPattern: '^v[0-9]+.[0-9]+.[0-9]+$', description: `Docker image tag - ${ecrGalleryUrl}/gotrue` });
+    const restApiVersionParameter = new cdk.CfnParameter(this, 'RestApiVersion', { type: 'String', default: 'v9.0.1', description: 'Docker image tag - https://hub.docker.com/r/postgrest/postgrest/tags' });
+    const realtimeApiVersionParameter = new cdk.CfnParameter(this, 'RealtimeApiVersion', { type: 'String', default: 'v0.24.1', allowedPattern: '^v[0-9]+.[0-9]+.[0-9]+$', description: `Docker image tag - ${ecrGalleryUrl}/realtime` });
+    const storageApiVersionParameter = new cdk.CfnParameter(this, 'StorageApiVersion', { type: 'String', default: 'v0.20.0', allowedPattern: '^v[0-9]+.[0-9]+.[0-9]+$', description: `Docker image tag - ${ecrGalleryUrl}/storage-api` });
+    const postgresMetaApiVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaApiVersion', { type: 'String', default: 'v0.42.4', allowedPattern: '^v[0-9]+.[0-9]+.[0-9]+$', description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta` });
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
@@ -143,7 +142,7 @@ export class SupabaseStack extends cdk.Stack {
     const auth = new SupabaseService(this, 'Auth', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/gotrue:${goTrueVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/gotrue:${authApiVersionParameter.valueAsString}`),
         portMappings: [{ containerPort: 9999 }],
         environment: {
           // Top-Level - https://github.com/supabase/gotrue#top-level
@@ -191,7 +190,7 @@ export class SupabaseStack extends cdk.Stack {
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`postgrest/postgrest:${postgRestVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`postgrest/postgrest:${restApiVersionParameter.valueAsString}`),
         portMappings: [{ containerPort: 3000 }],
         environment: {
           PGRST_DB_SCHEMAS: 'public,storage,graphql_public',
@@ -239,7 +238,7 @@ export class SupabaseStack extends cdk.Stack {
     const realtime = new SupabaseService(this, 'Realtime', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/realtime:${realtimeVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/realtime:${realtimeApiVersionParameter.valueAsString}`),
         portMappings: [{ containerPort: 4000 }],
         environment: {
           DB_SSL: 'false',
@@ -275,7 +274,7 @@ export class SupabaseStack extends cdk.Stack {
     const storage = new SupabaseService(this, 'Storage', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/storage-api:${storageVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/storage-api:${storageApiVersionParameter.valueAsString}`),
         portMappings: [{ containerPort: 5000 }],
         environment: {
           POSTGREST_URL: 'http://rest.supabase.local:3000',
@@ -301,7 +300,7 @@ export class SupabaseStack extends cdk.Stack {
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/postgres-meta:${postgresMetaVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/postgres-meta:${postgresMetaApiVersionParameter.valueAsString}`),
         portMappings: [{ containerPort: 8080 }],
         environment: {
           PG_META_PORT: '8080',
@@ -372,7 +371,6 @@ export class SupabaseStack extends cdk.Stack {
           {
             Label: { default: 'Supabase - Auth E-mail Settings' },
             Parameters: [
-              sesRegionParameter.logicalId,
               smtpAdminEmailParameter.logicalId,
               smtpSenderNameParameter.logicalId,
             ],
@@ -380,18 +378,19 @@ export class SupabaseStack extends cdk.Stack {
           {
             Label: { default: 'Platform Settings' },
             Parameters: [
+              sesRegionParameter.logicalId,
               db.multiAzParameter.logicalId,
               cdn.wafWebAclArnParameter.logicalId,
             ],
           },
           {
-            Label: { default: 'Platform Version' },
+            Label: { default: 'Supabase - API Versions' },
             Parameters: [
-              goTrueVersionParameter.logicalId,
-              postgRestVersionParameter.logicalId,
-              realtimeVersionParameter.logicalId,
-              storageVersionParameter.logicalId,
-              postgresMetaVersionParameter.logicalId,
+              authApiVersionParameter.logicalId,
+              restApiVersionParameter.logicalId,
+              realtimeApiVersionParameter.logicalId,
+              storageApiVersionParameter.logicalId,
+              postgresMetaApiVersionParameter.logicalId,
             ],
           },
           {
@@ -412,6 +411,11 @@ export class SupabaseStack extends cdk.Stack {
           [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
           [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
           [cdn.wafWebAclArnParameter.logicalId]: { default: 'WAF Web ACL ARN' },
+          [authApiVersionParameter.logicalId]: { default: 'Auth API Version - GoTrue' },
+          [restApiVersionParameter.logicalId]: { default: 'Rest API Version - PostgREST' },
+          [realtimeApiVersionParameter.logicalId]: { default: 'Realtime API Version' },
+          [storageApiVersionParameter.logicalId]: { default: 'Storage API Version' },
+          [postgresMetaApiVersionParameter.logicalId]: { default: 'Postgres Meta API Version' },
         },
       },
     };
