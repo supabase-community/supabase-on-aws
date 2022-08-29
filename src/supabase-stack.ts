@@ -16,7 +16,8 @@ import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
 
 const ecrAlias = 't3w2s2c9';
-const ecrRegistry = `public.ecr.aws/${ecrAlias}`;
+//const ecrRegistry = `public.ecr.aws/${ecrAlias}`;
+const ecrRegistry = 'supabase';
 const ecrGalleryUrl = `https://gallery.ecr.aws/${ecrAlias}`;
 const imageTagPattern = '^(v[0-9]+.[0-9]+.[0-9]+(.\w)*)|latest$'; // for docker image tags
 
@@ -81,11 +82,39 @@ export class SupabaseStack extends cdk.Stack {
       allowedValues: sesSmtpSupportedRegions,
     });
 
-    const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersion', { type: 'String', default: 'v2.15.4', allowedPattern: imageTagPattern, description: `Docker image tag - ${ecrGalleryUrl}/gotrue` });
-    const restApiVersionParameter = new cdk.CfnParameter(this, 'RestApiVersion', { type: 'String', default: 'v9.0.1.20220802', description: 'Docker image tag - https://hub.docker.com/r/postgrest/postgrest/tags' });
-    const realtimeApiVersionParameter = new cdk.CfnParameter(this, 'RealtimeApiVersion', { type: 'String', default: 'v0.24.1', allowedPattern: imageTagPattern, description: `Docker image tag - ${ecrGalleryUrl}/realtime` });
-    const storageApiVersionParameter = new cdk.CfnParameter(this, 'StorageApiVersion', { type: 'String', default: 'v0.20.0', allowedPattern: imageTagPattern, description: `Docker image tag - ${ecrGalleryUrl}/storage-api` });
-    const postgresMetaApiVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaApiVersion', { type: 'String', default: 'v0.42.4', allowedPattern: imageTagPattern, description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta` });
+    const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersion', {
+      type: 'String',
+      default: 'v2.15.4',
+      allowedPattern: imageTagPattern,
+      //description: `Docker image tag - ${ecrGalleryUrl}/gotrue`,
+      description: 'Docker image tag - https://hub.docker.com/r/supabase/gotrue/tags',
+    });
+    const restApiVersionParameter = new cdk.CfnParameter(this, 'RestApiVersion', {
+      type: 'String',
+      default: 'v9.0.1.20220802',
+      description: 'Docker image tag - https://hub.docker.com/r/postgrest/postgrest/tags',
+    });
+    const realtimeApiVersionParameter = new cdk.CfnParameter(this, 'RealtimeApiVersion', {
+      type: 'String',
+      default: 'v0.24.0',
+      allowedPattern: imageTagPattern,
+      //description: `Docker image tag - ${ecrGalleryUrl}/realtime`,
+      description: 'Docker image tag - https://hub.docker.com/r/supabase/realtime/tags',
+    });
+    const storageApiVersionParameter = new cdk.CfnParameter(this, 'StorageApiVersion', {
+      type: 'String',
+      default: 'v0.20.0',
+      allowedPattern: imageTagPattern,
+      //description: `Docker image tag - ${ecrGalleryUrl}/storage-api`,
+      description: 'Docker image tag - https://hub.docker.com/r/supabase/storage-api/tags',
+    });
+    const postgresMetaApiVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaApiVersion', {
+      type: 'String',
+      default: 'v0.42.4',
+      allowedPattern: imageTagPattern,
+      //description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta`,
+      description: 'Docker image tag - https://hub.docker.com/r/supabase/postgres-meta/tags',
+    });
 
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
@@ -338,10 +367,11 @@ export class SupabaseStack extends cdk.Stack {
 
     // Supabase Studio
     const studioVersionParameter = new cdk.CfnParameter(this, 'StudioVersion', {
-      description: `Docker image tag - ${ecrGalleryUrl}/studio`,
       type: 'String',
       default: 'latest',
       allowedPattern: imageTagPattern,
+      //description: `Docker image tag - ${ecrGalleryUrl}/studio`,
+      description: 'Docker image tag - https://hub.docker.com/r/supabase/studio/tags',
     });
 
     const studio = new SupabaseStudio(this, 'Studio', {
