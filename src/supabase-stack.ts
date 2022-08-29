@@ -136,9 +136,11 @@ export class SupabaseStack extends cdk.Stack {
     });
     const kongLoadBalancer = kong.addNetworkLoadBalancer();
 
-    const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kongLoadBalancer });
     const cfPrefixList = new ManagedPrefixList(this, 'CloudFrontManagedPrefixList', { name: 'com.amazonaws.global.cloudfront.origin-facing' });
     kong.ecsService.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
+
+    const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kongLoadBalancer });
+    const apiExternalUrl = `https://${cdn.distribution.domainName}`;
 
     const auth = new SupabaseService(this, 'Auth', {
       cluster,
@@ -157,7 +159,7 @@ export class SupabaseStack extends cdk.Stack {
           // API - https://github.com/supabase/gotrue#api
           GOTRUE_API_HOST: '0.0.0.0',
           GOTRUE_API_PORT: '9999',
-          API_EXTERNAL_URL: `https://${cdn.distribution.domainName}`,
+          API_EXTERNAL_URL: apiExternalUrl,
           // Database - https://github.com/supabase/gotrue#database
           GOTRUE_DB_DRIVER: 'postgres',
           // JWT - https://github.com/supabase/gotrue#json-web-tokens-jwt
@@ -344,16 +346,26 @@ export class SupabaseStack extends cdk.Stack {
 
     const studio = new SupabaseStudio(this, 'Studio', {
       cluster,
-      dbSecret,
-      anonKey: jwt.anonKey,
-      serviceRoleKey: jwt.serviceRoleKey,
-      imageUri: `${ecrRegistry}/studio:${studioVersionParameter.valueAsString}`,
-      supabaseUrl: `https://${cdn.distribution.domainName}`,
+      containerDefinition: {
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/studio:${studioVersionParameter.valueAsString}`),
+        portMappings: [{ containerPort: 3000 }],
+        environment: {
+          STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
+          SUPABASE_URL: `${apiExternalUrl}`, // for API Docs
+          SUPABASE_REST_URL: `${apiExternalUrl}/rest/v1/`,
+        },
+        secrets: {
+          POSTGRES_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
+          SUPABASE_ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
+          SUPABASE_SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
+        },
+      },
+      cpu: 256,
+      memory: 512,
     });
-    studio.addDatabaseBackend(db);
 
     this.exportValue(jwt.anonToken, { name: 'ApiKey' });
-    this.exportValue(`https://${cdn.distribution.domainName}`, { name: 'Url' });
+    this.exportValue(apiExternalUrl, { name: 'Url' });
     new cdk.CfnOutput(this, 'StudioUrl', { value: `http://${studio.loadBalancer.loadBalancerDnsName}` });
     new cdk.CfnOutput(this, 'StudioUserPool', { value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users` });
 
@@ -424,7 +436,7 @@ export class SupabaseStack extends cdk.Stack {
     };
 
     const extAuthProps: ExternalAuthProviderProps = {
-      apiExternalUrl: `https://${cdn.distribution.domainName}`,
+      apiExternalUrl: apiExternalUrl,
       authService: auth,
       metadata: this.templateOptions.metadata,
     };

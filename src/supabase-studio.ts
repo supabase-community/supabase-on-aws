@@ -1,23 +1,10 @@
 import * as cdk from 'aws-cdk-lib';
-import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
-import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
-import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
-import { SupabaseService } from './supabase-service';
-
-interface SupabaseStudioProps {
-  cluster: ecs.Cluster;
-  dbSecret: ISecret;
-  anonKey: ssm.IParameter;
-  serviceRoleKey: ssm.IParameter;
-  imageUri: string;
-  supabaseUrl: string;
-}
+import { SupabaseService, SupabaseServiceProps } from './supabase-service';
 
 export class SupabaseStudio extends SupabaseService {
   loadBalancer: elb.ApplicationLoadBalancer;
@@ -28,29 +15,10 @@ export class SupabaseStudio extends SupabaseService {
    * Deploy Next.js on ECS Fargate with ApplicationLoadBalancer.
    * It is better, if you can deploy Next.js with Amplify Hosting or Lambda@edge.
    */
-  constructor(scope: Construct, id: string, props: SupabaseStudioProps) {
-    const { cluster, dbSecret, anonKey, serviceRoleKey, imageUri, supabaseUrl } = props;
-    const vpc = cluster.vpc;
+  constructor(scope: Construct, id: string, props: SupabaseServiceProps) {
+    super(scope, id, props);
 
-    super(scope, id, {
-      cluster,
-      containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(imageUri),
-        portMappings: [{ containerPort: 3000 }],
-        environment: {
-          STUDIO_PG_META_URL: `${supabaseUrl}/pg`,
-          SUPABASE_URL: supabaseUrl, // for API Docs
-          SUPABASE_REST_URL: `${supabaseUrl}/rest/v1/`,
-        },
-        secrets: {
-          POSTGRES_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
-          SUPABASE_ANON_KEY: ecs.Secret.fromSsmParameter(anonKey),
-          SUPABASE_SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey),
-        },
-      },
-      cpu: 256,
-      memory: 512,
-    });
+    const vpc = props.cluster.vpc;
 
     const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
       protocol: elb.ApplicationProtocol.HTTP,
