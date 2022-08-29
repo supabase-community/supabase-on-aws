@@ -12,7 +12,15 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { SupabaseDatabase } from './supabase-db';
-import { SupabaseMailBase } from './supabase-mail';
+
+export class SupabaseServiceBase extends Construct {
+  virtualService?: appmesh.VirtualService;
+  virtualNode?: appmesh.VirtualNode;
+
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
+  }
+}
 
 export interface SupabaseServiceProps {
   cluster: ecs.ICluster;
@@ -24,12 +32,10 @@ export interface SupabaseServiceProps {
   mesh?: appmesh.Mesh;
 }
 
-export class SupabaseService extends Construct {
+export class SupabaseService extends SupabaseServiceBase {
   listenerPort: number;
   ecsService: ecs.FargateService;
   cloudMapService: servicediscovery.Service;
-  virtualService?: appmesh.VirtualService;
-  virtualNode?: appmesh.VirtualNode;
   logGroup: logs.LogGroup;
   forceDeployFunction: targets.LambdaFunction;
 
@@ -282,7 +288,7 @@ export class SupabaseService extends Construct {
     //});
   }
 
-  addExternalBackend(backend: SupabaseMailBase) {
+  addExternalBackend(backend: SupabaseServiceBase) {
     if (typeof backend.virtualService != 'undefined') {
       this.virtualNode?.addBackend(appmesh.Backend.virtualService(backend.virtualService));
     }

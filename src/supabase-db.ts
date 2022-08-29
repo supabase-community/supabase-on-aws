@@ -210,6 +210,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
 
     if (typeof mesh != 'undefined') {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
+        virtualNodeName: id,
         serviceDiscovery: appmesh.ServiceDiscovery.dns(this.clusterEndpoint.hostname, appmesh.DnsResponseType.ENDPOINTS),
         listeners: [appmesh.VirtualNodeListener.tcp({ port: this.clusterEndpoint.port })],
         mesh,

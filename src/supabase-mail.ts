@@ -6,6 +6,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
+import { SupabaseServiceBase } from './supabase-service';
 
 const createWorkMailOrgStatement = new iam.PolicyStatement({
   actions: [
@@ -34,22 +35,13 @@ const createWorkMailOrgStatement = new iam.PolicyStatement({
   resources: ['*'],
 });
 
-export class SupabaseMailBase extends Construct {
-  secret!: Secret;
-  virtualService?: appmesh.VirtualService;
-  virtualNode?: appmesh.VirtualNode;
-
-  constructor(scope: Construct, id: string) {
-    super(scope, id);
-  }
-}
-
 interface SupabaseMailProps {
   region: string;
   mesh?: appmesh.IMesh;
 }
 
-export class SupabaseMail extends SupabaseMailBase {
+export class SupabaseMail extends SupabaseServiceBase {
+  secret: Secret;
 
   constructor(scope: Construct, id: string, props: SupabaseMailProps) {
     super(scope, id);
@@ -60,7 +52,7 @@ export class SupabaseMail extends SupabaseMailBase {
 
     if (typeof mesh != 'undefined') {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
-        virtualNodeName: 'SES',
+        virtualNodeName: 'AmazonSES',
         serviceDiscovery: appmesh.ServiceDiscovery.dns(smtpEndpoint, appmesh.DnsResponseType.ENDPOINTS),
         listeners: [appmesh.VirtualNodeListener.tcp({ port: 465 })],
         mesh,
@@ -111,127 +103,6 @@ export class SupabaseMail extends SupabaseMailBase {
       properties: {
         SecretId: this.secret.secretArn,
         Region: region,
-      },
-    });
-
-  }
-}
-
-interface SupabaseWorkMailProps {
-  region: string;
-  alias?: string;
-  domainName?: string;
-  username?: string;
-  mesh?: appmesh.IMesh;
-}
-
-export class SupabaseWorkMail extends SupabaseMailBase {
-
-  constructor(scope: Construct, id: string, props: SupabaseWorkMailProps) {
-    super(scope, id);
-
-    const { region, domainName, mesh } = props;
-    const alias = props.alias || `supabase-${cdk.Aws.ACCOUNT_ID}`;
-    const username = props.username || 'info';
-    const email = (typeof domainName == 'undefined') ? `${username}@${alias}.awsapps.com` : `${username}@${domainName}`;
-
-    const smtpEndpoint = `smtp.mail.${region}.awsapps.com`;
-    if (typeof mesh != 'undefined') {
-      this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
-        virtualNodeName: 'WorkMail',
-        serviceDiscovery: appmesh.ServiceDiscovery.dns(smtpEndpoint, appmesh.DnsResponseType.ENDPOINTS),
-        listeners: [appmesh.VirtualNodeListener.tcp({ port: 465 })],
-        mesh,
-      });
-
-      this.virtualService = new appmesh.VirtualService(this, 'VirtualService', {
-        virtualServiceName: smtpEndpoint,
-        virtualServiceProvider: appmesh.VirtualServiceProvider.virtualNode(this.virtualNode),
-      });
-    }
-
-    this.secret = new Secret(this, 'Secret', {
-      description: 'Supabase - WorkMail SMTP Secret',
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({
-          host: smtpEndpoint,
-          port: '465',
-          username: email,
-          password: 'your-super-secret-smtp-password',
-          email: email,
-        }),
-        generateStringKey: 'password',
-        passwordLength: 64,
-      },
-    });
-
-    const createWorkMailOrgFunction = new NodejsFunction(this, 'CreateWorkMailOrgFunction', {
-      description: 'Supabase - Create WorkMail Org Function',
-      entry: './src/functions/create-workmail-org.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
-      initialPolicy: [createWorkMailOrgStatement],
-    });
-
-    const checkWorkMailOrgFunction = new NodejsFunction(this, 'CheckWorkMailOrgFunction', {
-      description: 'Supabase - Check state WorkMail Org Function',
-      entry: './src/functions/check-workmail-org.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
-      initialPolicy: [
-        new iam.PolicyStatement({
-          actions: [
-            'workmail:DescribeOrganization',
-            'ses:GetIdentityVerificationAttributes',
-          ],
-          resources: ['*'],
-        }),
-      ],
-    });
-
-    const createWorkMailOrgProvider = new cr.Provider(this, 'CreateWorkMailOrgProvider', {
-      onEventHandler: createWorkMailOrgFunction,
-      isCompleteHandler: checkWorkMailOrgFunction,
-    });
-
-    const organization = new cdk.CustomResource(this, 'Organization', {
-      resourceType: 'Custom::WorkMailOrganization',
-      serviceToken: createWorkMailOrgProvider.serviceToken,
-      properties: {
-        Region: region,
-        Alias: alias,
-        DomainName: domainName,
-      },
-    });
-
-    const createWorkMailUserFunction = new NodejsFunction(this, 'CreateWorkMailUserFunction', {
-      description: 'Supabase - Create WorkMail User Function',
-      entry: './src/functions/create-workmail-user.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
-      initialPolicy: [
-        new iam.PolicyStatement({
-          actions: [
-            'workmail:CreateUser',
-            'workmail:DeleteUser',
-            'workmail:RegisterToWorkMail',
-            'workmail:DeregisterFromWorkMail',
-            'ses:GetIdentityVerificationAttributes',
-          ],
-          resources: ['*'],
-        }),
-      ],
-    });
-    this.secret.grantRead(createWorkMailUserFunction);
-
-    const createWorkMailUserProvider = new cr.Provider(this, 'CreateWorkMailUserProvider', {
-      onEventHandler: createWorkMailUserFunction,
-    });
-
-    new cdk.CustomResource(this, 'User', {
-      resourceType: 'Custom::WorkMailUser',
-      serviceToken: createWorkMailUserProvider.serviceToken,
-      properties: {
-        Region: region,
-        OrganizationId: organization.ref,
-        SecretId: this.secret.secretArn,
       },
     });
 
