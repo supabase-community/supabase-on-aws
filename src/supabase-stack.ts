@@ -46,6 +46,12 @@ export class SupabaseStack extends cdk.Stack {
       default: 'http://localhost:3000',
     });
 
+    const redirectUrlsParameter = new cdk.CfnParameter(this, 'RedirectUrls', {
+      description: 'URLs that auth providers are permitted to redirect to post authentication',
+      type: 'String',
+      default: '',
+    });
+
     const jwtExpiryLimitParameter = new cdk.CfnParameter(this, 'JwtExpiryLimit', {
       description: 'How long tokens are valid for. Defaults to 3600 (1 hour), maximum 604,800 seconds (one week).',
       type: 'Number',
@@ -180,7 +186,7 @@ export class SupabaseStack extends cdk.Stack {
         environment: {
           // Top-Level - https://github.com/supabase/gotrue#top-level
           GOTRUE_SITE_URL: siteUrlParameter.valueAsString,
-          GOTRUE_URI_ALLOW_LIST: '',
+          GOTRUE_URI_ALLOW_LIST: redirectUrlsParameter.valueAsString,
           GOTRUE_DISABLE_SIGNUP: disableSignupParameter.valueAsString,
           GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
           GOTRUE_EXTERNAL_PHONE_ENABLED: 'false', // Amazon SNS not supported
@@ -406,6 +412,7 @@ export class SupabaseStack extends cdk.Stack {
             Parameters: [
               disableSignupParameter.logicalId,
               siteUrlParameter.logicalId,
+              redirectUrlsParameter.logicalId,
               jwtExpiryLimitParameter.logicalId,
               passwordMinLengthParameter.logicalId,
             ],
@@ -446,6 +453,7 @@ export class SupabaseStack extends cdk.Stack {
         ParameterLabels: {
           [disableSignupParameter.logicalId]: { default: 'Disable User Signups' },
           [siteUrlParameter.logicalId]: { default: 'Site URL' },
+          [redirectUrlsParameter.logicalId]: { default: 'Redirect URLs' },
           [jwtExpiryLimitParameter.logicalId]: { default: 'JWT expiry limit' },
           [passwordMinLengthParameter.logicalId]: { default: 'Min password length' },
           [sesRegionParameter.logicalId]: { default: 'Amazon SES Region' },
