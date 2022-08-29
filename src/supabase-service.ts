@@ -179,7 +179,7 @@ export class SupabaseService extends SupabaseServiceBase {
       taskDefinition.taskRole.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess' });
 
       const proxyContainer = taskDefinition.addContainer('envoy', {
-        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/appmesh/aws-appmesh-envoy:v1.22.2.0-prod'),
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/appmesh/aws-appmesh-envoy:v1.22.2.1-prod'),
         user: '1337',
         cpu: Math.round(cpu * envoyCpuRate),
         memoryReservationMiB: Math.round(memory * envoyMemRate),
