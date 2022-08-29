@@ -40,7 +40,10 @@
     - Each component is discovered as `***.supabase.local`.
   - By default, [App Mesh](https://aws.amazon.com/app-mesh/) is used as service mesh.
     - You can disable App Mesh via CDK.
-
+- Studio
+  - You can use authentication using Cognito UserPool.
+    - Need to set certificate ARN.
+    - By default, use http without authentication.
 
 ## Deploy via CDK
 
