@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import { SupabaseService } from './supabase-service';
@@ -16,7 +17,7 @@ interface CfnInterface {
 }
 
 export interface ExternalAuthProviderProps {
-  apiExternalUrl: string;
+  redirectUri: string;
   authService: SupabaseService;
   metadata: { [key: string]: any };
 }
@@ -26,7 +27,7 @@ export class ExternalAuthProvider extends Construct {
   constructor(scope: Construct, id: string, props: ExternalAuthProviderProps) {
     super(scope, id);
 
-    const { apiExternalUrl, authService, metadata } = props;
+    const { redirectUri, authService, metadata } = props;
     const authServiceId = authService.node.id;
     const goTrue = authService.ecsService.taskDefinition.defaultContainer!;
 
@@ -65,9 +66,11 @@ export class ExternalAuthProvider extends Construct {
 
     const idpName = id.toUpperCase();
     goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_ENABLED`, enabledParameter.valueAsString);
-    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_CLIENT_ID`, clientIdSsmParameter.parameterArn);
-    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_SECRET`, secretSsmParameter.parameterArn);
-    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_REDIRECT_URI`, `${apiExternalUrl}/auth/v1/callback`);
+    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_REDIRECT_URI`, redirectUri);
+    // TODO: Pass parameters using Parameter Store.
+    // addSecret is not supported - https://github.com/aws/aws-cdk/issues/18959
+    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_CLIENT_ID`, clientIdParameter.valueAsString);
+    goTrue.addEnvironment(`GOTRUE_EXTERNAL_${idpName}_SECRET`, secretParameter.valueAsString);
 
     const { ParameterGroups, ParameterLabels } = metadata['AWS::CloudFormation::Interface'] as CfnInterface;
     ParameterGroups.push({

@@ -436,7 +436,7 @@ export class SupabaseStack extends cdk.Stack {
     };
 
     const extAuthProps: ExternalAuthProviderProps = {
-      apiExternalUrl: apiExternalUrl,
+      redirectUri: `${apiExternalUrl}/auth/v1/callback`,
       authService: auth,
       metadata: this.templateOptions.metadata,
     };
