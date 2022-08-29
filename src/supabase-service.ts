@@ -13,6 +13,13 @@ import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { SupabaseDatabase } from './supabase-db';
 
+const envoyCpuRate = 0.2;
+const envoyMemRate = 0.1;
+const xrayCpuRate = 0.1;
+const xrayMemRate = 0.1;
+const appCpuRate = 1.0 - envoyCpuRate - xrayCpuRate;
+const appMemRate = 1.0 - envoyMemRate - xrayMemRate;
+
 export class SupabaseServiceBase extends Construct {
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
@@ -84,8 +91,8 @@ export class SupabaseService extends SupabaseServiceBase {
 
     const appContainer = taskDefinition.addContainer('app', {
       ...containerDefinition,
-      cpu: (meshEnabled) ? Math.round(cpu * 0.7) : undefined,
-      memoryReservationMiB: (meshEnabled) ? Math.round(memory * 0.8) : undefined,
+      cpu: (meshEnabled) ? Math.round(cpu * appCpuRate) : undefined,
+      memoryReservationMiB: (meshEnabled) ? Math.round(memory * appMemRate) : undefined,
       essential: true,
       logging,
     });
@@ -174,8 +181,8 @@ export class SupabaseService extends SupabaseServiceBase {
       const proxyContainer = taskDefinition.addContainer('envoy', {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/appmesh/aws-appmesh-envoy:v1.22.2.0-prod'),
         user: '1337',
-        cpu: Math.round(cpu * 0.2),
-        memoryReservationMiB: Math.round(memory * 0.1),
+        cpu: Math.round(cpu * envoyCpuRate),
+        memoryReservationMiB: Math.round(memory * envoyMemRate),
         essential: true,
         healthCheck: {
           command: ['CMD-SHELL', 'curl -s http://localhost:9901/server_info | grep state | grep -q LIVE'],
@@ -206,8 +213,8 @@ export class SupabaseService extends SupabaseServiceBase {
         // image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:v0.20.0'),
         // command: ['--config=/etc/ecs/ecs-default-config.yaml'],
         user: '1337',
-        cpu: Math.round(cpu * 0.1),
-        memoryReservationMiB: Math.round(memory * 0.1),
+        cpu: Math.round(cpu * xrayCpuRate),
+        memoryReservationMiB: Math.round(memory * xrayMemRate),
         essential: true,
         healthCheck: {
           command: ['CMD', '/xray', '--version', '||', 'exit 1'], // https://github.com/aws/aws-xray-daemon/issues/9
