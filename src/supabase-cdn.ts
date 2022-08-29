@@ -59,12 +59,11 @@ export class SupabaseCdn extends Construct {
         '*.js': staticContentBehavior,
       },
       errorResponses: [
-        { httpStatus: 400, ttl: cdk.Duration.seconds(0) },
-        { httpStatus: 500, ttl: cdk.Duration.seconds(0) },
-        { httpStatus: 501, ttl: cdk.Duration.seconds(0) },
-        { httpStatus: 502, ttl: cdk.Duration.seconds(0) },
-        { httpStatus: 503, ttl: cdk.Duration.seconds(0) },
-        { httpStatus: 504, ttl: cdk.Duration.seconds(0) },
+        { httpStatus: 500, ttl: cdk.Duration.seconds(10) },
+        { httpStatus: 501, ttl: cdk.Duration.seconds(10) },
+        { httpStatus: 502, ttl: cdk.Duration.seconds(10) },
+        { httpStatus: 503, ttl: cdk.Duration.seconds(10) },
+        { httpStatus: 504, ttl: cdk.Duration.seconds(10) },
       ],
     });
     (this.distribution.node.defaultChild as cf.CfnDistribution).addPropertyOverride('DistributionConfig.WebACLId', cdk.Fn.conditionIf(wafEnabled.logicalId, this.wafWebAclArnParameter.valueAsString, cdk.Aws.NO_VALUE));
