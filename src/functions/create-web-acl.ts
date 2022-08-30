@@ -1,4 +1,5 @@
 import { WAFV2Client, CreateWebACLCommand, UpdateWebACLCommand, DeleteWebACLCommand, GetWebACLCommand, CreateWebACLCommandInput } from '@aws-sdk/client-wafv2';
+import { fromUtf8 } from '@aws-sdk/util-utf8-node';
 import { CdkCustomResourceHandler, CdkCustomResourceResponse } from 'aws-lambda';
 
 const client = new WAFV2Client({ region: 'us-east-1' });
@@ -53,7 +54,32 @@ const parsePhysicalResourceId = (physicalResourceId: string) => {
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
   const props = event.ResourceProperties as CreateWebACLCommandInput & { Name: string; ServiceToken: string };
   console.log(JSON.stringify(props));
-  props.Rules?.map(rule => rule.Priority = Number(rule.Priority) );
+  props.Rules?.map(rule => {
+    rule.Priority = Number(rule.Priority);
+    rule.Statement?.ManagedRuleGroupStatement?.ScopeDownStatement?.ByteMatchStatement?.TextTransformations?.map(tf => {
+      tf.Priority = Number(tf.Priority);
+    });
+    rule.Statement?.ManagedRuleGroupStatement?.ScopeDownStatement?.NotStatement?.Statement?.ByteMatchStatement?.TextTransformations?.map(tf => {
+      tf.Priority = Number(tf.Priority);
+    });
+    // for Supabase Studio SSR
+    if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement?.ManagedRuleGroupStatement?.VendorName == 'AWS' && rule.Statement?.ManagedRuleGroupStatement?.Name == 'AWSManagedRulesBotControlRuleSet') {
+      rule.Statement.ManagedRuleGroupStatement.ScopeDownStatement = {
+        NotStatement: {
+          Statement: {
+            ByteMatchStatement: {
+              SearchString: fromUtf8('node-fetch'),
+              FieldToMatch: {
+                SingleHeader: { Name: 'user-agent' },
+              },
+              TextTransformations: [{ Priority: 0, Type: 'NONE' }],
+              PositionalConstraint: 'STARTS_WITH',
+            },
+          },
+        },
+      };
+    };
+  });
 
   switch (event.RequestType) {
     case 'Create': {

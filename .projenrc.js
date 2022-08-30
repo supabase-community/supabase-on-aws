@@ -10,7 +10,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     '@aws-sdk/client-ses',
     '@aws-sdk/client-ssm',
     '@aws-sdk/client-wafv2',
-    //'@aws-sdk/client-workmail',
+    '@aws-sdk/util-utf8-node',
     '@databases/pg',
     '@types/aws-lambda',
     'cdk-bootstrapless-synthesizer@^2.2.2',

@@ -87,22 +87,38 @@ export class SupabaseCdn extends Construct {
             },
             OverrideAction: { None: {} },
           },
-          //{
-          //  Name: 'AWS-AWSManagedRulesBotControlRuleSet',
-          //  Priority: 2,
-          //  Statement: {
-          //    ManagedRuleGroupStatement: {
-          //      VendorName: 'AWS',
-          //      Name: 'AWSManagedRulesBotControlRuleSet',
-          //    },
-          //  },
-          //  VisibilityConfig: {
-          //    SampledRequestsEnabled: true,
-          //    CloudWatchMetricsEnabled: true,
-          //    MetricName: 'AWS-AWSManagedRulesBotControlRuleSet',
-          //  },
-          //  OverrideAction: { None: {} },
-          //},
+          {
+            Name: 'AWS-AWSManagedRulesSQLiRuleSet',
+            Priority: 2,
+            Statement: {
+              ManagedRuleGroupStatement: {
+                VendorName: 'AWS',
+                Name: 'AWSManagedRulesSQLiRuleSet',
+              },
+            },
+            VisibilityConfig: {
+              SampledRequestsEnabled: true,
+              CloudWatchMetricsEnabled: true,
+              MetricName: 'AWS-AWSManagedRulesSQLiRuleSet',
+            },
+            OverrideAction: { None: {} },
+          },
+          {
+            Name: 'AWS-AWSManagedRulesBotControlRuleSet',
+            Priority: 3,
+            Statement: {
+              ManagedRuleGroupStatement: {
+                VendorName: 'AWS',
+                Name: 'AWSManagedRulesBotControlRuleSet',
+              },
+            },
+            VisibilityConfig: {
+              SampledRequestsEnabled: true,
+              CloudWatchMetricsEnabled: true,
+              MetricName: 'AWS-AWSManagedRulesBotControlRuleSet',
+            },
+            OverrideAction: { None: {} },
+          },
         ],
         DefaultAction: { Allow: {} },
       } as CreateWebACLCommandInput,

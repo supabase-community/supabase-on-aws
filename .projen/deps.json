@@ -108,6 +108,10 @@
       "type": "runtime"
     },
     {
+      "name": "@aws-sdk/util-utf8-node",
+      "type": "runtime"
+    },
+    {
       "name": "@databases/pg",
       "type": "runtime"
     },
