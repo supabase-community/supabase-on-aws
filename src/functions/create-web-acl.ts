@@ -63,7 +63,7 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
       tf.Priority = Number(tf.Priority);
     });
     // for Supabase Studio SSR
-    if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement?.ManagedRuleGroupStatement?.VendorName == 'AWS' && rule.Statement?.ManagedRuleGroupStatement?.Name == 'AWSManagedRulesBotControlRuleSet') {
+    if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement.ManagedRuleGroupStatement.Name == 'AWSManagedRulesBotControlRuleSet') {
       rule.Statement.ManagedRuleGroupStatement.ScopeDownStatement = {
         NotStatement: {
           Statement: {
