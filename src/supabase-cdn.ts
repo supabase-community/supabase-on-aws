@@ -87,22 +87,22 @@ export class SupabaseCdn extends Construct {
             },
             OverrideAction: { None: {} },
           },
-          {
-            Name: 'AWS-AWSManagedRulesBotControlRuleSet',
-            Priority: 2,
-            Statement: {
-              ManagedRuleGroupStatement: {
-                VendorName: 'AWS',
-                Name: 'AWSManagedRulesBotControlRuleSet',
-              },
-            },
-            VisibilityConfig: {
-              SampledRequestsEnabled: true,
-              CloudWatchMetricsEnabled: true,
-              MetricName: 'AWS-AWSManagedRulesBotControlRuleSet',
-            },
-            OverrideAction: { None: {} },
-          },
+          //{
+          //  Name: 'AWS-AWSManagedRulesBotControlRuleSet',
+          //  Priority: 2,
+          //  Statement: {
+          //    ManagedRuleGroupStatement: {
+          //      VendorName: 'AWS',
+          //      Name: 'AWSManagedRulesBotControlRuleSet',
+          //    },
+          //  },
+          //  VisibilityConfig: {
+          //    SampledRequestsEnabled: true,
+          //    CloudWatchMetricsEnabled: true,
+          //    MetricName: 'AWS-AWSManagedRulesBotControlRuleSet',
+          //  },
+          //  OverrideAction: { None: {} },
+          //},
         ],
         DefaultAction: { Allow: {} },
       } as CreateWebACLCommandInput,
