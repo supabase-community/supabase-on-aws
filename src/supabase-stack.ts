@@ -429,7 +429,6 @@ export class SupabaseStack extends cdk.Stack {
             Parameters: [
               sesRegionParameter.logicalId,
               db.multiAzParameter.logicalId,
-              cdn.wafWebAclArnParameter.logicalId,
             ],
           },
           {
@@ -460,7 +459,6 @@ export class SupabaseStack extends cdk.Stack {
           [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
           [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
           [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
-          [cdn.wafWebAclArnParameter.logicalId]: { default: 'WAF Web ACL ARN' },
           [authApiVersionParameter.logicalId]: { default: 'Auth API Version - GoTrue' },
           [restApiVersionParameter.logicalId]: { default: 'Rest API Version - PostgREST' },
           [realtimeApiVersionParameter.logicalId]: { default: 'Realtime API Version' },

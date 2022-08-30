@@ -1,7 +1,12 @@
+import { CreateWebACLCommandInput } from '@aws-sdk/client-wafv2';
 import * as cdk from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
 interface SupabaseCdnProps {
@@ -10,22 +15,98 @@ interface SupabaseCdnProps {
 
 export class SupabaseCdn extends Construct {
   distribution: cf.Distribution;
-  wafWebAclArnParameter: cdk.CfnParameter;
 
   constructor(scope: Construct, id: string, props: SupabaseCdnProps) {
     super(scope, id);
 
     const { originLoadBalancer } = props;
 
-    const dummyWebAclArn = 'arn:aws:wafv2:us-east-1:123456789012:global/webacl/this-is-dummy/00000000-0000-0000-0000-000000000000';
-    this.wafWebAclArnParameter = new cdk.CfnParameter(this, 'WafWebAclArn', {
-      description: 'WAF Web ACL ARN for CDN',
-      type: 'String',
-      default: dummyWebAclArn,
-      allowedPattern: '^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\w-]+/[\\w-]{36}$',
+    const createWebAclFunction = new NodejsFunction(this, 'CreateWebAclFunction', {
+      description: 'Supabase - Create WAF Web ACL function',
+      entry: './src/functions/create-web-acl.ts',
+      runtime: lambda.Runtime.NODEJS_16_X,
+      initialPolicy: [
+        new iam.PolicyStatement({
+          actions: ['wafv2:CreateWebACL', 'wafv2:DeleteWebACL', 'wafv2:GetWebACL'],
+          resources: [`arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/*/*`],
+        }),
+        new iam.PolicyStatement({
+          actions: ['wafv2:UpdateWebACL'],
+          resources: [
+            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/*/*`,
+            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/ipset/*/*`,
+            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/managedruleset/*/*`,
+            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/regexpatternset/*/*`,
+            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/rulegroup/*/*`,
+          ],
+        }),
+      ],
     });
 
-    const wafEnabled = new cdk.CfnCondition(this, 'WafEnabled', { expression: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(this.wafWebAclArnParameter, dummyWebAclArn)) });
+    const webAclProvider = new cr.Provider(this, 'WebAclProvider', { onEventHandler: createWebAclFunction });
+
+    const webAclName = `${cdk.Aws.STACK_NAME}-${id}-WebAcl`;
+    const webAcl = new cdk.CustomResource(this, 'WebAcl', {
+      serviceToken: webAclProvider.serviceToken,
+      resourceType: 'Custom::WebACL',
+      properties: {
+        Name: webAclName,
+        Description: 'Web ACL for self-hosted Supabase',
+        VisibilityConfig: { SampledRequestsEnabled: true, CloudWatchMetricsEnabled: true, MetricName: webAclName },
+        Scope: 'CLOUDFRONT',
+        Rules: [
+          {
+            Name: 'AWS-AWSManagedRulesAmazonIpReputationList',
+            Priority: 0,
+            Statement: {
+              ManagedRuleGroupStatement: {
+                VendorName: 'AWS',
+                Name: 'AWSManagedRulesAmazonIpReputationList',
+              },
+            },
+            VisibilityConfig: {
+              SampledRequestsEnabled: true,
+              CloudWatchMetricsEnabled: true,
+              MetricName: 'AWS-AWSManagedRulesAmazonIpReputationList',
+            },
+            OverrideAction: { None: {} },
+          },
+          {
+            Name: 'AWS-AWSManagedRulesKnownBadInputsRuleSet',
+            Priority: 1,
+            Statement: {
+              ManagedRuleGroupStatement: {
+                VendorName: 'AWS',
+                Name: 'AWSManagedRulesKnownBadInputsRuleSet',
+              },
+            },
+            VisibilityConfig: {
+              SampledRequestsEnabled: true,
+              CloudWatchMetricsEnabled: true,
+              MetricName: 'AWS-AWSManagedRulesKnownBadInputsRuleSet',
+            },
+            OverrideAction: { None: {} },
+          },
+          {
+            Name: 'AWS-AWSManagedRulesBotControlRuleSet',
+            Priority: 2,
+            Statement: {
+              ManagedRuleGroupStatement: {
+                VendorName: 'AWS',
+                Name: 'AWSManagedRulesBotControlRuleSet',
+              },
+            },
+            VisibilityConfig: {
+              SampledRequestsEnabled: true,
+              CloudWatchMetricsEnabled: true,
+              MetricName: 'AWS-AWSManagedRulesBotControlRuleSet',
+            },
+            OverrideAction: { None: {} },
+          },
+        ],
+        DefaultAction: { Allow: {} },
+      } as CreateWebACLCommandInput,
+    });
 
     const defaultBehavior: cf.BehaviorOptions = {
       origin: new LoadBalancerV2Origin(originLoadBalancer, {
@@ -44,6 +125,7 @@ export class SupabaseCdn extends Construct {
     };
 
     this.distribution = new cf.Distribution(this, 'Distribution', {
+      webAclId: webAcl.getAttString('Arn'),
       httpVersion: cf.HttpVersion.HTTP2_AND_3,
       enableIpv6: true,
       comment: `Supabase - ${id}`,
@@ -66,6 +148,5 @@ export class SupabaseCdn extends Construct {
         { httpStatus: 504, ttl: cdk.Duration.seconds(10) },
       ],
     });
-    (this.distribution.node.defaultChild as cf.CfnDistribution).addPropertyOverride('DistributionConfig.WebACLId', cdk.Fn.conditionIf(wafEnabled.logicalId, this.wafWebAclArnParameter.valueAsString, cdk.Aws.NO_VALUE));
   }
 };

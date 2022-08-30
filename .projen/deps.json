@@ -104,7 +104,7 @@
       "type": "runtime"
     },
     {
-      "name": "@aws-sdk/client-workmail",
+      "name": "@aws-sdk/client-wafv2",
       "type": "runtime"
     },
     {
