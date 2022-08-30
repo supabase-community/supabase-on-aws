@@ -128,7 +128,7 @@ export class SupabaseStack extends cdk.Stack {
     const mesh = (meshEnabled)
       ? new appmesh.Mesh(this, 'Mesh', {
         meshName: this.stackName,
-        //egressFilter: appmesh.MeshFilterType.ALLOW_ALL,
+        egressFilter: appmesh.MeshFilterType.ALLOW_ALL, // Need to exchange oauth external code
       })
       : undefined;
 
