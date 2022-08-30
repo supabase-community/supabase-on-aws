@@ -27,11 +27,11 @@ export class SupabaseCdn extends Construct {
       runtime: lambda.Runtime.NODEJS_16_X,
       initialPolicy: [
         new iam.PolicyStatement({
-          actions: ['wafv2:CreateWebACL', 'wafv2:DeleteWebACL', 'wafv2:GetWebACL'],
+          actions: ['wafv2:DeleteWebACL', 'wafv2:GetWebACL'],
           resources: [`arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/*/*`],
         }),
         new iam.PolicyStatement({
-          actions: ['wafv2:UpdateWebACL'],
+          actions: ['wafv2:CreateWebACL', 'wafv2:UpdateWebACL'],
           resources: [
             `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/*/*`,
             `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/ipset/*/*`,
