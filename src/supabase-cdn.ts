@@ -25,6 +25,7 @@ export class SupabaseCdn extends Construct {
       description: 'Supabase - Create WAF Web ACL function',
       entry: './src/functions/create-web-acl.ts',
       runtime: lambda.Runtime.NODEJS_16_X,
+      timeout: cdk.Duration.seconds(15),
       initialPolicy: [
         new iam.PolicyStatement({
           actions: ['wafv2:DeleteWebACL', 'wafv2:GetWebACL'],
@@ -116,6 +117,28 @@ export class SupabaseCdn extends Construct {
               SampledRequestsEnabled: true,
               CloudWatchMetricsEnabled: true,
               MetricName: 'AWS-AWSManagedRulesBotControlRuleSet',
+            },
+            OverrideAction: { None: {} },
+          },
+          {
+            Name: 'AWS-AWSManagedRulesATPRuleSet',
+            Priority: 4,
+            Statement: {
+              ManagedRuleGroupStatement: {
+                VendorName: 'AWS',
+                Name: 'AWSManagedRulesATPRuleSet',
+                ManagedRuleGroupConfigs: [
+                  { LoginPath: '/auth/v1/token?grant_type=password' },
+                  { PayloadType: 'JSON' },
+                  { UsernameField: { Identifier: '/email' } },
+                  { PasswordField: { Identifier: '/password' } },
+                ],
+              },
+            },
+            VisibilityConfig: {
+              SampledRequestsEnabled: true,
+              CloudWatchMetricsEnabled: true,
+              MetricName: 'AWS-AWSManagedRulesATPRuleSet',
             },
             OverrideAction: { None: {} },
           },
