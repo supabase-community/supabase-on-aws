@@ -79,6 +79,18 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
         },
       };
     };
+    if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement.ManagedRuleGroupStatement.Name == 'AWSManagedRulesATPRuleSet') {
+      rule.Statement.ManagedRuleGroupStatement.ScopeDownStatement = {
+        ByteMatchStatement: {
+          SearchString: fromUtf8('password'),
+          FieldToMatch: {
+            SingleQueryArgument: { Name: 'grant_type' },
+          },
+          TextTransformations: [{ Priority: 0, Type: 'NONE' }],
+          PositionalConstraint: 'EXACTLY',
+        },
+      };
+    };
   });
 
   switch (event.RequestType) {

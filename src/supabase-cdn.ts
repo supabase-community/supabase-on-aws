@@ -128,7 +128,7 @@ export class SupabaseCdn extends Construct {
                 VendorName: 'AWS',
                 Name: 'AWSManagedRulesATPRuleSet',
                 ManagedRuleGroupConfigs: [
-                  { LoginPath: '/auth/v1/token?grant_type=password' },
+                  { LoginPath: '/auth/v1/token' },
                   { PayloadType: 'JSON' },
                   { UsernameField: { Identifier: '/email' } },
                   { PasswordField: { Identifier: '/password' } },
