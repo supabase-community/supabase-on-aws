@@ -165,7 +165,10 @@ export class SupabaseService extends SupabaseServiceBase {
       this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
         virtualNodeName: id,
         serviceDiscovery: appmesh.ServiceDiscovery.cloudMap(this.ecsService.cloudMapService!),
-        listeners: [appmesh.VirtualNodeListener.http({ port: this.listenerPort })],
+        listeners: [appmesh.VirtualNodeListener.http({
+          port: this.listenerPort,
+          connectionPool: { maxConnections: 1024, maxPendingRequests: 1024 },
+        })],
         accessLog: appmesh.AccessLog.fromFilePath('/dev/stdout'),
         mesh: mesh!,
       });
