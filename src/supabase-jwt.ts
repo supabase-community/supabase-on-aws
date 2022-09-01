@@ -17,7 +17,7 @@ export class SupabaseJwt extends Construct {
   anonKey: ssm.StringParameter;
   anonToken: string;
 
-  constructor(scope: Construct, id: string, props: SupabaseJwtProps = {}) {
+  constructor(scope: Construct, id: string, props: SupabaseJwtProps) {
     super(scope, id);
 
     const { issuer, expiresIn } = props;

@@ -271,7 +271,7 @@ export class SupabaseStack extends cdk.Stack {
       });
       graphql.addDatabaseBackend(db);
       kong.addBackend(graphql);
-      kong.ecsService.taskDefinition.defaultContainer?.addEnvironment('SUPABASE_GRAPHQL_URL', 'http://graphql.supabase.local:5000/graphql');
+      kong.ecsService.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_GRAPHQL_URL', 'http://graphql.supabase.local:5000/graphql');
     }
 
     const realtime = new SupabaseService(this, 'Realtime', {

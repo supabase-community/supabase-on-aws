@@ -40,7 +40,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
 
     const parameterGroup = new rds.ParameterGroup(scope, 'ParameterGroup', {
       engine,
-      description: `Supabase parameter group for aurora-postgresql ${engine.engineVersion?.majorVersion}`,
+      description: 'Supabase parameter group for aurora-postgresql',
       parameters: {
         'shared_preload_libraries': 'pg_stat_statements, pgaudit, pg_cron',
         // Logical Replication - https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.Replication.Logical.html
@@ -69,6 +69,8 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', { excludeCharacters }),
       defaultDatabaseName: 'postgres',
     });
+
+    const secret = this.secret!;
 
     this.multiAzParameter = new cdk.CfnParameter(this, 'MultiAz', {
       description: 'Create a replica at another AZ',
@@ -114,7 +116,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     // Support for Aurora Serverless v2 ---------------------------------------------------
 
     // Sync to SSM Parameter Store for database_url ---------------------------------------
-    const databaseUrl = `postgres://${this.secret?.secretValueFromJson('username').toString()}:${this.secret?.secretValueFromJson('password').toString()}@${this.secret?.secretValueFromJson('host').toString()}:${this.secret?.secretValueFromJson('port').toString()}/${this.secret?.secretValueFromJson('dbname').toString()}`;
+    const databaseUrl = `postgres://${secret.secretValueFromJson('username').toString()}:${secret.secretValueFromJson('password').toString()}@${secret.secretValueFromJson('host').toString()}:${secret.secretValueFromJson('port').toString()}/${secret.secretValueFromJson('dbname').toString()}`;
     this.url = new ssm.StringParameter(this, 'UrlParameter', {
       parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url`,
       description: 'The standard connection PostgreSQL URI format.',
@@ -140,7 +142,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     });
     this.url.grantWrite(syncSecretFunction);
     this.urlAuth.grantWrite(syncSecretFunction);
-    this.secret?.grantRead(syncSecretFunction);
+    secret.grantRead(syncSecretFunction);
 
     new events.Rule(this, 'SecretChangeRule', {
       description: 'Supabase - Update parameter store, when DB secret rotated',
@@ -149,7 +151,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
         detail: {
           eventName: ['RotationSucceeded'],
           additionalEventData: {
-            SecretId: [this.secret?.secretArn],
+            SecretId: [secret.secretArn],
           },
         },
       },
@@ -158,7 +160,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     // Sync to SSM Parameter Store for database_url ---------------------------------------
 
     const rotationSecurityGroup = new ec2.SecurityGroup(this, 'RotationSecurityGroup', { vpc });
-    this.secret?.addRotationSchedule('Rotation', {
+    secret.addRotationSchedule('Rotation', {
       automaticallyAfter: cdk.Duration.days(30),
       hostedRotation: secretsmanager.HostedRotation.postgreSqlSingleUser({
         functionName: 'SupabaseDatabaseSecretRotationFunction',
@@ -194,7 +196,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     });
 
     this.connections.allowDefaultPortFrom(initFunction);
-    this.secret?.grantRead(initFunction);
+    secret.grantRead(initFunction);
 
     const initProvider = new cr.Provider(this, 'InitProvider', { onEventHandler: initFunction });
 
@@ -202,7 +204,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       serviceToken: initProvider.serviceToken,
       resourceType: 'Custom::SupabaseDatabaseInit',
       properties: {
-        SecretId: this.secret?.secretArn,
+        SecretId: secret.secretArn,
         Hostname: this.clusterEndpoint.hostname,
       },
     });

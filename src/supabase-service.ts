@@ -154,7 +154,7 @@ export class SupabaseService extends SupabaseServiceBase {
       });
 
       this.virtualService = new appmesh.VirtualService(this, 'VirtualService', {
-        virtualServiceName: `${serviceName}.${cluster.defaultCloudMapNamespace?.namespaceName}`,
+        virtualServiceName: `${serviceName}.${cluster.defaultCloudMapNamespace!.namespaceName}`,
         virtualServiceProvider: appmesh.VirtualServiceProvider.virtualNode(this.virtualNode),
       });
 
