@@ -214,13 +214,13 @@ export class SupabaseService extends SupabaseServiceBase {
 
   }
 
-  addContainer(id: string, props: ecs.ContainerDefinitionOptions) {
-    const container = this.ecsService.taskDefinition.addContainer(id, {
-      ...props,
-      logging: new ecs.AwsLogDriver({ logGroup: this.logGroup, streamPrefix: 'ecs' }),
-    });
-    return container;
-  }
+  //addContainer(id: string, props: ecs.ContainerDefinitionOptions) {
+  //  const container = this.ecsService.taskDefinition.addContainer(id, {
+  //    ...props,
+  //    logging: new ecs.AwsLogDriver({ logGroup: this.logGroup, streamPrefix: 'ecs' }),
+  //  });
+  //  return container;
+  //}
 
   addNetworkLoadBalancer() {
     const vpc = this.ecsService.cluster.vpc;
