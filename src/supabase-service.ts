@@ -3,7 +3,6 @@ import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -118,13 +117,6 @@ export class SupabaseService extends SupabaseServiceBase {
     });
     (this.cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
 
-    taskDefinition.executionRole!.attachInlinePolicy(new iam.Policy(this, 'SSMParameterPolicy', {
-      statements: [new iam.PolicyStatement({
-        actions: ['ssm:GetParameters'],
-        resources: [`arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/${cdk.Aws.STACK_NAME}/${id}/*`],
-      })],
-    }));
-
     this.forceDeployFunction = new targets.LambdaFunction(new NodejsFunction(this, 'ForceDeployFunction', {
       description: 'Supabase - Force deploy ECS service function',
       entry: 'src/functions/ecs-force-deploy.ts',
@@ -139,18 +131,6 @@ export class SupabaseService extends SupabaseServiceBase {
         resources: [this.ecsService.serviceArn],
       })],
     }));
-    new events.Rule(this, 'ParameterChange', {
-      description: `Supabase - Force deploy ${id}, when parameters changed`,
-      eventPattern: {
-        source: ['aws.ssm'],
-        detailType: ['Parameter Store Change'],
-        detail: {
-          name: [{ prefix: `/${cdk.Aws.STACK_NAME}/${id}/` }],
-          operation: ['Update'],
-        },
-      },
-      targets: [this.forceDeployFunction],
-    });
 
     if (autoScalingEnabled) {
       const autoScaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 20 });

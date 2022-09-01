@@ -89,7 +89,7 @@ export class SupabaseStudio extends SupabaseService {
 
     // for HTTPS
     const dummyCertArn = 'arn:aws:acm:us-west-2:123456789012:certificate/no-cert-it-is-not-secure-to-use-http';
-    this.acmCertArnParameter = new cdk.CfnParameter(this, 'CertificateArn', {
+    this.acmCertArnParameter = new cdk.CfnParameter(this, 'CertificateArnParameter', {
       description: 'ACM Certificate ARN for Supabase studio',
       type: 'String',
       default: dummyCertArn,

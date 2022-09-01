@@ -5,8 +5,8 @@ import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import { ExternalAuthProvider, ExternalAuthProviderProps } from './external-auth-provicer';
 import { ManagedPrefixList } from './managed-prefix-list';
+import { SupabaseAuth } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwt } from './supabase-jwt';
@@ -31,26 +31,26 @@ export class SupabaseStack extends cdk.Stack {
 
     const { meshEnabled, gqlEnabled } = props;
 
-    const disableSignupParameter = new cdk.CfnParameter(this, 'DisableSignup', {
+    const disableSignupParameter = new cdk.CfnParameter(this, 'DisableSignupParameter', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
       type: 'String',
       default: 'false',
       allowedValues: ['true', 'false'],
     });
 
-    const siteUrlParameter = new cdk.CfnParameter(this, 'SiteUrl', {
+    const siteUrlParameter = new cdk.CfnParameter(this, 'SiteUrlParameter', {
       description: 'The base URL your site is located at. Currently used in combination with other settings to construct URLs used in emails.',
       type: 'String',
       default: 'http://localhost:3000',
     });
 
-    const redirectUrlsParameter = new cdk.CfnParameter(this, 'RedirectUrls', {
+    const redirectUrlsParameter = new cdk.CfnParameter(this, 'RedirectUrlsParameter', {
       description: 'URLs that auth providers are permitted to redirect to post authentication',
       type: 'String',
       default: '',
     });
 
-    const jwtExpiryLimitParameter = new cdk.CfnParameter(this, 'JwtExpiryLimit', {
+    const jwtExpiryLimitParameter = new cdk.CfnParameter(this, 'JwtExpiryLimitParameter', {
       description: 'How long tokens are valid for. Defaults to 3600 (1 hour), maximum 604,800 seconds (one week).',
       type: 'Number',
       default: 3600,
@@ -58,7 +58,7 @@ export class SupabaseStack extends cdk.Stack {
       maxValue: 604800,
     });
 
-    const passwordMinLengthParameter = new cdk.CfnParameter(this, 'PasswordMinLength', {
+    const passwordMinLengthParameter = new cdk.CfnParameter(this, 'PasswordMinLengthParameter', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
       type: 'Number',
       default: '16',
@@ -66,7 +66,7 @@ export class SupabaseStack extends cdk.Stack {
       maxValue: 128,
     });
 
-    const smtpAdminEmailParameter = new cdk.CfnParameter(this, 'SmtpAdminEmail', {
+    const smtpAdminEmailParameter = new cdk.CfnParameter(this, 'SmtpAdminEmailParameter', {
       description: 'The From e-mail address for all emails sent. If you want test e-mail, you can use Amazon WorkMail',
       type: 'String',
       default: 'noreply@supabase.example.com',
@@ -74,46 +74,46 @@ export class SupabaseStack extends cdk.Stack {
       constraintDescription: 'must be a valid email address',
     });
 
-    const smtpSenderNameParameter = new cdk.CfnParameter(this, 'SmtpSenderName', {
+    const smtpSenderNameParameter = new cdk.CfnParameter(this, 'SmtpSenderNameParameter', {
       description: 'The From email sender name for all emails sent.',
       type: 'String',
       default: 'Supabase',
     });
 
-    const sesRegionParameter = new cdk.CfnParameter(this, 'SesRegion', {
+    const sesRegionParameter = new cdk.CfnParameter(this, 'SesRegionParameter', {
       description: 'Use Amazon SES as SMTP server. You must choose a region.',
       type: 'String',
       default: 'us-west-2',
       allowedValues: sesSmtpSupportedRegions,
     });
 
-    const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersion', {
+    const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersionParameter', {
       type: 'String',
       default: 'v2.15.5',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/gotrue`,
       //description: 'Docker image tag - https://hub.docker.com/r/supabase/gotrue/tags',
     });
-    const restApiVersionParameter = new cdk.CfnParameter(this, 'RestApiVersion', {
+    const restApiVersionParameter = new cdk.CfnParameter(this, 'RestApiVersionParameter', {
       type: 'String',
       default: 'v9.0.1.20220802',
       description: 'Docker image tag - https://hub.docker.com/r/postgrest/postgrest/tags',
     });
-    const realtimeApiVersionParameter = new cdk.CfnParameter(this, 'RealtimeApiVersion', {
+    const realtimeApiVersionParameter = new cdk.CfnParameter(this, 'RealtimeApiVersionParameter', {
       type: 'String',
       default: 'v0.24.2',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/realtime`,
       //description: 'Docker image tag - https://hub.docker.com/r/supabase/realtime/tags',
     });
-    const storageApiVersionParameter = new cdk.CfnParameter(this, 'StorageApiVersion', {
+    const storageApiVersionParameter = new cdk.CfnParameter(this, 'StorageApiVersionParameter', {
       type: 'String',
       default: 'v0.20.0',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/storage-api`,
       //description: 'Docker image tag - https://hub.docker.com/r/supabase/storage-api/tags',
     });
-    const postgresMetaApiVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaApiVersion', {
+    const postgresMetaApiVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaApiVersionParameter', {
       type: 'String',
       default: 'v0.44.0',
       allowedPattern: imageTagPattern,
@@ -176,7 +176,7 @@ export class SupabaseStack extends cdk.Stack {
     const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kongLoadBalancer });
     const apiExternalUrl = `https://${cdn.distribution.domainName}`;
 
-    const auth = new SupabaseService(this, 'Auth', {
+    const auth = new SupabaseAuth(this, 'Auth', {
       cluster,
       containerDefinition: {
         image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/gotrue:${authApiVersionParameter.valueAsString}`),
@@ -193,7 +193,7 @@ export class SupabaseStack extends cdk.Stack {
           // API - https://github.com/supabase/gotrue#api
           GOTRUE_API_HOST: '0.0.0.0',
           GOTRUE_API_PORT: '9999',
-          API_EXTERNAL_URL: apiExternalUrl,
+          //API_EXTERNAL_URL: apiExternalUrl,
           // Database - https://github.com/supabase/gotrue#database
           GOTRUE_DB_DRIVER: 'postgres',
           // JWT - https://github.com/supabase/gotrue#json-web-tokens-jwt
@@ -221,6 +221,8 @@ export class SupabaseStack extends cdk.Stack {
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(mail.secret, 'password'),
         },
       },
+      apiExternalUrl,
+      externalAuthProviders: ['Google', 'Facebook', 'Twitter', 'GitHub'],
       mesh,
     });
 
@@ -370,7 +372,7 @@ export class SupabaseStack extends cdk.Stack {
     meta.addDatabaseBackend(db);
 
     // Supabase Studio
-    const studioVersionParameter = new cdk.CfnParameter(this, 'StudioVersion', {
+    const studioVersionParameter = new cdk.CfnParameter(this, 'StudioVersionParameter', {
       type: 'String',
       default: 'latest',
       allowedPattern: imageTagPattern,
@@ -403,81 +405,84 @@ export class SupabaseStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'StudioUrl', { value: `http://${studio.loadBalancer.loadBalancerDnsName}` });
     new cdk.CfnOutput(this, 'StudioUserPool', { value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users` });
 
-    // for CloudFormation
-    this.templateOptions.description = 'Self-hosted Supabase on AWS';
-    this.templateOptions.metadata = {
-      'AWS::CloudFormation::Interface': {
-        ParameterGroups: [
-          {
-            Label: { default: 'Supabase - Auth Settings' },
-            Parameters: [
-              disableSignupParameter.logicalId,
-              siteUrlParameter.logicalId,
-              redirectUrlsParameter.logicalId,
-              jwtExpiryLimitParameter.logicalId,
-              passwordMinLengthParameter.logicalId,
-            ],
-          },
-          {
-            Label: { default: 'Supabase - Auth E-mail Settings' },
-            Parameters: [
-              smtpAdminEmailParameter.logicalId,
-              smtpSenderNameParameter.logicalId,
-            ],
-          },
-          {
-            Label: { default: 'Platform Settings' },
-            Parameters: [
-              sesRegionParameter.logicalId,
-              db.multiAzParameter.logicalId,
-            ],
-          },
-          {
-            Label: { default: 'Supabase - API Versions' },
-            Parameters: [
-              authApiVersionParameter.logicalId,
-              restApiVersionParameter.logicalId,
-              realtimeApiVersionParameter.logicalId,
-              storageApiVersionParameter.logicalId,
-              postgresMetaApiVersionParameter.logicalId,
-            ],
-          },
-          {
-            Label: { default: 'Supabase - Studio Settings' },
-            Parameters: [
-              studioVersionParameter.logicalId,
-              studio.acmCertArnParameter.logicalId,
-            ],
-          },
-        ],
-        ParameterLabels: {
-          [disableSignupParameter.logicalId]: { default: 'Disable User Signups' },
-          [siteUrlParameter.logicalId]: { default: 'Site URL' },
-          [redirectUrlsParameter.logicalId]: { default: 'Redirect URLs' },
-          [jwtExpiryLimitParameter.logicalId]: { default: 'JWT expiry limit' },
-          [passwordMinLengthParameter.logicalId]: { default: 'Min password length' },
-          [sesRegionParameter.logicalId]: { default: 'Amazon SES Region' },
-          [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
-          [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
-          [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
-          [authApiVersionParameter.logicalId]: { default: 'Auth API Version - GoTrue' },
-          [restApiVersionParameter.logicalId]: { default: 'Rest API Version - PostgREST' },
-          [realtimeApiVersionParameter.logicalId]: { default: 'Realtime API Version' },
-          [storageApiVersionParameter.logicalId]: { default: 'Storage API Version' },
-          [postgresMetaApiVersionParameter.logicalId]: { default: 'Postgres Meta API Version' },
+    const cfnInterface = {
+      ParameterGroups: [
+        {
+          Label: { default: 'Supabase - Auth Settings' },
+          Parameters: [
+            disableSignupParameter.logicalId,
+            siteUrlParameter.logicalId,
+            redirectUrlsParameter.logicalId,
+            jwtExpiryLimitParameter.logicalId,
+            passwordMinLengthParameter.logicalId,
+          ],
         },
+        {
+          Label: { default: 'Supabase - Auth E-mail Settings' },
+          Parameters: [
+            smtpAdminEmailParameter.logicalId,
+            smtpSenderNameParameter.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Platform Settings' },
+          Parameters: [
+            sesRegionParameter.logicalId,
+            db.multiAzParameter.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Supabase - API Versions' },
+          Parameters: [
+            authApiVersionParameter.logicalId,
+            restApiVersionParameter.logicalId,
+            realtimeApiVersionParameter.logicalId,
+            storageApiVersionParameter.logicalId,
+            postgresMetaApiVersionParameter.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Supabase - Studio Settings' },
+          Parameters: [
+            studioVersionParameter.logicalId,
+            studio.acmCertArnParameter.logicalId,
+          ],
+        },
+      ],
+      ParameterLabels: {
+        [disableSignupParameter.logicalId]: { default: 'Disable User Signups' },
+        [siteUrlParameter.logicalId]: { default: 'Site URL' },
+        [redirectUrlsParameter.logicalId]: { default: 'Redirect URLs' },
+        [jwtExpiryLimitParameter.logicalId]: { default: 'JWT expiry limit' },
+        [passwordMinLengthParameter.logicalId]: { default: 'Min password length' },
+        [sesRegionParameter.logicalId]: { default: 'Amazon SES Region' },
+        [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
+        [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
+        [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
+        [authApiVersionParameter.logicalId]: { default: 'Auth API Version - GoTrue' },
+        [restApiVersionParameter.logicalId]: { default: 'Rest API Version - PostgREST' },
+        [realtimeApiVersionParameter.logicalId]: { default: 'Realtime API Version' },
+        [storageApiVersionParameter.logicalId]: { default: 'Storage API Version' },
+        [postgresMetaApiVersionParameter.logicalId]: { default: 'Postgres Meta API Version' },
+        [studioVersionParameter.logicalId]: { default: 'Supabase Studio Version' },
+        [studio.acmCertArnParameter.logicalId]: { default: 'ACM Certificate ARN' },
       },
     };
 
-    const extAuthProps: ExternalAuthProviderProps = {
-      redirectUri: `${apiExternalUrl}/auth/v1/callback`,
-      authService: auth,
-      metadata: this.templateOptions.metadata,
-    };
-    new ExternalAuthProvider(this, 'Google', extAuthProps);
-    new ExternalAuthProvider(this, 'Facebook', extAuthProps);
-    new ExternalAuthProvider(this, 'Twitter', extAuthProps);
-    new ExternalAuthProvider(this, 'GitHub', extAuthProps);
-    new ExternalAuthProvider(this, 'GitLab', extAuthProps);
+    for (let i in auth.externalAuthProviders) {
+      const provider = auth.externalAuthProviders[i];
+      cfnInterface.ParameterGroups.push({
+        Label: { default: `Supabase - External Auth Provider - ${provider.name}` },
+        Parameters: [provider.enabledParameter.logicalId, provider.clientIdParameter.logicalId, provider.secretParameter.logicalId],
+      });
+      cfnInterface.ParameterLabels[provider.enabledParameter.logicalId] = { default: `${provider.name} Enabled` };
+      cfnInterface.ParameterLabels[provider.clientIdParameter.logicalId] = { default: `${provider.name} Client ID` };
+      cfnInterface.ParameterLabels[provider.secretParameter.logicalId] = { default: `${provider.name} Client Secret` };
+    }
+
+    // for CloudFormation
+    this.templateOptions.description = 'Self-hosted Supabase on AWS';
+    this.templateOptions.metadata = { 'AWS::CloudFormation::Interface': cfnInterface };
+
   }
 }
