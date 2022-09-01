@@ -29,12 +29,12 @@ export class SupabaseCdn extends Construct {
       initialPolicy: [
         new iam.PolicyStatement({
           actions: ['wafv2:DeleteWebACL', 'wafv2:GetWebACL'],
-          resources: [`arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/*/*`],
+          resources: [`arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/${cdk.Aws.STACK_NAME}-*/*`],
         }),
         new iam.PolicyStatement({
           actions: ['wafv2:CreateWebACL', 'wafv2:UpdateWebACL'],
           resources: [
-            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/*/*`,
+            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/${cdk.Aws.STACK_NAME}-*/*`,
             `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/ipset/*/*`,
             `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/managedruleset/*/*`,
             `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/regexpatternset/*/*`,
@@ -127,6 +127,9 @@ export class SupabaseCdn extends Construct {
               ManagedRuleGroupStatement: {
                 VendorName: 'AWS',
                 Name: 'AWSManagedRulesATPRuleSet',
+                ExcludedRules: [
+                  { Name: 'SignalMissingCredential' },
+                ],
                 ManagedRuleGroupConfigs: [
                   { LoginPath: '/auth/v1/token' },
                   { PayloadType: 'JSON' },
