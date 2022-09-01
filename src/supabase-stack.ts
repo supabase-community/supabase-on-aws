@@ -12,7 +12,6 @@ import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwt } from './supabase-jwt';
 import { SupabaseMail } from './supabase-mail';
 import { SupabaseService } from './supabase-service';
-import { SupabaseStorageBackend } from './supabase-storage-backend';
 import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
 
@@ -303,7 +302,11 @@ export class SupabaseStack extends cdk.Stack {
       mesh,
     });
 
-    const storageBackend = new SupabaseStorageBackend(this, 'StorageBackend', { mesh });
+    const bucket = new s3.Bucket(this, 'Bucket', {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    });
 
     const storage = new SupabaseService(this, 'Storage', {
       cluster,
@@ -316,8 +319,8 @@ export class SupabaseStack extends cdk.Stack {
           FILE_SIZE_LIMIT: '52428800',
           STORAGE_BACKEND: 's3', // default: file
           TENANT_ID: 'default',
-          REGION: storageBackend.bucket.env.region,
-          GLOBAL_S3_BUCKET: storageBackend.bucket.bucketName,
+          REGION: bucket.env.region,
+          GLOBAL_S3_BUCKET: bucket.bucketName,
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
@@ -329,7 +332,7 @@ export class SupabaseStack extends cdk.Stack {
       cpuArchitecture: ecs.CpuArchitecture.X86_64, // storage-api does not work on ARM64
       mesh,
     });
-    storageBackend.bucket.grantReadWrite(storage.ecsService.taskDefinition.taskRole);
+    bucket.grantReadWrite(storage.ecsService.taskDefinition.taskRole);
 
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
@@ -359,7 +362,6 @@ export class SupabaseStack extends cdk.Stack {
     auth.addBackend(rest);
     auth.addExternalBackend(mail);
     storage.addBackend(rest);
-    storage.addExternalBackend(storageBackend);
 
     auth.addDatabaseBackend(db);
     rest.addDatabaseBackend(db);
