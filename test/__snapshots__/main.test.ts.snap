@@ -2787,6 +2787,10 @@ Object {
       "DependsOn": Array [
         "DatabaseInitFunctionServiceRoleDefaultPolicyE8E6FF4E",
         "DatabaseInitFunctionServiceRole8CD61C4B",
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
       ],
       "Properties": Object {
         "Code": Object {
@@ -2832,6 +2836,12 @@ Object {
       "Type": "AWS::Lambda::Function",
     },
     "DatabaseInitFunctionSecurityGroupAC823144": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
         "GroupDescription": "Automatic security group for Lambda Function SupabasenooptionDatabaseInitFunctionC50BD7D9",
         "SecurityGroupEgress": Array [
@@ -2848,6 +2858,12 @@ Object {
       "Type": "AWS::EC2::SecurityGroup",
     },
     "DatabaseInitFunctionServiceRole8CD61C4B": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -2891,6 +2907,12 @@ Object {
       "Type": "AWS::IAM::Role",
     },
     "DatabaseInitFunctionServiceRoleDefaultPolicyE8E6FF4E": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -3030,7 +3052,9 @@ Object {
         "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B",
         "DatabaseDbScalingConfigureA53A665A",
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
         "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
       ],
       "Properties": Object {
         "DBClusterIdentifier": Object {
@@ -3055,7 +3079,9 @@ Object {
         "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B",
         "DatabaseDbScalingConfigureA53A665A",
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
         "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
       ],
       "Properties": Object {
         "DBClusterIdentifier": Object {
@@ -3944,7 +3970,9 @@ Object {
     "KongLoadBalancerD341ED7C": Object {
       "DependsOn": Array [
         "VPCPublicSubnet1DefaultRoute91CEF279",
+        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
         "VPCPublicSubnet2DefaultRouteB7481BBA",
+        "VPCPublicSubnet2RouteTableAssociation5A808732",
       ],
       "Properties": Object {
         "LoadBalancerAttributes": Array [
@@ -6955,7 +6983,9 @@ Object {
     "StudioLoadBalancer143227F7": Object {
       "DependsOn": Array [
         "VPCPublicSubnet1DefaultRoute91CEF279",
+        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
         "VPCPublicSubnet2DefaultRouteB7481BBA",
+        "VPCPublicSubnet2RouteTableAssociation5A808732",
       ],
       "Properties": Object {
         "LoadBalancerAttributes": Array [
@@ -8561,6 +8591,10 @@ Object {
       "Type": "AWS::EC2::EIP",
     },
     "VPCPublicSubnet1NATGatewayE0556630": Object {
+      "DependsOn": Array [
+        "VPCPublicSubnet1DefaultRoute91CEF279",
+        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
+      ],
       "Properties": Object {
         "AllocationId": Object {
           "Fn::GetAtt": Array [
@@ -11794,6 +11828,10 @@ Object {
       "DependsOn": Array [
         "DatabaseInitFunctionServiceRoleDefaultPolicyE8E6FF4E",
         "DatabaseInitFunctionServiceRole8CD61C4B",
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
       ],
       "Properties": Object {
         "Code": Object {
@@ -11839,6 +11877,12 @@ Object {
       "Type": "AWS::Lambda::Function",
     },
     "DatabaseInitFunctionSecurityGroupAC823144": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
         "GroupDescription": "Automatic security group for Lambda Function SupabasemeshDatabaseInitFunctionCC7F15E7",
         "SecurityGroupEgress": Array [
@@ -11855,6 +11899,12 @@ Object {
       "Type": "AWS::EC2::SecurityGroup",
     },
     "DatabaseInitFunctionServiceRole8CD61C4B": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -11898,6 +11948,12 @@ Object {
       "Type": "AWS::IAM::Role",
     },
     "DatabaseInitFunctionServiceRoleDefaultPolicyE8E6FF4E": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -12037,7 +12093,9 @@ Object {
         "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B",
         "DatabaseDbScalingConfigureA53A665A",
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
         "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
       ],
       "Properties": Object {
         "DBClusterIdentifier": Object {
@@ -12062,7 +12120,9 @@ Object {
         "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B",
         "DatabaseDbScalingConfigureA53A665A",
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
         "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
       ],
       "Properties": Object {
         "DBClusterIdentifier": Object {
@@ -13018,7 +13078,9 @@ Object {
     "KongLoadBalancerD341ED7C": Object {
       "DependsOn": Array [
         "VPCPublicSubnet1DefaultRoute91CEF279",
+        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
         "VPCPublicSubnet2DefaultRouteB7481BBA",
+        "VPCPublicSubnet2RouteTableAssociation5A808732",
       ],
       "Properties": Object {
         "LoadBalancerAttributes": Array [
@@ -17230,7 +17292,9 @@ Object {
     "StudioLoadBalancer143227F7": Object {
       "DependsOn": Array [
         "VPCPublicSubnet1DefaultRoute91CEF279",
+        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
         "VPCPublicSubnet2DefaultRouteB7481BBA",
+        "VPCPublicSubnet2RouteTableAssociation5A808732",
       ],
       "Properties": Object {
         "LoadBalancerAttributes": Array [
@@ -18910,6 +18974,10 @@ Object {
       "Type": "AWS::EC2::EIP",
     },
     "VPCPublicSubnet1NATGatewayE0556630": Object {
+      "DependsOn": Array [
+        "VPCPublicSubnet1DefaultRoute91CEF279",
+        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
+      ],
       "Properties": Object {
         "AllocationId": Object {
           "Fn::GetAtt": Array [
@@ -21888,6 +21956,10 @@ Object {
       "DependsOn": Array [
         "DatabaseInitFunctionServiceRoleDefaultPolicyE8E6FF4E",
         "DatabaseInitFunctionServiceRole8CD61C4B",
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
       ],
       "Properties": Object {
         "Code": Object {
@@ -21933,6 +22005,12 @@ Object {
       "Type": "AWS::Lambda::Function",
     },
     "DatabaseInitFunctionSecurityGroupAC823144": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
         "GroupDescription": "Automatic security group for Lambda Function SupabasegraphqlDatabaseInitFunction8324DC10",
         "SecurityGroupEgress": Array [
@@ -21949,6 +22027,12 @@ Object {
       "Type": "AWS::EC2::SecurityGroup",
     },
     "DatabaseInitFunctionServiceRole8CD61C4B": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -21992,6 +22076,12 @@ Object {
       "Type": "AWS::IAM::Role",
     },
     "DatabaseInitFunctionServiceRoleDefaultPolicyE8E6FF4E": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -22131,7 +22221,9 @@ Object {
         "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B",
         "DatabaseDbScalingConfigureA53A665A",
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
         "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
       ],
       "Properties": Object {
         "DBClusterIdentifier": Object {
@@ -22156,7 +22248,9 @@ Object {
         "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B",
         "DatabaseDbScalingConfigureA53A665A",
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
         "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
       ],
       "Properties": Object {
         "DBClusterIdentifier": Object {
@@ -23581,7 +23675,9 @@ Object {
     "KongLoadBalancerD341ED7C": Object {
       "DependsOn": Array [
         "VPCPublicSubnet1DefaultRoute91CEF279",
+        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
         "VPCPublicSubnet2DefaultRouteB7481BBA",
+        "VPCPublicSubnet2RouteTableAssociation5A808732",
       ],
       "Properties": Object {
         "LoadBalancerAttributes": Array [
@@ -26596,7 +26692,9 @@ Object {
     "StudioLoadBalancer143227F7": Object {
       "DependsOn": Array [
         "VPCPublicSubnet1DefaultRoute91CEF279",
+        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
         "VPCPublicSubnet2DefaultRouteB7481BBA",
+        "VPCPublicSubnet2RouteTableAssociation5A808732",
       ],
       "Properties": Object {
         "LoadBalancerAttributes": Array [
@@ -28202,6 +28300,10 @@ Object {
       "Type": "AWS::EC2::EIP",
     },
     "VPCPublicSubnet1NATGatewayE0556630": Object {
+      "DependsOn": Array [
+        "VPCPublicSubnet1DefaultRoute91CEF279",
+        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
+      ],
       "Properties": Object {
         "AllocationId": Object {
           "Fn::GetAtt": Array [
