@@ -56,12 +56,9 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
   console.log(JSON.stringify(props));
   props.Rules?.map(rule => {
     rule.Priority = Number(rule.Priority);
-    rule.Statement?.ManagedRuleGroupStatement?.ScopeDownStatement?.ByteMatchStatement?.TextTransformations?.map(tf => {
-      tf.Priority = Number(tf.Priority);
-    });
-    rule.Statement?.ManagedRuleGroupStatement?.ScopeDownStatement?.NotStatement?.Statement?.ByteMatchStatement?.TextTransformations?.map(tf => {
-      tf.Priority = Number(tf.Priority);
-    });
+    if (typeof rule.Statement?.RateBasedStatement != 'undefined') {
+      rule.Statement.RateBasedStatement.Limit = Number(rule.Statement.RateBasedStatement.Limit);
+    }
     // for Supabase Studio SSR
     if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement.ManagedRuleGroupStatement.Name == 'AWSManagedRulesBotControlRuleSet') {
       rule.Statement.ManagedRuleGroupStatement.ScopeDownStatement = {

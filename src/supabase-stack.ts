@@ -87,6 +87,14 @@ export class SupabaseStack extends cdk.Stack {
       allowedValues: sesSmtpSupportedRegions,
     });
 
+    const wafRequestRateLimitParameter = new cdk.CfnParameter(this, 'WafRequestRateLimitParameter', {
+      description: 'The rate limit is the maximum number of requests from a single IP address that are allowed in a five-minute period. This value is continually evaluated, and requests will be blocked once this limit is reached. The IP address is automatically unblocked after it falls below the limit.',
+      type: 'Number',
+      default: 30000,
+      minValue: 100,
+      maxValue: 20000000,
+    });
+
     const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersionParameter', {
       type: 'String',
       default: 'v2.15.5',
@@ -173,7 +181,7 @@ export class SupabaseStack extends cdk.Stack {
     const cfPrefixList = new ManagedPrefixList(this, 'CloudFrontManagedPrefixList', { name: 'com.amazonaws.global.cloudfront.origin-facing' });
     kong.ecsService.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
 
-    const cdn = new SupabaseCdn(this, 'CDN', { originLoadBalancer: kongLoadBalancer });
+    const cdn = new SupabaseCdn(this, 'CDN', { origin: kongLoadBalancer, requestRateLimit: wafRequestRateLimitParameter.valueAsNumber });
     const apiExternalUrl = `https://${cdn.distribution.domainName}`;
 
     const auth = new SupabaseAuth(this, 'Auth', {
@@ -429,6 +437,7 @@ export class SupabaseStack extends cdk.Stack {
           Parameters: [
             sesRegionParameter.logicalId,
             db.multiAzParameter.logicalId,
+            wafRequestRateLimitParameter.logicalId,
           ],
         },
         {
@@ -459,6 +468,7 @@ export class SupabaseStack extends cdk.Stack {
         [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
         [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
         [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
+        [wafRequestRateLimitParameter.logicalId]: { default: 'Request Rate Limit' },
         [authApiVersionParameter.logicalId]: { default: 'Auth API Version - GoTrue' },
         [restApiVersionParameter.logicalId]: { default: 'Rest API Version - PostgREST' },
         [realtimeApiVersionParameter.logicalId]: { default: 'Realtime API Version' },

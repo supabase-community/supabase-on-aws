@@ -10,7 +10,8 @@ import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
 interface SupabaseCdnProps {
-  originLoadBalancer: elb.ILoadBalancerV2;
+  origin: elb.ILoadBalancerV2;
+  requestRateLimit: number;
 }
 
 export class SupabaseCdn extends Construct {
@@ -19,7 +20,7 @@ export class SupabaseCdn extends Construct {
   constructor(scope: Construct, id: string, props: SupabaseCdnProps) {
     super(scope, id);
 
-    const { originLoadBalancer } = props;
+    const { origin, requestRateLimit } = props;
 
     const createWebAclFunction = new NodejsFunction(this, 'CreateWebAclFunction', {
       description: 'Supabase - Create WAF Web ACL function',
@@ -145,13 +146,29 @@ export class SupabaseCdn extends Construct {
             },
             OverrideAction: { None: {} },
           },
+          {
+            Name: 'RateBasedRule',
+            Priority: 5,
+            Statement: {
+              RateBasedStatement: {
+                Limit: requestRateLimit,
+                AggregateKeyType: 'IP',
+              },
+            },
+            VisibilityConfig: {
+              SampledRequestsEnabled: true,
+              CloudWatchMetricsEnabled: true,
+              MetricName: 'RateBasedRule',
+            },
+            Action: { Block: {} },
+          },
         ],
         DefaultAction: { Allow: {} },
       } as CreateWebACLCommandInput,
     });
 
     const defaultBehavior: cf.BehaviorOptions = {
-      origin: new LoadBalancerV2Origin(originLoadBalancer, {
+      origin: new LoadBalancerV2Origin(origin, {
         protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY,
       }),
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
