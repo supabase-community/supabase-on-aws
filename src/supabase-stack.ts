@@ -468,7 +468,7 @@ export class SupabaseStack extends cdk.Stack {
         [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
         [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
         [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
-        [wafRequestRateLimitParameter.logicalId]: { default: 'Request Rate Limit' },
+        [wafRequestRateLimitParameter.logicalId]: { default: 'WAF Request Rate Limit' },
         [authApiVersionParameter.logicalId]: { default: 'Auth API Version - GoTrue' },
         [restApiVersionParameter.logicalId]: { default: 'Rest API Version - PostgREST' },
         [realtimeApiVersionParameter.logicalId]: { default: 'Realtime API Version' },
