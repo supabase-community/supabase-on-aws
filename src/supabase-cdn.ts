@@ -1,13 +1,9 @@
-import { CreateWebACLCommandInput } from '@aws-sdk/client-wafv2';
 import * as cdk from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
+import { WebACL } from './waf-web-acl';
 
 interface SupabaseCdnProps {
   origin: elb.ILoadBalancerV2;
@@ -22,149 +18,117 @@ export class SupabaseCdn extends Construct {
 
     const { origin, requestRateLimit } = props;
 
-    const createWebAclFunction = new NodejsFunction(this, 'CreateWebAclFunction', {
-      description: 'Supabase - Create WAF Web ACL function',
-      entry: './src/functions/create-web-acl.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
-      timeout: cdk.Duration.seconds(15),
-      initialPolicy: [
-        new iam.PolicyStatement({
-          actions: ['wafv2:DeleteWebACL', 'wafv2:GetWebACL'],
-          resources: [`arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/${cdk.Aws.STACK_NAME}-*/*`],
-        }),
-        new iam.PolicyStatement({
-          actions: ['wafv2:CreateWebACL', 'wafv2:UpdateWebACL'],
-          resources: [
-            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/${cdk.Aws.STACK_NAME}-*/*`,
-            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/ipset/*/*`,
-            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/managedruleset/*/*`,
-            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/regexpatternset/*/*`,
-            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/rulegroup/*/*`,
-          ],
-        }),
+    const webAcl = new WebACL(this, 'WebAcl', {
+      Name: `${cdk.Aws.STACK_NAME}-${id}-WebAcl`,
+      Description: 'Web ACL for self-hosted Supabase',
+      Scope: 'CLOUDFRONT',
+      Rules: [
+        {
+          Name: 'AWS-AWSManagedRulesAmazonIpReputationList',
+          Priority: 0,
+          Statement: {
+            ManagedRuleGroupStatement: {
+              VendorName: 'AWS',
+              Name: 'AWSManagedRulesAmazonIpReputationList',
+            },
+          },
+          VisibilityConfig: {
+            SampledRequestsEnabled: true,
+            CloudWatchMetricsEnabled: true,
+            MetricName: 'AWS-AWSManagedRulesAmazonIpReputationList',
+          },
+          OverrideAction: { None: {} },
+        },
+        {
+          Name: 'AWS-AWSManagedRulesKnownBadInputsRuleSet',
+          Priority: 1,
+          Statement: {
+            ManagedRuleGroupStatement: {
+              VendorName: 'AWS',
+              Name: 'AWSManagedRulesKnownBadInputsRuleSet',
+            },
+          },
+          VisibilityConfig: {
+            SampledRequestsEnabled: true,
+            CloudWatchMetricsEnabled: true,
+            MetricName: 'AWS-AWSManagedRulesKnownBadInputsRuleSet',
+          },
+          OverrideAction: { None: {} },
+        },
+        {
+          Name: 'AWS-AWSManagedRulesSQLiRuleSet',
+          Priority: 2,
+          Statement: {
+            ManagedRuleGroupStatement: {
+              VendorName: 'AWS',
+              Name: 'AWSManagedRulesSQLiRuleSet',
+            },
+          },
+          VisibilityConfig: {
+            SampledRequestsEnabled: true,
+            CloudWatchMetricsEnabled: true,
+            MetricName: 'AWS-AWSManagedRulesSQLiRuleSet',
+          },
+          OverrideAction: { None: {} },
+        },
+        {
+          Name: 'AWS-AWSManagedRulesBotControlRuleSet',
+          Priority: 3,
+          Statement: {
+            ManagedRuleGroupStatement: {
+              VendorName: 'AWS',
+              Name: 'AWSManagedRulesBotControlRuleSet',
+            },
+          },
+          VisibilityConfig: {
+            SampledRequestsEnabled: true,
+            CloudWatchMetricsEnabled: true,
+            MetricName: 'AWS-AWSManagedRulesBotControlRuleSet',
+          },
+          OverrideAction: { None: {} },
+        },
+        {
+          Name: 'AWS-AWSManagedRulesATPRuleSet',
+          Priority: 4,
+          Statement: {
+            ManagedRuleGroupStatement: {
+              VendorName: 'AWS',
+              Name: 'AWSManagedRulesATPRuleSet',
+              ExcludedRules: [
+                { Name: 'SignalMissingCredential' },
+              ],
+              ManagedRuleGroupConfigs: [
+                { LoginPath: '/auth/v1/token' },
+                { PayloadType: 'JSON' },
+                { UsernameField: { Identifier: '/email' } },
+                { PasswordField: { Identifier: '/password' } },
+              ],
+            },
+          },
+          VisibilityConfig: {
+            SampledRequestsEnabled: true,
+            CloudWatchMetricsEnabled: true,
+            MetricName: 'AWS-AWSManagedRulesATPRuleSet',
+          },
+          OverrideAction: { None: {} },
+        },
+        {
+          Name: 'RateBasedRule',
+          Priority: 5,
+          Statement: {
+            RateBasedStatement: {
+              Limit: requestRateLimit,
+              AggregateKeyType: 'IP',
+            },
+          },
+          VisibilityConfig: {
+            SampledRequestsEnabled: true,
+            CloudWatchMetricsEnabled: true,
+            MetricName: 'RateBasedRule',
+          },
+          Action: { Block: {} },
+        },
       ],
-    });
-
-    const webAclProvider = new cr.Provider(this, 'WebAclProvider', { onEventHandler: createWebAclFunction });
-
-    const webAclName = `${cdk.Aws.STACK_NAME}-${id}-WebAcl`;
-    const webAcl = new cdk.CustomResource(this, 'WebAcl', {
-      serviceToken: webAclProvider.serviceToken,
-      resourceType: 'Custom::WebACL',
-      properties: {
-        Name: webAclName,
-        Description: 'Web ACL for self-hosted Supabase',
-        VisibilityConfig: { SampledRequestsEnabled: true, CloudWatchMetricsEnabled: true, MetricName: webAclName },
-        Scope: 'CLOUDFRONT',
-        Rules: [
-          {
-            Name: 'AWS-AWSManagedRulesAmazonIpReputationList',
-            Priority: 0,
-            Statement: {
-              ManagedRuleGroupStatement: {
-                VendorName: 'AWS',
-                Name: 'AWSManagedRulesAmazonIpReputationList',
-              },
-            },
-            VisibilityConfig: {
-              SampledRequestsEnabled: true,
-              CloudWatchMetricsEnabled: true,
-              MetricName: 'AWS-AWSManagedRulesAmazonIpReputationList',
-            },
-            OverrideAction: { None: {} },
-          },
-          {
-            Name: 'AWS-AWSManagedRulesKnownBadInputsRuleSet',
-            Priority: 1,
-            Statement: {
-              ManagedRuleGroupStatement: {
-                VendorName: 'AWS',
-                Name: 'AWSManagedRulesKnownBadInputsRuleSet',
-              },
-            },
-            VisibilityConfig: {
-              SampledRequestsEnabled: true,
-              CloudWatchMetricsEnabled: true,
-              MetricName: 'AWS-AWSManagedRulesKnownBadInputsRuleSet',
-            },
-            OverrideAction: { None: {} },
-          },
-          {
-            Name: 'AWS-AWSManagedRulesSQLiRuleSet',
-            Priority: 2,
-            Statement: {
-              ManagedRuleGroupStatement: {
-                VendorName: 'AWS',
-                Name: 'AWSManagedRulesSQLiRuleSet',
-              },
-            },
-            VisibilityConfig: {
-              SampledRequestsEnabled: true,
-              CloudWatchMetricsEnabled: true,
-              MetricName: 'AWS-AWSManagedRulesSQLiRuleSet',
-            },
-            OverrideAction: { None: {} },
-          },
-          {
-            Name: 'AWS-AWSManagedRulesBotControlRuleSet',
-            Priority: 3,
-            Statement: {
-              ManagedRuleGroupStatement: {
-                VendorName: 'AWS',
-                Name: 'AWSManagedRulesBotControlRuleSet',
-              },
-            },
-            VisibilityConfig: {
-              SampledRequestsEnabled: true,
-              CloudWatchMetricsEnabled: true,
-              MetricName: 'AWS-AWSManagedRulesBotControlRuleSet',
-            },
-            OverrideAction: { None: {} },
-          },
-          {
-            Name: 'AWS-AWSManagedRulesATPRuleSet',
-            Priority: 4,
-            Statement: {
-              ManagedRuleGroupStatement: {
-                VendorName: 'AWS',
-                Name: 'AWSManagedRulesATPRuleSet',
-                ExcludedRules: [
-                  { Name: 'SignalMissingCredential' },
-                ],
-                ManagedRuleGroupConfigs: [
-                  { LoginPath: '/auth/v1/token' },
-                  { PayloadType: 'JSON' },
-                  { UsernameField: { Identifier: '/email' } },
-                  { PasswordField: { Identifier: '/password' } },
-                ],
-              },
-            },
-            VisibilityConfig: {
-              SampledRequestsEnabled: true,
-              CloudWatchMetricsEnabled: true,
-              MetricName: 'AWS-AWSManagedRulesATPRuleSet',
-            },
-            OverrideAction: { None: {} },
-          },
-          {
-            Name: 'RateBasedRule',
-            Priority: 5,
-            Statement: {
-              RateBasedStatement: {
-                Limit: requestRateLimit,
-                AggregateKeyType: 'IP',
-              },
-            },
-            VisibilityConfig: {
-              SampledRequestsEnabled: true,
-              CloudWatchMetricsEnabled: true,
-              MetricName: 'RateBasedRule',
-            },
-            Action: { Block: {} },
-          },
-        ],
-        DefaultAction: { Allow: {} },
-      } as CreateWebACLCommandInput,
     });
 
     const defaultBehavior: cf.BehaviorOptions = {
@@ -184,7 +148,7 @@ export class SupabaseCdn extends Construct {
     };
 
     this.distribution = new cf.Distribution(this, 'Distribution', {
-      webAclId: webAcl.getAttString('Arn'),
+      webAclId: webAcl.arn,
       httpVersion: cf.HttpVersion.HTTP2_AND_3,
       enableIpv6: true,
       comment: `Supabase - ${id}`,
