@@ -140,9 +140,22 @@ export class SupabaseCdn extends Construct {
       enableAcceptEncodingBrotli: true,
     });
 
+    const originRequestHeaders = [
+      'Access-Control-Request-Headers',
+      'Access-Control-Request-Method',
+      'Accept-Profile',
+      'Origin',
+      'Referer',
+      'Sec-WebSocket-Extensions',
+      'Sec-WebSocket-Key',
+      'Sec-WebSocket-Version',
+      'X-Client-Info',
+      'Apikey',
+    ];
+
     const originRequestPolicy = new cf.OriginRequestPolicy(this, 'OriginRequestPolicy', {
       comment: 'Policy for Supabase API',
-      headerBehavior: cf.OriginRequestHeaderBehavior.allowList('Access-Control-Request-Headers', 'Access-Control-Request-Method', 'Accept-Profile', 'Origin', 'Referer', 'Apikey', 'X-Client-Info'),
+      headerBehavior: cf.OriginRequestHeaderBehavior.allowList(...originRequestHeaders),
       queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
     });
 
