@@ -19,8 +19,6 @@ export class SupabaseCdn extends Construct {
     const { origin, requestRateLimit } = props;
 
     const webAcl = new WebACL(this, 'WebAcl', {
-      Name: `${cdk.Aws.STACK_NAME}-${id}-WebAcl`,
-      Description: 'Web ACL for self-hosted Supabase',
       Scope: 'CLOUDFRONT',
       Rules: [
         {
@@ -131,19 +129,35 @@ export class SupabaseCdn extends Construct {
       ],
     });
 
+    const cachePolicy = new cf.CachePolicy(this, 'CachePolicy', {
+      comment: 'Policy for Supabase API',
+      minTtl: cdk.Duration.seconds(0),
+      maxTtl: cdk.Duration.seconds(600),
+      defaultTtl: cdk.Duration.seconds(2),
+      headerBehavior: cf.CacheHeaderBehavior.allowList('Authorization', 'Host'),
+      queryStringBehavior: cf.CacheQueryStringBehavior.all(),
+      enableAcceptEncodingGzip: true,
+      enableAcceptEncodingBrotli: true,
+    });
+
+    const originRequestPolicy = new cf.OriginRequestPolicy(this, 'OriginRequestPolicy', {
+      comment: 'Policy for Supabase API',
+      headerBehavior: cf.OriginRequestHeaderBehavior.allowList('Access-Control-Request-Headers', 'Access-Control-Request-Method', 'Accept-Profile', 'Origin', 'Referer', 'Apikey', 'X-Client-Info'),
+      queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
+    });
+
     const defaultBehavior: cf.BehaviorOptions = {
       origin: new LoadBalancerV2Origin(origin, {
         protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY,
       }),
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: cf.AllowedMethods.ALLOW_ALL,
-      cachePolicy: cf.CachePolicy.CACHING_DISABLED,
-      originRequestPolicy: cf.OriginRequestPolicy.ALL_VIEWER,
+      cachePolicy,
+      originRequestPolicy,
     };
 
     const staticContentBehavior: cf.BehaviorOptions = {
       ...defaultBehavior,
-      cachedMethods: cf.CachedMethods.CACHE_GET_HEAD_OPTIONS,
       cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
     };
 
