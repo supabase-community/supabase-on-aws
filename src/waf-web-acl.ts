@@ -7,7 +7,6 @@ import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
 interface WebACLProps extends Partial<CreateWebACLCommandInput> {
-  Name: string;
   Scope: 'CLOUDFRONT'|'REGIONAL';
 }
 
@@ -20,7 +19,7 @@ export class WebACL extends Construct {
     super(scope, id);
 
     const crFunction = new NodejsFunction(this, 'Function', {
-      description: 'Supabase - Create WAF Web ACL Function',
+      description: `Supabase - Create Web ACL Function (${this.node.path}/Function)`,
       entry: './src/functions/create-web-acl.ts',
       runtime: lambda.Runtime.NODEJS_16_X,
       timeout: cdk.Duration.seconds(15),
@@ -50,14 +49,18 @@ export class WebACL extends Construct {
 
     const crProvider = new cr.Provider(this, 'Provider', { onEventHandler: crFunction });
 
+    const webAclName = this.node.path.replace(/\//g, '-');
+
     const input: CreateWebACLCommandInput = {
-      ...props,
+      Name: webAclName,
+      Description: this.node.path,
       VisibilityConfig: {
         SampledRequestsEnabled: true,
         CloudWatchMetricsEnabled: true,
-        MetricName: props.Name,
+        MetricName: webAclName,
       },
       DefaultAction: { Allow: {} },
+      ...props,
     };
 
     const webAcl = new cdk.CustomResource(this, 'WebAcl', {

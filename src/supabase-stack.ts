@@ -181,7 +181,7 @@ export class SupabaseStack extends cdk.Stack {
     const cfPrefixList = new ManagedPrefixList(this, 'CloudFrontManagedPrefixList', { name: 'com.amazonaws.global.cloudfront.origin-facing' });
     kong.ecsService.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
 
-    const cdn = new SupabaseCdn(this, 'CDN', { origin: kongLoadBalancer, requestRateLimit: wafRequestRateLimitParameter.valueAsNumber });
+    const cdn = new SupabaseCdn(this, 'Cdn', { origin: kongLoadBalancer, requestRateLimit: wafRequestRateLimitParameter.valueAsNumber });
     const apiExternalUrl = `https://${cdn.distribution.domainName}`;
 
     const auth = new SupabaseAuth(this, 'Auth', {

@@ -151,7 +151,7 @@ export class SupabaseCdn extends Construct {
       webAclId: webAcl.arn,
       httpVersion: cf.HttpVersion.HTTP2_AND_3,
       enableIpv6: true,
-      comment: `Supabase - ${id}`,
+      comment: `Supabase - CDN (${this.node.path}/Distribution)`,
       defaultBehavior,
       additionalBehaviors: {
         '*.css': staticContentBehavior,
