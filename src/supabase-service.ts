@@ -12,7 +12,7 @@ import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { SupabaseDatabase } from './supabase-db';
 
-const envoyCpuRate = 0.2;
+const envoyCpuRate = 0.4;
 const envoyMemRate = 0.1;
 const xrayCpuRate = 0.1;
 const xrayMemRate = 0.1;
@@ -133,7 +133,7 @@ export class SupabaseService extends SupabaseServiceBase {
     }));
 
     if (autoScalingEnabled) {
-      const autoScaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 20 });
+      const autoScaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 100 });
       autoScaling.scaleOnCpuUtilization('ScaleOnCpu', {
         targetUtilizationPercent: 50,
         scaleInCooldown: cdk.Duration.seconds(60),

@@ -84,7 +84,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     // Support for Aurora Serverless v2 ---------------------------------------------------
     const serverlessV2ScalingConfiguration = {
       MinCapacity: 0.5,
-      MaxCapacity: 32,
+      MaxCapacity: 128,
     };
     const dbScalingConfigure = new cr.AwsCustomResource(this, 'DbScalingConfigure', {
       resourceType: 'Custom::AuroraServerlessV2ScalingConfiguration',
