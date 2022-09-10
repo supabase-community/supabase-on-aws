@@ -1,22 +1,30 @@
 import * as cdk from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
-import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { LoadBalancerV2Origin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Construct } from 'constructs';
 import { WebACL } from './waf-web-acl';
 
 interface SupabaseCdnProps {
-  origin: elb.ILoadBalancerV2;
+  origin: string|elb.ILoadBalancerV2;
   requestRateLimit: number;
+}
+
+interface BehaviorProps {
+  pathPattern: string;
+  origin: string|elb.ILoadBalancerV2;
 }
 
 export class SupabaseCdn extends Construct {
   distribution: cf.Distribution;
+  defaultBehaviorOptions: cf.AddBehaviorOptions;
 
   constructor(scope: Construct, id: string, props: SupabaseCdnProps) {
     super(scope, id);
 
-    const { origin, requestRateLimit } = props;
+    const origin = (typeof props.origin == 'string')
+      ? new HttpOrigin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY })
+      : new LoadBalancerV2Origin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY });
 
     const webAcl = new WebACL(this, 'WebAcl', {
       Scope: 'CLOUDFRONT',
@@ -115,7 +123,7 @@ export class SupabaseCdn extends Construct {
           Priority: 5,
           Statement: {
             RateBasedStatement: {
-              Limit: requestRateLimit,
+              Limit: props.requestRateLimit,
               AggregateKeyType: 'IP',
             },
           },
@@ -159,10 +167,7 @@ export class SupabaseCdn extends Construct {
       queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
     });
 
-    const defaultBehavior: cf.BehaviorOptions = {
-      origin: new LoadBalancerV2Origin(origin, {
-        protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY,
-      }),
+    this.defaultBehaviorOptions = {
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: cf.AllowedMethods.ALLOW_ALL,
       cachePolicy,
@@ -170,8 +175,9 @@ export class SupabaseCdn extends Construct {
     };
 
     const staticContentBehavior: cf.BehaviorOptions = {
-      ...defaultBehavior,
+      ...this.defaultBehaviorOptions,
       cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
+      origin,
     };
 
     this.distribution = new cf.Distribution(this, 'Distribution', {
@@ -179,7 +185,10 @@ export class SupabaseCdn extends Construct {
       httpVersion: cf.HttpVersion.HTTP2_AND_3,
       enableIpv6: true,
       comment: `Supabase - CDN (${this.node.path}/Distribution)`,
-      defaultBehavior,
+      defaultBehavior: {
+        ...this.defaultBehaviorOptions,
+        origin,
+      },
       additionalBehaviors: {
         '*.css': staticContentBehavior,
         '*.png': staticContentBehavior,
@@ -198,5 +207,12 @@ export class SupabaseCdn extends Construct {
         { httpStatus: 504, ttl: cdk.Duration.seconds(10) },
       ],
     });
+  }
+
+  addBehavior(props: BehaviorProps) {
+    const origin = (typeof props.origin == 'string')
+      ? new HttpOrigin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY })
+      : new LoadBalancerV2Origin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY });
+    this.distribution.addBehavior(props.pathPattern, origin, this.defaultBehaviorOptions);
   }
 };
