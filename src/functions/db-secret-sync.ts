@@ -3,7 +3,9 @@ import { SSMClient, PutParameterCommand } from '@aws-sdk/client-ssm';
 import { EventBridgeHandler } from 'aws-lambda';
 
 const region = process.env.AWS_REGION;
-const urlParameterName = process.env.URL_PARAMETER_NAME!;
+const writerParameterName = process.env.WRITER_PARAMETER_NAME!;
+const writerAuthParameterName = process.env.WRITER_AUTH_PARAMETER_NAME!;
+const readerParameterName = process.env.READER_PARAMETER_NAME!;
 
 //interface PutSecretValueDetail {
 //  eventTime: string;
@@ -83,7 +85,8 @@ export const handler: EventBridgeHandler<'AWS Service Event via CloudTrail', Rot
   console.log(JSON.stringify(event));
   const secretId: string = event.detail.additionalEventData.SecretId;
   const secret = await getSecret(secretId);
-  const url = `postgres://${secret.username}:${secret.password}@${secret.host}:${secret.port}/${secret.dbname||'postgres'}`;
-  await putParameter(urlParameterName, url);
-  await putParameter(`${urlParameterName}/search_path/auth`, `${url}?search_path=auth`);
+  const databaseUrl = `postgres://${secret.username}:${secret.password}@${secret.host}:${secret.port}/${secret.dbname||'postgres'}`;
+  await putParameter(writerParameterName, databaseUrl);
+  await putParameter(writerAuthParameterName, `${databaseUrl}?search_path=auth`);
+  await putParameter(readerParameterName, databaseUrl.replace('.cluster-', '.cluster-ro-'));
 };

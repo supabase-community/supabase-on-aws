@@ -27,8 +27,11 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
   multiAzParameter: cdk.CfnParameter;
   virtualService?: appmesh.VirtualService;
   virtualNode?: appmesh.VirtualNode;
-  url: ssm.StringParameter;
-  urlAuth: ssm.StringParameter;
+  url: {
+    writer: ssm.StringParameter;
+    writerSearchPathAuth: ssm.StringParameter;
+    reader: ssm.StringParameter;
+  };
 
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
 
@@ -117,19 +120,27 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
 
     // Sync to SSM Parameter Store for database_url ---------------------------------------
     const databaseUrl = `postgres://${secret.secretValueFromJson('username').toString()}:${secret.secretValueFromJson('password').toString()}@${secret.secretValueFromJson('host').toString()}:${secret.secretValueFromJson('port').toString()}/${secret.secretValueFromJson('dbname').toString()}`;
-    this.url = new ssm.StringParameter(this, 'UrlParameter', {
-      parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url`,
-      description: 'The standard connection PostgreSQL URI format.',
-      stringValue: databaseUrl,
-      simpleName: false,
-    });
 
-    this.urlAuth = new ssm.StringParameter(this, 'authUrlParameter', {
-      parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/search_path/auth`,
-      description: 'The standard connection PostgreSQL URI format with "?search_path=auth".',
-      stringValue: `${databaseUrl}?search_path=auth`,
-      simpleName: false,
-    });
+    this.url = {
+      writer: new ssm.StringParameter(this, 'WriterUrlParameter', {
+        parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/Writer`,
+        description: 'The standard connection PostgreSQL URI format.',
+        stringValue: databaseUrl,
+        simpleName: false,
+      }),
+      writerSearchPathAuth: new ssm.StringParameter(this, 'WriterSearchPathAuthUrlParameter', {
+        parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/WriterSearchPathAuth`,
+        description: 'The standard connection PostgreSQL URI format',
+        stringValue: `${databaseUrl}?search_path=auth`,
+        simpleName: false,
+      }),
+      reader: new ssm.StringParameter(this, 'ReaderUrlParameter', {
+        parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/Reader`,
+        description: 'The standard connection PostgreSQL URI format.',
+        stringValue: databaseUrl,
+        simpleName: false,
+      }),
+    };
 
     const syncSecretFunction = new NodejsFunction(this, 'SyncSecretFunction', {
       description: 'Supabase - Sync DB secret to parameter store',
@@ -137,11 +148,14 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       runtime: lambda.Runtime.NODEJS_16_X,
       architecture: lambda.Architecture.ARM_64,
       environment: {
-        URL_PARAMETER_NAME: this.url.parameterName,
+        WRITER_PARAMETER_NAME: this.url.writer.parameterName,
+        WRITER_AUTH_PARAMETER_NAME: this.url.writerSearchPathAuth.parameterName,
+        READER_PARAMETER_NAME: this.url.reader.parameterName,
       },
     });
-    this.url.grantWrite(syncSecretFunction);
-    this.urlAuth.grantWrite(syncSecretFunction);
+    this.url.writer.grantWrite(syncSecretFunction);
+    this.url.writerSearchPathAuth.grantWrite(syncSecretFunction);
+    this.url.reader.grantWrite(syncSecretFunction);
     secret.grantRead(syncSecretFunction);
 
     new events.Rule(this, 'SecretChangeRule', {

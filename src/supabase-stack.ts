@@ -245,7 +245,7 @@ export class SupabaseStack extends cdk.Stack {
           PGRST_DB_USE_LEGACY_GUCS: 'false',
         },
         secrets: {
-          PGRST_DB_URI: ecs.Secret.fromSsmParameter(db.url),
+          PGRST_DB_URI: ecs.Secret.fromSsmParameter(db.url.writer),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
         },
       },
@@ -271,7 +271,7 @@ export class SupabaseStack extends cdk.Stack {
             ENABLE_XRAY_TRACING: '1',
           },
           secrets: {
-            DATABASE_URL: ecs.Secret.fromSsmParameter(db.url),
+            DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writer),
             JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
           },
         },
@@ -336,7 +336,7 @@ export class SupabaseStack extends cdk.Stack {
           ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
           SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
-          DATABASE_URL: ecs.Secret.fromSsmParameter(db.url),
+          DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writer),
         },
       },
       cpuArchitecture: ecs.CpuArchitecture.X86_64, // storage-api does not work on ARM64
