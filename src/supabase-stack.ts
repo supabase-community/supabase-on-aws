@@ -223,7 +223,7 @@ export class SupabaseStack extends cdk.Stack {
           GOTRUE_SMS_AUTOCONFIRM: 'true',
         },
         secrets: {
-          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.urlAuth),
+          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writerSearchPathAuth),
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
           GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(mail.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(mail.secret, 'password'),
