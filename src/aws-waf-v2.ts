@@ -29,7 +29,7 @@ export class WebACL extends Construct {
             'wafv2:DeleteWebACL',
             'wafv2:GetWebACL',
           ],
-          resources: [`arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/${cdk.Aws.STACK_NAME}-*/*`],
+          resources: [`arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/*/*`],
         }),
         new iam.PolicyStatement({
           actions: [
@@ -37,7 +37,7 @@ export class WebACL extends Construct {
             'wafv2:UpdateWebACL',
           ],
           resources: [
-            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/${cdk.Aws.STACK_NAME}-*/*`,
+            `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/webacl/*/*`,
             `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/ipset/*/*`,
             `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/managedruleset/*/*`,
             `arn:${cdk.Aws.PARTITION}:wafv2:us-east-1:${cdk.Aws.ACCOUNT_ID}:global/regexpatternset/*/*`,
