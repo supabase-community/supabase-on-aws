@@ -513,7 +513,7 @@ export class SupabaseStack extends cdk.Stack {
     }
 
     // for CloudFormation
-    this.templateOptions.description = 'Self-hosted Supabase on AWS';
+    this.templateOptions.description = 'Self-hosted Supabase';
     this.templateOptions.metadata = { 'AWS::CloudFormation::Interface': cfnInterface };
 
   }
