@@ -18,12 +18,20 @@ const checkVerificationStatus = async (region: string, identity: string): Promis
 const checkOrganizationState = async (region: string, organizationId?: string): Promise<CdkCustomResourceIsCompleteResponse> => {
   const client = new WorkMailClient({ region });
   const cmd = new DescribeOrganizationCommand({ OrganizationId: organizationId });
-  const { State, Alias } = await client.send(cmd);
-  client.destroy();
-  if (State != 'Active') {
+  let state: string|undefined, alias: string|undefined;
+  try {
+    const output = await client.send(cmd);
+    state = output.State;
+    alias = output.Alias;
+  } catch (error) {
+    return { IsComplete: false };
+  } finally {
+    client.destroy();
+  }
+  if (state != 'Active') {
     return { IsComplete: false };
   } else {
-    const sesIdentity = `${Alias}.awsapps.com`;
+    const sesIdentity = `${alias}.awsapps.com`;
     const verificationStatus = await checkVerificationStatus(region, sesIdentity);
     if (verificationStatus) {
       return { IsComplete: true };
