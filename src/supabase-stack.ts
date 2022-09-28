@@ -6,7 +6,7 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { ManagedPrefixList } from './aws-prefix-list';
-import { WorkMailStack } from './aws-workmail';
+import { WorkMail } from './aws-workmail';
 import { SupabaseAuth } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
@@ -160,7 +160,7 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, mesh });
-    const workMail = new WorkMailStack(this, 'WorkMail', { region: sesRegionParameter.valueAsString, alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
+    const workMail = new WorkMail(this, 'WorkMail', { region: sesRegionParameter.valueAsString, alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
     (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabledCondition.logicalId);
 
     const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabledCondition.logicalId, `noreply@${workMail.domain}`, smtpAdminEmailParameter.valueAsString);

@@ -6,19 +6,19 @@ import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
-interface WorkMailStackProps {
+interface WorkMailProps {
   region: string;
   alias: string;
 }
 
-export class WorkMailStack extends cdk.NestedStack {
+export class WorkMail extends cdk.NestedStack {
   region: string;
   alias: string;
   domain: string;
   organizationId: string;
   createUserProvider: cr.Provider;
 
-  constructor(scope: cdk.Stack, id: string, props: WorkMailStackProps) {
+  constructor(scope: Construct, id: string, props: WorkMailProps) {
     super(scope, id, { description: 'Amazon WorkMail for Test Domain' });
 
     this.region = props.region;
