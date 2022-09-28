@@ -6,7 +6,7 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { ManagedPrefixList } from './aws-prefix-list';
-import * as workmail from './aws-workmail';
+import { WorkMailStack } from './aws-workmail';
 import { SupabaseAuth } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
@@ -160,10 +160,10 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, mesh });
-    const workMailOrg = new workmail.Organization(this, 'WorkMail', { region: sesRegionParameter.valueAsString });
-    workMailOrg.resource.addOverride('Condition', workMailEnabledCondition.logicalId);
+    const workMail = new WorkMailStack(this, 'WorkMail', { region: sesRegionParameter.valueAsString, alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
+    (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabledCondition.logicalId);
 
-    const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabledCondition.logicalId, `noreply@${workMailOrg.domain}`, smtpAdminEmailParameter.valueAsString);
+    const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabledCondition.logicalId, `noreply@${workMail.domain}`, smtpAdminEmailParameter.valueAsString);
     const smtpHost = `email-smtp.${sesRegionParameter.valueAsString}.amazonaws.com`;
 
     const db = new SupabaseDatabase(this, 'Database', { vpc, mesh });
@@ -487,8 +487,8 @@ export class SupabaseStack extends cdk.Stack {
         [passwordMinLengthParameter.logicalId]: { default: 'Min password length' },
         [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
         [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
-        [sesRegionParameter.logicalId]: { default: 'Amazon Simple Email Service (SES) Region' },
-        [workMailEnabledParameter.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail domain)' },
+        [sesRegionParameter.logicalId]: { default: 'Amazon SES Region' },
+        [workMailEnabledParameter.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
         [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
         [wafRequestRateLimitParameter.logicalId]: { default: 'WAF Request Rate Limit' },
         [authApiVersionParameter.logicalId]: { default: 'Auth API Version - GoTrue' },

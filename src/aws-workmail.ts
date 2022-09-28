@@ -2,27 +2,27 @@ import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-//import { Secret, CfnSecret } from 'aws-cdk-lib/aws-secretsmanager';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
-interface OrganizationProps {
+interface WorkMailStackProps {
   region: string;
+  alias: string;
 }
 
-export class Organization extends Construct {
-  resource: cdk.CfnResource;
+export class WorkMailStack extends cdk.NestedStack {
   region: string;
   alias: string;
   domain: string;
   organizationId: string;
-  //createUserProvider: cr.Provider;
+  createUserProvider: cr.Provider;
 
-  constructor(scope: Construct, id: string, props: OrganizationProps) {
-    super(scope, id);
+  constructor(scope: cdk.Stack, id: string, props: WorkMailStackProps) {
+    super(scope, id, { description: 'Amazon WorkMail for Test Domain' });
 
     this.region = props.region;
-    this.alias = `supabase-${cdk.Aws.ACCOUNT_ID}`;
+    this.alias = props.alias;
     this.domain = `${this.alias}.awsapps.com`;
 
     const createWorkMailOrgStatement = new iam.PolicyStatement({
@@ -59,27 +59,27 @@ export class Organization extends Construct {
       initialPolicy: [createWorkMailOrgStatement],
     });
 
-    //const checkOrgFunction = new NodejsFunction(this, 'CheckOrgFunction', {
-    //  description: 'Supabase - Check state WorkMail Org Function',
-    //  entry: './src/functions/check-workmail-org.ts',
-    //  runtime: lambda.Runtime.NODEJS_16_X,
-    //  initialPolicy: [
-    //    new iam.PolicyStatement({
-    //      actions: [
-    //        'workmail:DescribeOrganization',
-    //        'ses:GetIdentityVerificationAttributes',
-    //      ],
-    //      resources: ['*'],
-    //    }),
-    //  ],
-    //});
+    const checkOrgFunction = new NodejsFunction(this, 'CheckOrgFunction', {
+      description: 'Supabase - Check state WorkMail Org Function',
+      entry: './src/functions/check-workmail-org.ts',
+      runtime: lambda.Runtime.NODEJS_16_X,
+      initialPolicy: [
+        new iam.PolicyStatement({
+          actions: [
+            'workmail:DescribeOrganization',
+            'ses:GetIdentityVerificationAttributes',
+          ],
+          resources: ['*'],
+        }),
+      ],
+    });
 
     const createOrgProvider = new cr.Provider(this, 'CreateOrgProvider', {
       onEventHandler: createOrgFunction,
-      //isCompleteHandler: checkOrgFunction,
+      isCompleteHandler: checkOrgFunction,
     });
 
-    this.resource = new cdk.CfnResource(this, 'Resource', {
+    const org = new cdk.CfnResource(this, 'Organization', {
       type: 'Custom::WorkMailOrganization',
       properties: {
         ServiceToken: createOrgProvider.serviceToken,
@@ -87,53 +87,52 @@ export class Organization extends Construct {
         Alias: this.alias,
       },
     });
-    this.organizationId = this.resource.ref;
+    this.organizationId = org.ref;
 
-    //const createUserFunction = new NodejsFunction(this, 'CreateUserFunction', {
-    //  description: 'Supabase - Create WorkMail User Function',
-    //  entry: './src/functions/create-workmail-user.ts',
-    //  runtime: lambda.Runtime.NODEJS_16_X,
-    //  initialPolicy: [
-    //    new iam.PolicyStatement({
-    //      actions: [
-    //        'workmail:CreateUser',
-    //        'workmail:DeleteUser',
-    //        'workmail:RegisterToWorkMail',
-    //        'workmail:DeregisterFromWorkMail',
-    //        'ses:GetIdentityVerificationAttributes',
-    //      ],
-    //      resources: ['*'],
-    //    }),
-    //  ],
-    //});
+    const createUserFunction = new NodejsFunction(this, 'CreateUserFunction', {
+      description: 'Supabase - Create WorkMail User Function',
+      entry: './src/functions/create-workmail-user.ts',
+      runtime: lambda.Runtime.NODEJS_16_X,
+      initialPolicy: [
+        new iam.PolicyStatement({
+          actions: [
+            'workmail:CreateUser',
+            'workmail:DeleteUser',
+            'workmail:RegisterToWorkMail',
+            'workmail:DeregisterFromWorkMail',
+            'ses:GetIdentityVerificationAttributes',
+          ],
+          resources: ['*'],
+        }),
+      ],
+    });
 
-    //this.createUserProvider = new cr.Provider(this, 'CreateUserProvider', {
-    //  onEventHandler: createUserFunction,
-    //});
+    this.createUserProvider = new cr.Provider(this, 'CreateUserProvider', {
+      onEventHandler: createUserFunction,
+    });
   }
 
-  //addUser(name: string) {
-  //  const secret = new Secret(this, `User-${name}-Secret`, {
-  //    description: `Supabase - WorkMail User Secret - ${name}`,
-  //    generateSecretString: {
-  //      secretStringTemplate: JSON.stringify({
-  //        username: name,
-  //        email: `${name}@${this.domain}`,
-  //      }),
-  //      generateStringKey: 'password',
-  //      passwordLength: 64,
-  //    },
-  //  });
-  //  const user = new cdk.CfnResource(this, `User$-${name}`, {
-  //    type: 'Custom::WorkMailUser',
-  //    properties: {
-  //      ServiceToken: this.createUserProvider.serviceToken,
-  //      Region: this.region,
-  //      OrganizationId: this.organizationId,
-  //      SecretId: secret.secretArn,
-  //    },
-  //  });
-  //  user.addOverride('Condition', this.condition.logicalId);
-  //  return secret;
-  //}
+  addUser(name: string) {
+    const secret = new Secret(this, `User-${name}-Secret`, {
+      description: `Supabase - WorkMail User Secret - ${name}`,
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ username: name }),
+        generateStringKey: 'password',
+        passwordLength: 64,
+      },
+    });
+    secret.grantRead(this.createUserProvider.onEventHandler);
+
+    new cdk.CfnResource(this, `User$-${name}`, {
+      type: 'Custom::WorkMailUser',
+      properties: {
+        ServiceToken: this.createUserProvider.serviceToken,
+        Region: this.region,
+        OrganizationId: this.organizationId,
+        SecretId: secret.secretArn,
+      },
+    });
+
+    return secret;
+  }
 }
