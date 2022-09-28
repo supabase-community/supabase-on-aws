@@ -3,6 +3,7 @@ import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -262,20 +263,20 @@ export class SupabaseService extends SupabaseServiceBase {
       this.virtualNode?.addBackend(appmesh.Backend.virtualService(backend.virtualService));
     }
     this.ecsService.node.defaultChild?.node.addDependency(backend.node.findChild('Instance1'));
-    // TODO: Confirm the need to force deploy when secret rotated
-    //new events.Rule(this, 'SecretChangeRule', {
-    //  description: `Supabase - Force deploy ${this.node.id}, when DB secret rotated`,
-    //  eventPattern: {
-    //    source: ['aws.secretsmanager'],
-    //    detail: {
-    //      eventName: ['RotationSucceeded'],
-    //      additionalEventData: {
-    //        SecretId: [backend.secret?.secretArn],
-    //      },
-    //    },
-    //  },
-    //  targets: [this.forceDeployFunction],
-    //});
+
+    new events.Rule(this, 'DatabaseSecretRotated', {
+      description: `Supabase - Force deploy ${this.node.id}, when DB secret rotated`,
+      eventPattern: {
+        source: ['aws.secretsmanager'],
+        detail: {
+          eventName: ['RotationSucceeded'],
+          additionalEventData: {
+            SecretId: [backend.secret?.secretArn],
+          },
+        },
+      },
+      targets: [this.forceDeployFunction],
+    });
   }
 
   addExternalBackend(backend: SupabaseServiceBase) {
