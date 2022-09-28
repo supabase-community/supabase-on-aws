@@ -116,6 +116,10 @@
       "type": "runtime"
     },
     {
+      "name": "@aws-sdk/client-workmail",
+      "type": "runtime"
+    },
+    {
       "name": "@aws-sdk/util-utf8-node",
       "type": "runtime"
     },

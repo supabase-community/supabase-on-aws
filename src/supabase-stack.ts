@@ -5,7 +5,8 @@ import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import { ManagedPrefixList } from './managed-prefix-list';
+import { ManagedPrefixList } from './aws-prefix-list';
+import * as workmail from './aws-workmail';
 import { SupabaseAuth } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
@@ -31,6 +32,7 @@ export class SupabaseStack extends cdk.Stack {
 
     const { meshEnabled, gqlEnabled } = props;
 
+    // Parameters
     const disableSignupParameter = new cdk.CfnParameter(this, 'DisableSignupParameter', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
       type: 'String',
@@ -69,7 +71,7 @@ export class SupabaseStack extends cdk.Stack {
     const smtpAdminEmailParameter = new cdk.CfnParameter(this, 'SmtpAdminEmailParameter', {
       description: 'The From e-mail address for all emails sent. If you want test e-mail, you can use Amazon WorkMail',
       type: 'String',
-      default: 'noreply@supabase.example.com',
+      default: 'noreply@example.com',
       allowedPattern: '^[\\x20-\\x45]?[\\w-\\+]+(\\.[\\w]+)*@[\\w-]+(\\.[\\w]+)*(\\.[a-z]{2,})$',
       constraintDescription: 'must be a valid email address',
     });
@@ -87,6 +89,13 @@ export class SupabaseStack extends cdk.Stack {
       allowedValues: sesSmtpSupportedRegions,
     });
 
+    const workMailEnabledParameter = new cdk.CfnParameter(this, 'WorkMailEnabledParameter', {
+      description: 'Enable Amazon WorkMail. To use "supabase-<account_id>.awsapps.com" domain with Amazon SES.',
+      type: 'String',
+      default: 'false',
+      allowedValues: ['true', 'false'],
+    });
+
     const wafRequestRateLimitParameter = new cdk.CfnParameter(this, 'WafRequestRateLimitParameter', {
       description: 'The rate limit is the maximum number of requests from a single IP address that are allowed in a five-minute period. This value is continually evaluated, and requests will be blocked once this limit is reached. The IP address is automatically unblocked after it falls below the limit.',
       type: 'Number',
@@ -95,6 +104,7 @@ export class SupabaseStack extends cdk.Stack {
       maxValue: 20000000,
     });
 
+    // Parameters - Supabase Version
     const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersionParameter', {
       type: 'String',
       default: 'v2.15.5',
@@ -129,6 +139,10 @@ export class SupabaseStack extends cdk.Stack {
       //description: 'Docker image tag - https://hub.docker.com/r/supabase/postgres-meta/tags',
     });
 
+    // Condition
+    const workMailEnabledCondition = new cdk.CfnCondition(this, 'WorkMailEnabledCondition', { expression: cdk.Fn.conditionEquals(workMailEnabledParameter, 'true') });
+
+    // Resources
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
     const mesh = (meshEnabled)
@@ -146,6 +160,11 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, mesh });
+    const workMailOrg = new workmail.Organization(this, 'WorkMail', { region: sesRegionParameter.valueAsString });
+    workMailOrg.resource.addOverride('Condition', workMailEnabledCondition.logicalId);
+
+    const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabledCondition.logicalId, `noreply@${workMailOrg.domain}`, smtpAdminEmailParameter.valueAsString);
+    const smtpHost = `email-smtp.${sesRegionParameter.valueAsString}.amazonaws.com`;
 
     const db = new SupabaseDatabase(this, 'Database', { vpc, mesh });
     const dbSecret = db.secret!;
@@ -210,8 +229,8 @@ export class SupabaseStack extends cdk.Stack {
           GOTRUE_JWT_ADMIN_ROLES: 'service_role',
           GOTRUE_JWT_DEFAULT_GROUP_NAME: 'authenticated',
           // E-Mail - https://github.com/supabase/gotrue#e-mail
-          GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmailParameter.valueAsString,
-          GOTRUE_SMTP_HOST: `email-smtp.${sesRegionParameter.valueAsString}.amazonaws.com`,
+          GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmail.toString(),
+          GOTRUE_SMTP_HOST: smtpHost,
           GOTRUE_SMTP_PORT: '465',
           GOTRUE_SMTP_SENDER_NAME: smtpSenderNameParameter.valueAsString,
           GOTRUE_MAILER_AUTOCONFIRM: 'false',
@@ -233,6 +252,7 @@ export class SupabaseStack extends cdk.Stack {
       externalAuthProviders: ['Google', 'Facebook', 'Twitter', 'GitHub'],
       mesh,
     });
+    //(auth.ecsService.taskDefinition.node.defaultChild as ecs.CfnTaskDefinition).addPropertyOverride('ContainerDefinitions.0.Environment', smtpAdminEmail);
 
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
@@ -430,12 +450,13 @@ export class SupabaseStack extends cdk.Stack {
           Parameters: [
             smtpAdminEmailParameter.logicalId,
             smtpSenderNameParameter.logicalId,
+            sesRegionParameter.logicalId,
+            workMailEnabledParameter.logicalId,
           ],
         },
         {
           Label: { default: 'Platform Settings' },
           Parameters: [
-            sesRegionParameter.logicalId,
             db.multiAzParameter.logicalId,
             wafRequestRateLimitParameter.logicalId,
           ],
@@ -464,9 +485,10 @@ export class SupabaseStack extends cdk.Stack {
         [redirectUrlsParameter.logicalId]: { default: 'Redirect URLs' },
         [jwtExpiryLimitParameter.logicalId]: { default: 'JWT expiry limit' },
         [passwordMinLengthParameter.logicalId]: { default: 'Min password length' },
-        [sesRegionParameter.logicalId]: { default: 'Amazon SES Region' },
         [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
         [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
+        [sesRegionParameter.logicalId]: { default: 'Amazon Simple Email Service (SES) Region' },
+        [workMailEnabledParameter.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail domain)' },
         [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
         [wafRequestRateLimitParameter.logicalId]: { default: 'WAF Request Rate Limit' },
         [authApiVersionParameter.logicalId]: { default: 'Auth API Version - GoTrue' },

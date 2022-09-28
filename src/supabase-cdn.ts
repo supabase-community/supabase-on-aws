@@ -3,7 +3,7 @@ import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import { LoadBalancerV2Origin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Construct } from 'constructs';
-import { WebACL } from './waf-web-acl';
+import { WebACL } from './aws-waf-v2';
 
 interface SupabaseCdnProps {
   origin: string|elb.ILoadBalancerV2;
