@@ -177,7 +177,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     secret.addRotationSchedule('Rotation', {
       automaticallyAfter: cdk.Duration.days(30),
       hostedRotation: secretsmanager.HostedRotation.postgreSqlSingleUser({
-        functionName: 'SupabaseDatabaseSecretRotationFunction',
+        functionName: `${secret.secretName}RotationFunction`,
         excludeCharacters,
         securityGroups: [rotationSecurityGroup],
         vpc,
