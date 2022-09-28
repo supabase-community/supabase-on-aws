@@ -49,7 +49,7 @@ export class WebACL extends Construct {
 
     const crProvider = new cr.Provider(this, 'Provider', { onEventHandler: crFunction });
 
-    const webAclName = `${cdk.Aws.STACK_NAME}-${id}-${cdk.Aws.REGION}`;
+    const webAclName = `${this.node.path.replace(/\//g, '-')}-${cdk.Aws.REGION}`;
 
     const input: CreateWebACLCommandInput = {
       Name: webAclName,
