@@ -16,7 +16,7 @@ import { SupabaseService } from './supabase-service';
 import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
 
-const ecrAlias = 't3w2s2c9';
+const ecrAlias = 'supabase';
 const ecrRegistry = `public.ecr.aws/${ecrAlias}`;
 const ecrGalleryUrl = `https://gallery.ecr.aws/${ecrAlias}`;
 const imageTagPattern = '^(v[0-9]+.[0-9]+.[0-9]+(.\w)*)|latest$'; // for docker image tags
@@ -110,33 +110,29 @@ export class SupabaseStack extends cdk.Stack {
       default: 'v2.15.5',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/gotrue`,
-      //description: 'Docker image tag - https://hub.docker.com/r/supabase/gotrue/tags',
     });
     const restApiVersionParameter = new cdk.CfnParameter(this, 'RestApiVersionParameter', {
       type: 'String',
       default: 'v9.0.1.20220802',
-      description: 'Docker image tag - https://hub.docker.com/r/postgrest/postgrest/tags',
+      description: `Docker image tag - ${ecrGalleryUrl}/postgrest`,
     });
     const realtimeApiVersionParameter = new cdk.CfnParameter(this, 'RealtimeApiVersionParameter', {
       type: 'String',
       default: 'v0.24.2',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/realtime`,
-      //description: 'Docker image tag - https://hub.docker.com/r/supabase/realtime/tags',
     });
     const storageApiVersionParameter = new cdk.CfnParameter(this, 'StorageApiVersionParameter', {
       type: 'String',
       default: 'v0.20.0',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/storage-api`,
-      //description: 'Docker image tag - https://hub.docker.com/r/supabase/storage-api/tags',
     });
     const postgresMetaApiVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaApiVersionParameter', {
       type: 'String',
       default: 'v0.44.0',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta`,
-      //description: 'Docker image tag - https://hub.docker.com/r/supabase/postgres-meta/tags',
     });
 
     // Condition
