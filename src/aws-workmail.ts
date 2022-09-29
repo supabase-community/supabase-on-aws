@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
+//import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
@@ -16,7 +16,7 @@ export class WorkMail extends cdk.NestedStack {
   alias: string;
   domain: string;
   organizationId: string;
-  createUserProvider: cr.Provider;
+  //createUserProvider: cr.Provider;
 
   constructor(scope: Construct, id: string, props: WorkMailProps) {
     super(scope, id, { description: 'Amazon WorkMail for Test Domain' });
@@ -59,24 +59,24 @@ export class WorkMail extends cdk.NestedStack {
       initialPolicy: [createWorkMailOrgStatement],
     });
 
-    const checkOrgFunction = new NodejsFunction(this, 'CheckOrgFunction', {
-      description: 'Supabase - Check state WorkMail Org Function',
-      entry: './src/functions/check-workmail-org.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
-      initialPolicy: [
-        new iam.PolicyStatement({
-          actions: [
-            'workmail:DescribeOrganization',
-            'ses:GetIdentityVerificationAttributes',
-          ],
-          resources: ['*'],
-        }),
-      ],
-    });
+    //const checkOrgFunction = new NodejsFunction(this, 'CheckOrgFunction', {
+    //  description: 'Supabase - Check state WorkMail Org Function',
+    //  entry: './src/functions/check-workmail-org.ts',
+    //  runtime: lambda.Runtime.NODEJS_16_X,
+    //  initialPolicy: [
+    //    new iam.PolicyStatement({
+    //      actions: [
+    //        'workmail:DescribeOrganization',
+    //        'ses:GetIdentityVerificationAttributes',
+    //      ],
+    //      resources: ['*'],
+    //    }),
+    //  ],
+    //});
 
     const createOrgProvider = new cr.Provider(this, 'CreateOrgProvider', {
       onEventHandler: createOrgFunction,
-      isCompleteHandler: checkOrgFunction,
+      //isCompleteHandler: checkOrgFunction,
     });
 
     const org = new cdk.CfnResource(this, 'Organization', {
@@ -89,50 +89,48 @@ export class WorkMail extends cdk.NestedStack {
     });
     this.organizationId = org.ref;
 
-    const createUserFunction = new NodejsFunction(this, 'CreateUserFunction', {
-      description: 'Supabase - Create WorkMail User Function',
-      entry: './src/functions/create-workmail-user.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
-      initialPolicy: [
-        new iam.PolicyStatement({
-          actions: [
-            'workmail:CreateUser',
-            'workmail:DeleteUser',
-            'workmail:RegisterToWorkMail',
-            'workmail:DeregisterFromWorkMail',
-            'ses:GetIdentityVerificationAttributes',
-          ],
-          resources: ['*'],
-        }),
-      ],
-    });
+    //const createUserFunction = new NodejsFunction(this, 'CreateUserFunction', {
+    //  description: 'Supabase - Create WorkMail User Function',
+    //  entry: './src/functions/create-workmail-user.ts',
+    //  runtime: lambda.Runtime.NODEJS_16_X,
+    //  initialPolicy: [
+    //    new iam.PolicyStatement({
+    //      actions: [
+    //        'workmail:CreateUser',
+    //        'workmail:DeleteUser',
+    //        'workmail:RegisterToWorkMail',
+    //        'workmail:DeregisterFromWorkMail',
+    //        'ses:GetIdentityVerificationAttributes',
+    //      ],
+    //      resources: ['*'],
+    //    }),
+    //  ],
+    //});
 
-    this.createUserProvider = new cr.Provider(this, 'CreateUserProvider', {
-      onEventHandler: createUserFunction,
-    });
+    //this.createUserProvider = new cr.Provider(this, 'CreateUserProvider', {
+    //  onEventHandler: createUserFunction,
+    //});
   }
 
-  addUser(name: string) {
-    const secret = new Secret(this, `User-${name}-Secret`, {
-      description: `Supabase - WorkMail User Secret - ${name}`,
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({ username: name }),
-        generateStringKey: 'password',
-        passwordLength: 64,
-      },
-    });
-    secret.grantRead(this.createUserProvider.onEventHandler);
-
-    new cdk.CfnResource(this, `User$-${name}`, {
-      type: 'Custom::WorkMailUser',
-      properties: {
-        ServiceToken: this.createUserProvider.serviceToken,
-        Region: this.region,
-        OrganizationId: this.organizationId,
-        SecretId: secret.secretArn,
-      },
-    });
-
-    return secret;
-  }
+  //addUser(name: string) {
+  //  const secret = new Secret(this, `User-${name}-Secret`, {
+  //    description: `Supabase - WorkMail User Secret - ${name}`,
+  //    generateSecretString: {
+  //      secretStringTemplate: JSON.stringify({ username: name }),
+  //      generateStringKey: 'password',
+  //      passwordLength: 64,
+  //    },
+  //  });
+  //  secret.grantRead(this.createUserProvider.onEventHandler);
+  //  new cdk.CfnResource(this, `User$-${name}`, {
+  //    type: 'Custom::WorkMailUser',
+  //    properties: {
+  //      ServiceToken: this.createUserProvider.serviceToken,
+  //      Region: this.region,
+  //      OrganizationId: this.organizationId,
+  //      SecretId: secret.secretArn,
+  //    },
+  //  });
+  //  return secret;
+  //}
 }
