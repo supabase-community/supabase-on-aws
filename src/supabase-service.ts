@@ -15,10 +15,10 @@ import { SupabaseDatabase } from './supabase-db';
 
 const envoyCpuRate = 0.4;
 const envoyMemRate = 0.1;
-const xrayCpuRate = 0.1;
-const xrayMemRate = 0.1;
-const appCpuRate = 1.0 - envoyCpuRate - xrayCpuRate;
-const appMemRate = 1.0 - envoyMemRate - xrayMemRate;
+const otelCpuRate = 0.1;
+const otelMemRate = 0.1;
+const appCpuRate = 1.0 - envoyCpuRate - otelCpuRate;
+const appMemRate = 1.0 - envoyMemRate - otelMemRate;
 
 export class SupabaseServiceBase extends Construct {
   virtualService?: appmesh.VirtualService;
@@ -191,22 +191,20 @@ export class SupabaseService extends SupabaseServiceBase {
         condition: ecs.ContainerDependencyCondition.HEALTHY,
       });
 
-      taskDefinition.addContainer('xray-daemon', {
-        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/xray/aws-xray-daemon:latest'),
-        // TODO: Using ADOT collector, the console can't display well as App Mesh objects.
-        // image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:v0.20.0'),
-        // command: ['--config=/etc/ecs/ecs-default-config.yaml'],
+      taskDefinition.addContainer('otel-collector', {
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:v0.21.1'),
+        command: ['--config=/etc/ecs/ecs-default-config.yaml'],
         user: '1337',
-        cpu: Math.round(cpu * xrayCpuRate),
-        memoryReservationMiB: Math.round(memory * xrayMemRate),
+        cpu: Math.round(cpu * otelCpuRate),
+        memoryReservationMiB: Math.round(memory * otelMemRate),
         essential: true,
-        healthCheck: {
-          command: ['CMD', '/xray', '--version', '||', 'exit 1'], // https://github.com/aws/aws-xray-daemon/issues/9
-          interval: cdk.Duration.seconds(5),
-          timeout: cdk.Duration.seconds(2),
-          startPeriod: cdk.Duration.seconds(10),
-          retries: 3,
-        },
+        //healthCheck: {
+        //  command: ['CMD', '/xray', '--version', '||', 'exit 1'], // https://github.com/aws/aws-xray-daemon/issues/9
+        //  interval: cdk.Duration.seconds(5),
+        //  timeout: cdk.Duration.seconds(2),
+        //  startPeriod: cdk.Duration.seconds(10),
+        //  retries: 3,
+        //},
         readonlyRootFilesystem: true,
         logging,
       });
