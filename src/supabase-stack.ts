@@ -22,7 +22,6 @@ const ecrGalleryUrl = `https://gallery.ecr.aws/${ecrAlias}`;
 const imageTagPattern = '^(v[0-9]+.[0-9]+.[0-9]+(.\w)*)|latest$'; // for docker image tags
 
 interface SupabaseStackProps extends cdk.StackProps {
-  meshEnabled?: boolean;
   gqlEnabled?: boolean;
 }
 
@@ -30,7 +29,7 @@ export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: SupabaseStackProps = {}) {
     super(scope, id, props);
 
-    const { meshEnabled, gqlEnabled } = props;
+    const { gqlEnabled } = props;
 
     // Parameters
     const disableSignupParameter = new cdk.CfnParameter(this, 'DisableSignupParameter', {
@@ -141,13 +140,6 @@ export class SupabaseStack extends cdk.Stack {
     // Resources
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
-    const mesh = (meshEnabled)
-      ? new appmesh.Mesh(this, 'Mesh', {
-        meshName: this.stackName,
-        egressFilter: appmesh.MeshFilterType.ALLOW_ALL, // Need to exchange oauth external code
-      })
-      : undefined;
-
     const cluster = new ecs.Cluster(this, 'Cluster', {
       enableFargateCapacityProviders: true,
       containerInsights: false,
@@ -155,14 +147,14 @@ export class SupabaseStack extends cdk.Stack {
       vpc,
     });
 
-    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString, mesh });
+    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString });
     const workMail = new WorkMail(this, 'WorkMail', { region: sesRegionParameter.valueAsString, alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
     (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabledCondition.logicalId);
 
     const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabledCondition.logicalId, `noreply@${workMail.domain}`, smtpAdminEmailParameter.valueAsString);
     const smtpHost = `email-smtp.${sesRegionParameter.valueAsString}.amazonaws.com`;
 
-    const db = new SupabaseDatabase(this, 'Database', { vpc, mesh });
+    const db = new SupabaseDatabase(this, 'Database', { vpc });
     const dbSecret = db.secret!;
 
     const jwt = new SupabaseJwt(this, 'SupabaseJwt', { issuer: 'supabase', expiresIn: '10y' });
@@ -189,7 +181,6 @@ export class SupabaseStack extends cdk.Stack {
           SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
         },
       },
-      mesh,
     });
     const kongLoadBalancer = kong.addNetworkLoadBalancer();
 
@@ -252,9 +243,7 @@ export class SupabaseStack extends cdk.Stack {
       },
       apiExternalUrl,
       externalAuthProviders: ['Google', 'Facebook', 'Twitter', 'GitHub'],
-      mesh,
     });
-    //(auth.ecsService.taskDefinition.node.defaultChild as ecs.CfnTaskDefinition).addPropertyOverride('ContainerDefinitions.0.Environment', smtpAdminEmail);
 
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
@@ -271,7 +260,6 @@ export class SupabaseStack extends cdk.Stack {
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
         },
       },
-      mesh,
     });
 
     if (gqlEnabled) {
@@ -297,7 +285,6 @@ export class SupabaseStack extends cdk.Stack {
             JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
           },
         },
-        mesh,
       });
       graphql.addDatabaseBackend(db);
       kong.addBackend(graphql);
@@ -331,7 +318,6 @@ export class SupabaseStack extends cdk.Stack {
         command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
       },
       autoScalingEnabled: false,
-      mesh,
     });
 
     const bucket = new s3.Bucket(this, 'Bucket', {
@@ -362,7 +348,6 @@ export class SupabaseStack extends cdk.Stack {
         },
       },
       cpuArchitecture: ecs.CpuArchitecture.X86_64, // storage-api does not work on ARM64
-      mesh,
     });
     bucket.grantReadWrite(storage.ecsService.taskDefinition.taskRole);
 
@@ -382,7 +367,6 @@ export class SupabaseStack extends cdk.Stack {
           PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
         },
       },
-      mesh,
     });
 
     kong.addBackend(auth);
@@ -392,7 +376,6 @@ export class SupabaseStack extends cdk.Stack {
     kong.addBackend(meta);
 
     auth.addBackend(rest);
-    auth.addExternalBackend(mail);
     storage.addBackend(rest);
 
     auth.addDatabaseBackend(db);

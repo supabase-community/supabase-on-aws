@@ -1,5 +1,4 @@
 import * as cdk from 'aws-cdk-lib';
-import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
@@ -20,13 +19,10 @@ const excludeCharacters = '%+~`#$&*()|[]{}:;<>?!\'/@\"\\=^'; // for Password
 
 interface SupabaseDatabaseProps {
   vpc: ec2.IVpc;
-  mesh?: appmesh.IMesh;
 }
 
 export class SupabaseDatabase extends rds.DatabaseCluster {
   multiAzParameter: cdk.CfnParameter;
-  virtualService?: appmesh.VirtualService;
-  virtualNode?: appmesh.VirtualNode;
   url: {
     writer: ssm.StringParameter;
     writerSearchPathAuth: ssm.StringParameter;
@@ -35,7 +31,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
 
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
 
-    const { vpc, mesh } = props;
+    const { vpc } = props;
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
       version: rds.AuroraPostgresEngineVersion.of('14.3', '14'),
@@ -223,20 +219,6 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       },
     });
     init.node.addDependency(this.node.findChild('Instance1'));
-
-    if (typeof mesh != 'undefined') {
-      this.virtualNode = new appmesh.VirtualNode(this, 'VirtualNode', {
-        virtualNodeName: id,
-        serviceDiscovery: appmesh.ServiceDiscovery.dns(this.clusterEndpoint.hostname, appmesh.DnsResponseType.ENDPOINTS),
-        listeners: [appmesh.VirtualNodeListener.tcp({ port: this.clusterEndpoint.port })],
-        mesh,
-      });
-
-      this.virtualService = new appmesh.VirtualService(this, 'VirtualService', {
-        virtualServiceName: this.clusterEndpoint.hostname,
-        virtualServiceProvider: appmesh.VirtualServiceProvider.virtualNode(this.virtualNode),
-      });
-    }
 
   }
 }
