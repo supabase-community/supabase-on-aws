@@ -123,13 +123,13 @@ export class SupabaseStack extends cdk.Stack {
     });
     const storageApiVersionParameter = new cdk.CfnParameter(this, 'StorageApiVersionParameter', {
       type: 'String',
-      default: 'v0.20.0',
+      default: 'v0.20.2',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/storage-api`,
     });
     const postgresMetaApiVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaApiVersionParameter', {
       type: 'String',
-      default: 'v0.44.0',
+      default: 'v0.46.0',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta`,
     });
