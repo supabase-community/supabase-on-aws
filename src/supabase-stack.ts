@@ -107,7 +107,7 @@ export class SupabaseStack extends cdk.Stack {
     // Parameters - Supabase Version
     const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersionParameter', {
       type: 'String',
-      default: 'v2.15.5',
+      default: 'v2.17.3',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/gotrue`,
     });
@@ -219,6 +219,12 @@ export class SupabaseStack extends cdk.Stack {
           //API_EXTERNAL_URL: apiExternalUrl,
           // Database - https://github.com/supabase/gotrue#database
           GOTRUE_DB_DRIVER: 'postgres',
+          // Observability
+          GOTRUE_TRACING_ENABLED: 'true',
+          OTEL_SERVICE_NAME: 'gotrue',
+          OTEL_EXPORTER_OTLP_PROTOCOL: 'grpc',
+          OTEL_EXPORTER_OTLP_ENDPOINT: 'http://localhost:4317',
+          //OTEL_EXPORTER_OTLP_HEADERS: 'x-honeycomb-team=<API-KEY>,x-honeycomb-dataset=gotrue',
           // JWT - https://github.com/supabase/gotrue#json-web-tokens-jwt
           GOTRUE_JWT_EXP: jwtExpiryLimitParameter.valueAsString,
           GOTRUE_JWT_AUD: 'authenticated',
