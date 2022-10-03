@@ -95,7 +95,7 @@ export class SupabaseService extends Construct {
 
     const otelContainer = taskDefinition.addContainer('OtelCollector', {
       containerName: 'otel-collector',
-      image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:v0.21.1'),
+      image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:latest'),
       command: ['--config=/etc/ecs/ecs-default-config.yaml'],
       cpu: Math.round(cpu * otelCpuRate),
       memoryReservationMiB: Math.round(memory * otelMemRate),
