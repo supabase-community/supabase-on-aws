@@ -54,7 +54,27 @@ export class SupabaseService extends Construct {
         cpuArchitecture,
       },
     });
-    taskDefinition.taskRole.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess' });
+
+    const otelPolicy = new iam.Policy(this, 'OpenTelemetryPolicy', {
+      policyName: 'OpenTelemetryPolicy',
+      statements: [new iam.PolicyStatement({
+        actions: [
+          'logs:PutLogEvents',
+          'logs:CreateLogGroup',
+          'logs:CreateLogStream',
+          'logs:DescribeLogStreams',
+          'logs:DescribeLogGroups',
+          'xray:PutTraceSegments',
+          'xray:PutTelemetryRecords',
+          'xray:GetSamplingRules',
+          'xray:GetSamplingTargets',
+          'xray:GetSamplingStatisticSummaries',
+          'ssm:GetParameters',
+        ],
+        resources: ['*'],
+      })],
+    });
+    taskDefinition.taskRole.attachInlinePolicy(otelPolicy);
 
     this.logGroup = new logs.LogGroup(this, 'Logs', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -81,7 +101,7 @@ export class SupabaseService extends Construct {
       memoryReservationMiB: Math.round(memory * otelMemRate),
       essential: true,
       //healthCheck: {
-      //  command: ['CMD', '/xray', '--version', '||', 'exit 1'], // https://github.com/aws/aws-xray-daemon/issues/9
+      //  command: ["CMD-SHELL", "curl -f http://127.0.0.1:13133/ || exit 1"],
       //  interval: cdk.Duration.seconds(5),
       //  timeout: cdk.Duration.seconds(2),
       //  startPeriod: cdk.Duration.seconds(10),

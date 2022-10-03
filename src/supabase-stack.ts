@@ -173,8 +173,10 @@ export class SupabaseStack extends cdk.Stack {
         },
         environment: {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
-          KONG_PLUGINS: 'request-transformer,cors,key-auth,acl',
+          KONG_PLUGINS: 'request-transformer,cors,key-auth,acl,opentelemetry',
           KONG_STATUS_LISTEN: '0.0.0.0:8100',
+          KONG_OPENTELEMETRY_TRACING: 'all',
+          KONG_OPENTELEMETRY_TRACING_SAMPLING_RATE: '1.0',
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
