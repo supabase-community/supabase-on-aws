@@ -1,6 +1,14 @@
 _format_version: "1.1"
 
 ###
+### OpenTelemetry
+###
+plugins:
+  - name: opentelemetry
+    config: 
+      endpoint: http://localhost:4318/v1/traces
+
+###
 ### Consumers / Users
 ###
 consumers:

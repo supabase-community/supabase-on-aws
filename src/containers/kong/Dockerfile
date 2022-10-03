@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 public.ecr.aws/docker/library/kong:2.8 AS build
+FROM --platform=linux/amd64 public.ecr.aws/docker/library/kong:3.0 AS build
 
 ARG TARGETPLATFORM
 ENV ENVSUBST_VERSION=v1.2.0
@@ -16,7 +16,7 @@ RUN case ${TARGETPLATFORM} in \
 
 RUN sed -i 1a"envsubst -i /home/kong/kong-template.yml -o /home/kong/kong.yml" /docker-entrypoint.sh
 
-FROM public.ecr.aws/docker/library/kong:2.8
+FROM public.ecr.aws/docker/library/kong:3.0
 
 COPY --from=build /tmp/envsubst /usr/local/bin/envsubst
 COPY --from=build /docker-entrypoint.sh /docker-entrypoint.sh
