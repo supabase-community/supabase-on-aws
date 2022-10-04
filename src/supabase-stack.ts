@@ -242,6 +242,12 @@ export class SupabaseStack extends cdk.Stack {
           GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(mail.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(mail.secret, 'password'),
         },
+        healthCheck: {
+          command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:9999/health || exit 1'],
+          interval: cdk.Duration.seconds(10),
+          timeout: cdk.Duration.seconds(10),
+          retries: 3,
+        },
       },
       apiExternalUrl,
       externalAuthProviders: ['Google', 'Facebook', 'Twitter', 'GitHub'],
