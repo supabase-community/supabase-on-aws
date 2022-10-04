@@ -348,6 +348,12 @@ export class SupabaseStack extends cdk.Stack {
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
           DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writer),
         },
+        healthCheck: {
+          command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/status || exit 1'],
+          interval: cdk.Duration.seconds(10),
+          timeout: cdk.Duration.seconds(10),
+          retries: 3,
+        },
       },
       cpuArchitecture: ecs.CpuArchitecture.X86_64, // storage-api does not work on ARM64
     });
