@@ -164,12 +164,6 @@ export class SupabaseStack extends cdk.Stack {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/kong:latest'),
         //image: ecs.ContainerImage.fromAsset('./src/containers/kong', { platform: Platform.LINUX_ARM64 }),
         portMappings: [{ containerPort: 8000 }, { containerPort: 8100 }],
-        healthCheck: {
-          command: ['CMD', 'kong', 'health'],
-          interval: cdk.Duration.seconds(10),
-          timeout: cdk.Duration.seconds(10),
-          retries: 3,
-        },
         environment: {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
           KONG_PLUGINS: 'request-transformer,cors,key-auth,acl,opentelemetry',
@@ -182,6 +176,12 @@ export class SupabaseStack extends cdk.Stack {
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
           SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
+        },
+        healthCheck: {
+          command: ['CMD', 'kong', 'health'],
+          interval: cdk.Duration.seconds(10),
+          timeout: cdk.Duration.seconds(10),
+          retries: 3,
         },
       },
     });
