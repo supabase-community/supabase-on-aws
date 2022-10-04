@@ -116,7 +116,7 @@ export class SupabaseService extends Construct {
       condition: ecs.ContainerDependencyCondition.START,
     });
 
-    this.ecsService = new ecs.FargateService(this, 'Svc', {
+    this.ecsService = new ecs.FargateService(this, 'Fargate', {
       cluster,
       taskDefinition,
       circuitBreaker: { rollback: true },
