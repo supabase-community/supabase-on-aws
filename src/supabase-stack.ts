@@ -1,5 +1,4 @@
 import * as cdk from 'aws-cdk-lib';
-import * as appmesh from 'aws-cdk-lib/aws-appmesh';
 import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
@@ -175,8 +174,10 @@ export class SupabaseStack extends cdk.Stack {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
           KONG_PLUGINS: 'request-transformer,cors,key-auth,acl,opentelemetry',
           KONG_STATUS_LISTEN: '0.0.0.0:8100',
-          KONG_OPENTELEMETRY_TRACING: 'all',
-          KONG_OPENTELEMETRY_TRACING_SAMPLING_RATE: '1.0',
+          //KONG_OPENTELEMETRY_ENABLED: 'true',
+          //KONG_OPENTELEMETRY_TRACING: 'all',
+          //KONG_OPENTELEMETRY_TRACING_SAMPLING_RATE: '1.0',
+          //OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: `http://${jaeger.dnsName}:4318/v1/traces`,
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
@@ -213,11 +214,10 @@ export class SupabaseStack extends cdk.Stack {
           // Database - https://github.com/supabase/gotrue#database
           GOTRUE_DB_DRIVER: 'postgres',
           // Observability
-          GOTRUE_TRACING_ENABLED: 'true',
-          OTEL_SERVICE_NAME: 'gotrue',
-          OTEL_EXPORTER_OTLP_PROTOCOL: 'grpc',
-          OTEL_EXPORTER_OTLP_ENDPOINT: 'http://localhost:4317',
-          //OTEL_EXPORTER_OTLP_HEADERS: 'x-honeycomb-team=<API-KEY>,x-honeycomb-dataset=gotrue',
+          //GOTRUE_TRACING_ENABLED: 'true',
+          //OTEL_SERVICE_NAME: 'gotrue',
+          //OTEL_EXPORTER_OTLP_PROTOCOL: 'grpc',
+          //OTEL_EXPORTER_OTLP_ENDPOINT: `http://${jaeger.dnsName}:4317`,
           // JWT - https://github.com/supabase/gotrue#json-web-tokens-jwt
           GOTRUE_JWT_EXP: jwtExpiryLimitParameter.valueAsString,
           GOTRUE_JWT_AUD: 'authenticated',
