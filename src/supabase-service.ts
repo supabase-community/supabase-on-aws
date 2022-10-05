@@ -15,8 +15,6 @@ import { SupabaseDatabase } from './supabase-db';
 
 const otelCpuRate = 0.1;
 const otelMemRate = 0.1;
-const appCpuRate = 1.0 - otelCpuRate;
-const appMemRate = 1.0 - otelMemRate;
 
 export interface SupabaseServiceProps {
   cluster: ecs.ICluster;
@@ -25,6 +23,7 @@ export interface SupabaseServiceProps {
   memory?: number;
   cpuArchitecture?: ecs.CpuArchitecture;
   autoScalingEnabled?: boolean;
+  otelCollectorEnabled?: boolean;
 }
 
 export class SupabaseService extends Construct {
@@ -43,6 +42,7 @@ export class SupabaseService extends Construct {
     const memory = props.memory || 2048;
     const cpuArchitecture = props.cpuArchitecture || ecs.CpuArchitecture.ARM64;
     const autoScalingEnabled = (typeof props.autoScalingEnabled == 'undefined') ? true : props.autoScalingEnabled;
+    const otelCollectorEnabled = (typeof props.otelCollectorEnabled == 'undefined') ? false : props.autoScalingEnabled;
 
     this.listenerPort = containerDefinition.portMappings![0].containerPort;
 
@@ -55,27 +55,6 @@ export class SupabaseService extends Construct {
       },
     });
 
-    const otelPolicy = new iam.Policy(this, 'OpenTelemetryPolicy', {
-      policyName: 'OpenTelemetryPolicy',
-      statements: [new iam.PolicyStatement({
-        actions: [
-          'logs:PutLogEvents',
-          'logs:CreateLogGroup',
-          'logs:CreateLogStream',
-          'logs:DescribeLogStreams',
-          'logs:DescribeLogGroups',
-          'xray:PutTraceSegments',
-          'xray:PutTelemetryRecords',
-          'xray:GetSamplingRules',
-          'xray:GetSamplingTargets',
-          'xray:GetSamplingStatisticSummaries',
-          'ssm:GetParameters',
-        ],
-        resources: ['*'],
-      })],
-    });
-    taskDefinition.taskRole.attachInlinePolicy(otelPolicy);
-
     this.logGroup = new logs.LogGroup(this, 'Logs', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       retention: logs.RetentionDays.ONE_MONTH,
@@ -83,7 +62,10 @@ export class SupabaseService extends Construct {
 
     const awsLogDriver = new ecs.AwsLogDriver({ logGroup: this.logGroup, streamPrefix: 'ecs' });
 
-    const appContainer = taskDefinition.addContainer('App', {
+    const appCpuRate = (otelCollectorEnabled) ? 1.0 - otelCpuRate : 1.0;
+    const appMemRate = (otelCollectorEnabled) ? 1.0 - otelMemRate : 1.0;
+
+    const appContainer = taskDefinition.addContainer('AppContainer', {
       ...containerDefinition,
       containerName: 'app',
       cpu: Math.round(cpu * appCpuRate),
@@ -93,28 +75,51 @@ export class SupabaseService extends Construct {
     });
     appContainer.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 65536, hardLimit: 65536 });
 
-    const otelContainer = taskDefinition.addContainer('OtelCollector', {
-      containerName: 'otel-collector',
-      image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:latest'),
-      command: ['--config=/etc/ecs/ecs-xray.yaml'],
-      cpu: Math.round(cpu * otelCpuRate),
-      memoryReservationMiB: Math.round(memory * otelMemRate),
-      essential: true,
-      //healthCheck: {
-      //  command: ["CMD-SHELL", "curl -f http://127.0.0.1:13133/ || exit 1"],
-      //  interval: cdk.Duration.seconds(5),
-      //  timeout: cdk.Duration.seconds(2),
-      //  startPeriod: cdk.Duration.seconds(10),
-      //  retries: 3,
-      //},
-      readonlyRootFilesystem: true,
-      logging: awsLogDriver,
-    });
+    if (otelCollectorEnabled) {
+      const otelPolicy = new iam.Policy(this, 'OpenTelemetryPolicy', {
+        policyName: 'OpenTelemetryPolicy',
+        statements: [new iam.PolicyStatement({
+          actions: [
+            'logs:PutLogEvents',
+            'logs:CreateLogGroup',
+            'logs:CreateLogStream',
+            'logs:DescribeLogStreams',
+            'logs:DescribeLogGroups',
+            'xray:PutTraceSegments',
+            'xray:PutTelemetryRecords',
+            'xray:GetSamplingRules',
+            'xray:GetSamplingTargets',
+            'xray:GetSamplingStatisticSummaries',
+            'ssm:GetParameters',
+          ],
+          resources: ['*'],
+        })],
+      });
+      taskDefinition.taskRole.attachInlinePolicy(otelPolicy);
 
-    appContainer.addContainerDependencies({
-      container: otelContainer,
-      condition: ecs.ContainerDependencyCondition.START,
-    });
+      const otelContainer = taskDefinition.addContainer('OtelContainer', {
+        containerName: 'otel-collector',
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:latest'),
+        command: ['--config=/etc/ecs/ecs-xray.yaml'],
+        cpu: Math.round(cpu * otelCpuRate),
+        memoryReservationMiB: Math.round(memory * otelMemRate),
+        essential: true,
+        //healthCheck: {
+        //  command: ["CMD-SHELL", "curl -f http://127.0.0.1:13133/ || exit 1"],
+        //  interval: cdk.Duration.seconds(5),
+        //  timeout: cdk.Duration.seconds(2),
+        //  startPeriod: cdk.Duration.seconds(10),
+        //  retries: 3,
+        //},
+        readonlyRootFilesystem: true,
+        logging: awsLogDriver,
+      });
+
+      appContainer.addContainerDependencies({
+        container: otelContainer,
+        condition: ecs.ContainerDependencyCondition.START,
+      });
+    }
 
     this.ecsService = new ecs.FargateService(this, 'Fargate', {
       cluster,

@@ -102,7 +102,7 @@ export class SupabaseStack extends cdk.Stack {
       maxValue: 20000000,
     });
 
-    const dbMultiAz = new cdk.CfnParameter(this, 'DatabaseMultiAvailabilityZones', {
+    const dbMultiAz = new cdk.CfnParameter(this, 'DatabaseMultiAz', {
       description: 'Create a replica at another Availability Zone',
       type: 'String',
       default: 'false',
@@ -158,7 +158,7 @@ export class SupabaseStack extends cdk.Stack {
 
     // Condition
     const workMailEnabled = new cdk.CfnCondition(this, 'WorkMailEnabled', { expression: cdk.Fn.conditionEquals(enableWorkMail, 'true') });
-    const dbMultiAzEnabled = new cdk.CfnCondition(this, 'MultiAzCondition', { expression: cdk.Fn.conditionEquals(dbMultiAz, 'true') });
+    const dbMultiAzEnabled = new cdk.CfnCondition(this, 'DatabaseMultiAzEnabled', { expression: cdk.Fn.conditionEquals(dbMultiAz, 'true') });
 
     // Resources
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
