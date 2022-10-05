@@ -102,6 +102,29 @@ export class SupabaseStack extends cdk.Stack {
       maxValue: 20000000,
     });
 
+    const dbMultiAz = new cdk.CfnParameter(this, 'DatabaseMultiAvailabilityZones', {
+      description: 'Create a replica at another Availability Zone',
+      type: 'String',
+      default: 'false',
+      allowedValues: ['true', 'false'],
+    });
+
+    const minAcu = new cdk.CfnParameter(this, 'MinAuroraCapacityUnit', {
+      description: 'The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
+      type: 'Number',
+      default: 0.5,
+      minValue: 0.5,
+      maxValue: 128,
+    });
+
+    const maxAcu = new cdk.CfnParameter(this, 'MaxAuroraCapacityUnit', {
+      description: 'The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
+      type: 'Number',
+      default: 32,
+      minValue: 0.5,
+      maxValue: 128,
+    });
+
     // Parameters - Supabase Version
     const authApiVersion = new cdk.CfnParameter(this, 'AuthApiVersion', {
       type: 'String',
@@ -135,6 +158,7 @@ export class SupabaseStack extends cdk.Stack {
 
     // Condition
     const workMailEnabled = new cdk.CfnCondition(this, 'WorkMailEnabled', { expression: cdk.Fn.conditionEquals(enableWorkMail, 'true') });
+    const dbMultiAzEnabled = new cdk.CfnCondition(this, 'MultiAzCondition', { expression: cdk.Fn.conditionEquals(dbMultiAz, 'true') });
 
     // Resources
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
@@ -153,7 +177,7 @@ export class SupabaseStack extends cdk.Stack {
     const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, `noreply@${workMail.domain}`, senderEmail.valueAsString);
     const smtpHost = cdk.Fn.conditionIf(workMailEnabled.logicalId, `email-smtp.${workMail.region}.amazonaws.com`, `email-smtp.${sesRegion.valueAsString}.amazonaws.com`);
 
-    const db = new SupabaseDatabase(this, 'Database', { vpc });
+    const db = new SupabaseDatabase(this, 'Database', { vpc, multiAzEnabled: dbMultiAzEnabled, minCapacity: minAcu.valueAsNumber, maxCapacity: maxAcu.valueAsNumber });
     const dbSecret = db.secret!;
 
     const jwt = new SupabaseJwt(this, 'SupabaseJwt', { issuer: 'supabase', expiresIn: '10y' });
@@ -454,9 +478,16 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
-          Label: { default: 'Platform Settings' },
+          Label: { default: 'Database Settings' },
           Parameters: [
-            db.multiAzParameter.logicalId,
+            dbMultiAz.logicalId,
+            minAcu.logicalId,
+            maxAcu.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Security Settings' },
+          Parameters: [
             wafRequestRateLimit.logicalId,
           ],
         },
@@ -488,7 +519,9 @@ export class SupabaseStack extends cdk.Stack {
         [senderName.logicalId]: { default: 'SMTP Sender Name' },
         [sesRegion.logicalId]: { default: 'Amazon SES Region' },
         [enableWorkMail.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
-        [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
+        [dbMultiAz.logicalId]: { default: 'Database Multi-AZ' },
+        [minAcu.logicalId]: { default: 'Minimum Aurora Capacity Units' },
+        [maxAcu.logicalId]: { default: 'Maximum Aurora Capacity Units' },
         [wafRequestRateLimit.logicalId]: { default: 'WAF Request Rate Limit' },
         [authApiVersion.logicalId]: { default: 'Auth API Version - GoTrue' },
         [restApiVersion.logicalId]: { default: 'Rest API Version - PostgREST' },

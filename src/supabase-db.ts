@@ -19,10 +19,12 @@ const excludeCharacters = '%+~`#$&*()|[]{}:;<>?!\'/@\"\\=^'; // for Password
 
 interface SupabaseDatabaseProps {
   vpc: ec2.IVpc;
+  multiAzEnabled: cdk.CfnCondition;
+  minCapacity: number;
+  maxCapacity: number;
 }
 
 export class SupabaseDatabase extends rds.DatabaseCluster {
-  multiAzParameter: cdk.CfnParameter;
   url: {
     writer: ssm.StringParameter;
     writerSearchPathAuth: ssm.StringParameter;
@@ -31,7 +33,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
 
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
 
-    const { vpc } = props;
+    const { vpc, multiAzEnabled, minCapacity, maxCapacity } = props;
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
       version: rds.AuroraPostgresEngineVersion.of('14.3', '14'),
@@ -70,20 +72,12 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     });
 
     const secret = this.secret!;
-
-    this.multiAzParameter = new cdk.CfnParameter(this, 'MultiAz', {
-      description: 'Create a replica at another AZ',
-      type: 'String',
-      default: 'false',
-      allowedValues: ['true', 'false'],
-    });
-    const isMultiAz = new cdk.CfnCondition(this, 'MultiAzCondition', { expression: cdk.Fn.conditionEquals(this.multiAzParameter, 'true') });
-    (this.node.findChild('Instance2') as rds.CfnDBInstance).addOverride('Condition', isMultiAz.logicalId);
+    (this.node.findChild('Instance2') as rds.CfnDBInstance).addOverride('Condition', multiAzEnabled.logicalId);
 
     // Support for Aurora Serverless v2 ---------------------------------------------------
     const serverlessV2ScalingConfiguration = {
-      MinCapacity: 0.5,
-      MaxCapacity: 128,
+      MinCapacity: minCapacity,
+      MaxCapacity: maxCapacity,
     };
     const dbScalingConfigure = new cr.AwsCustomResource(this, 'DbScalingConfigure', {
       resourceType: 'Custom::AuroraServerlessV2ScalingConfiguration',
