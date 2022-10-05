@@ -31,26 +31,26 @@ export class SupabaseStack extends cdk.Stack {
     const { gqlEnabled } = props;
 
     // Parameters
-    const disableSignupParameter = new cdk.CfnParameter(this, 'DisableSignupParameter', {
+    const disableSignup = new cdk.CfnParameter(this, 'DisableSignup', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
       type: 'String',
       default: 'false',
       allowedValues: ['true', 'false'],
     });
 
-    const siteUrlParameter = new cdk.CfnParameter(this, 'SiteUrlParameter', {
+    const siteUrl = new cdk.CfnParameter(this, 'SiteUrl', {
       description: 'The base URL your site is located at. Currently used in combination with other settings to construct URLs used in emails.',
       type: 'String',
       default: 'http://localhost:3000',
     });
 
-    const redirectUrlsParameter = new cdk.CfnParameter(this, 'RedirectUrlsParameter', {
+    const redirectUrls = new cdk.CfnParameter(this, 'RedirectUrls', {
       description: 'URLs that auth providers are permitted to redirect to post authentication',
       type: 'String',
       default: '',
     });
 
-    const jwtExpiryLimitParameter = new cdk.CfnParameter(this, 'JwtExpiryLimitParameter', {
+    const jwtExpiryLimit = new cdk.CfnParameter(this, 'JwtExpiryLimit', {
       description: 'How long tokens are valid for. Defaults to 3600 (1 hour), maximum 604,800 seconds (one week).',
       type: 'Number',
       default: 3600,
@@ -58,7 +58,7 @@ export class SupabaseStack extends cdk.Stack {
       maxValue: 604800,
     });
 
-    const passwordMinLengthParameter = new cdk.CfnParameter(this, 'PasswordMinLengthParameter', {
+    const passwordMinLength = new cdk.CfnParameter(this, 'PasswordMinLength', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
       type: 'Number',
       default: '16',
@@ -66,35 +66,35 @@ export class SupabaseStack extends cdk.Stack {
       maxValue: 128,
     });
 
-    const smtpAdminEmailParameter = new cdk.CfnParameter(this, 'SmtpAdminEmailParameter', {
-      description: 'The From e-mail address for all emails sent. If you want test e-mail, you can use Amazon WorkMail',
+    const senderEmail = new cdk.CfnParameter(this, 'SenderEmail', {
+      description: 'This is the email address the emails are sent from. If Amazon WorkMail is enabled, it set "noreply@supabase-<account_id>.awsapps.com"',
       type: 'String',
       default: 'noreply@example.com',
       allowedPattern: '^[\\x20-\\x45]?[\\w-\\+]+(\\.[\\w]+)*@[\\w-]+(\\.[\\w]+)*(\\.[a-z]{2,})$',
       constraintDescription: 'must be a valid email address',
     });
 
-    const smtpSenderNameParameter = new cdk.CfnParameter(this, 'SmtpSenderNameParameter', {
+    const senderName = new cdk.CfnParameter(this, 'SenderName', {
       description: 'The From email sender name for all emails sent.',
       type: 'String',
       default: 'Supabase',
     });
 
-    const sesRegionParameter = new cdk.CfnParameter(this, 'SesRegionParameter', {
-      description: 'Use Amazon SES as SMTP server. You must choose a region.',
+    const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
+      description: 'Use Amazon SES as SMTP server. If Amazon WorkMail is enabled, it set us-west-2',
       type: 'String',
       default: 'us-west-2',
       allowedValues: sesSmtpSupportedRegions,
     });
 
-    const workMailEnabledParameter = new cdk.CfnParameter(this, 'WorkMailEnabledParameter', {
+    const enableWorkMail = new cdk.CfnParameter(this, 'EnableWorkMail', {
       description: 'Enable Amazon WorkMail. To use "supabase-<account_id>.awsapps.com" domain with Amazon SES.',
       type: 'String',
       default: 'false',
       allowedValues: ['true', 'false'],
     });
 
-    const wafRequestRateLimitParameter = new cdk.CfnParameter(this, 'WafRequestRateLimitParameter', {
+    const wafRequestRateLimit = new cdk.CfnParameter(this, 'WafRequestRateLimit', {
       description: 'The rate limit is the maximum number of requests from a single IP address that are allowed in a five-minute period. This value is continually evaluated, and requests will be blocked once this limit is reached. The IP address is automatically unblocked after it falls below the limit.',
       type: 'Number',
       default: 30000,
@@ -103,38 +103,38 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     // Parameters - Supabase Version
-    const authApiVersionParameter = new cdk.CfnParameter(this, 'AuthApiVersionParameter', {
+    const authApiVersion = new cdk.CfnParameter(this, 'AuthApiVersion', {
       type: 'String',
-      default: 'v2.17.3',
+      default: 'v2.17.5',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/gotrue`,
     });
-    const restApiVersionParameter = new cdk.CfnParameter(this, 'RestApiVersionParameter', {
+    const restApiVersion = new cdk.CfnParameter(this, 'RestApiVersion', {
       type: 'String',
       default: 'v9.0.1.20220802',
       description: `Docker image tag - ${ecrGalleryUrl}/postgrest`,
     });
-    const realtimeApiVersionParameter = new cdk.CfnParameter(this, 'RealtimeApiVersionParameter', {
+    const realtimeApiVersion = new cdk.CfnParameter(this, 'RealtimeApiVersion', {
       type: 'String',
       default: 'v0.24.2',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/realtime`,
     });
-    const storageApiVersionParameter = new cdk.CfnParameter(this, 'StorageApiVersionParameter', {
+    const storageApiVersion = new cdk.CfnParameter(this, 'StorageApiVersion', {
       type: 'String',
-      default: 'v0.20.2',
+      default: 'v0.21.3',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/storage-api`,
     });
-    const postgresMetaApiVersionParameter = new cdk.CfnParameter(this, 'PostgresMetaApiVersionParameter', {
+    const postgresMetaApiVersion = new cdk.CfnParameter(this, 'PostgresMetaApiVersion', {
       type: 'String',
-      default: 'v0.46.0',
+      default: 'v0.47.1',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta`,
     });
 
     // Condition
-    const workMailEnabledCondition = new cdk.CfnCondition(this, 'WorkMailEnabledCondition', { expression: cdk.Fn.conditionEquals(workMailEnabledParameter, 'true') });
+    const workMailEnabled = new cdk.CfnCondition(this, 'WorkMailEnabled', { expression: cdk.Fn.conditionEquals(enableWorkMail, 'true') });
 
     // Resources
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
@@ -146,12 +146,12 @@ export class SupabaseStack extends cdk.Stack {
       vpc,
     });
 
-    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegionParameter.valueAsString });
-    const workMail = new WorkMail(this, 'WorkMail', { region: sesRegionParameter.valueAsString, alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
-    (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabledCondition.logicalId);
+    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString });
+    const workMail = new WorkMail(this, 'WorkMail', { region: 'us-west-2', alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
+    (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabled.logicalId);
 
-    const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabledCondition.logicalId, `noreply@${workMail.domain}`, smtpAdminEmailParameter.valueAsString);
-    const smtpHost = `email-smtp.${sesRegionParameter.valueAsString}.amazonaws.com`;
+    const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, `noreply@${workMail.domain}`, senderEmail.valueAsString);
+    const smtpHost = cdk.Fn.conditionIf(workMailEnabled.logicalId, `email-smtp.${workMail.region}.amazonaws.com`, `email-smtp.${sesRegion.valueAsString}.amazonaws.com`);
 
     const db = new SupabaseDatabase(this, 'Database', { vpc });
     const dbSecret = db.secret!;
@@ -190,23 +190,23 @@ export class SupabaseStack extends cdk.Stack {
     const cfPrefixList = new ManagedPrefixList(this, 'CloudFrontManagedPrefixList', { name: 'com.amazonaws.global.cloudfront.origin-facing' });
     kong.ecsService.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
 
-    const cdn = new SupabaseCdn(this, 'Cdn', { origin: kongLoadBalancer, requestRateLimit: wafRequestRateLimitParameter.valueAsNumber });
+    const cdn = new SupabaseCdn(this, 'Cdn', { origin: kongLoadBalancer, requestRateLimit: wafRequestRateLimit.valueAsNumber });
     const apiExternalUrl = `https://${cdn.distribution.domainName}`;
 
     const auth = new SupabaseAuth(this, 'Auth', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/gotrue:${authApiVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/gotrue:${authApiVersion.valueAsString}`),
         portMappings: [{ containerPort: 9999 }],
         environment: {
           // Top-Level - https://github.com/supabase/gotrue#top-level
-          GOTRUE_SITE_URL: siteUrlParameter.valueAsString,
-          GOTRUE_URI_ALLOW_LIST: redirectUrlsParameter.valueAsString,
-          GOTRUE_DISABLE_SIGNUP: disableSignupParameter.valueAsString,
+          GOTRUE_SITE_URL: siteUrl.valueAsString,
+          GOTRUE_URI_ALLOW_LIST: redirectUrls.valueAsString,
+          GOTRUE_DISABLE_SIGNUP: disableSignup.valueAsString,
           GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
           GOTRUE_EXTERNAL_PHONE_ENABLED: 'false', // Amazon SNS not supported
           GOTRUE_RATE_LIMIT_EMAIL_SENT: '3600', // SES Limit: 1msg/s
-          GOTRUE_PASSWORD_MIN_LENGTH: passwordMinLengthParameter.valueAsString,
+          GOTRUE_PASSWORD_MIN_LENGTH: passwordMinLength.valueAsString,
           // API - https://github.com/supabase/gotrue#api
           GOTRUE_API_HOST: '0.0.0.0',
           GOTRUE_API_PORT: '9999',
@@ -219,15 +219,15 @@ export class SupabaseStack extends cdk.Stack {
           //OTEL_EXPORTER_OTLP_PROTOCOL: 'grpc',
           //OTEL_EXPORTER_OTLP_ENDPOINT: `http://${jaeger.dnsName}:4317`,
           // JWT - https://github.com/supabase/gotrue#json-web-tokens-jwt
-          GOTRUE_JWT_EXP: jwtExpiryLimitParameter.valueAsString,
+          GOTRUE_JWT_EXP: jwtExpiryLimit.valueAsString,
           GOTRUE_JWT_AUD: 'authenticated',
           GOTRUE_JWT_ADMIN_ROLES: 'service_role',
           GOTRUE_JWT_DEFAULT_GROUP_NAME: 'authenticated',
           // E-Mail - https://github.com/supabase/gotrue#e-mail
           GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmail.toString(),
-          GOTRUE_SMTP_HOST: smtpHost,
+          GOTRUE_SMTP_HOST: smtpHost.toString(),
           GOTRUE_SMTP_PORT: '465',
-          GOTRUE_SMTP_SENDER_NAME: smtpSenderNameParameter.valueAsString,
+          GOTRUE_SMTP_SENDER_NAME: senderName.valueAsString,
           GOTRUE_MAILER_AUTOCONFIRM: 'false',
           GOTRUE_MAILER_URLPATHS_INVITE: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify',
@@ -256,7 +256,7 @@ export class SupabaseStack extends cdk.Stack {
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`postgrest/postgrest:${restApiVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`postgrest/postgrest:${restApiVersion.valueAsString}`),
         portMappings: [{ containerPort: 3000 }],
         environment: {
           PGRST_DB_SCHEMAS: 'public,storage,graphql_public',
@@ -302,7 +302,7 @@ export class SupabaseStack extends cdk.Stack {
     const realtime = new SupabaseService(this, 'Realtime', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/realtime:${realtimeApiVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/realtime:${realtimeApiVersion.valueAsString}`),
         portMappings: [{ containerPort: 4000 }],
         environment: {
           DB_SSL: 'false',
@@ -337,7 +337,7 @@ export class SupabaseStack extends cdk.Stack {
     const storage = new SupabaseService(this, 'Storage', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/storage-api:${storageApiVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/storage-api:${storageApiVersion.valueAsString}`),
         portMappings: [{ containerPort: 5000 }],
         environment: {
           POSTGREST_URL: 'http://rest.supabase.local:3000',
@@ -368,7 +368,7 @@ export class SupabaseStack extends cdk.Stack {
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/postgres-meta:${postgresMetaApiVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/postgres-meta:${postgresMetaApiVersion.valueAsString}`),
         portMappings: [{ containerPort: 8080 }],
         environment: {
           PG_META_PORT: '8080',
@@ -437,37 +437,37 @@ export class SupabaseStack extends cdk.Stack {
         {
           Label: { default: 'Supabase - Auth Settings' },
           Parameters: [
-            disableSignupParameter.logicalId,
-            siteUrlParameter.logicalId,
-            redirectUrlsParameter.logicalId,
-            jwtExpiryLimitParameter.logicalId,
-            passwordMinLengthParameter.logicalId,
+            disableSignup.logicalId,
+            siteUrl.logicalId,
+            redirectUrls.logicalId,
+            jwtExpiryLimit.logicalId,
+            passwordMinLength.logicalId,
           ],
         },
         {
           Label: { default: 'Supabase - Auth E-mail Settings' },
           Parameters: [
-            smtpAdminEmailParameter.logicalId,
-            smtpSenderNameParameter.logicalId,
-            sesRegionParameter.logicalId,
-            workMailEnabledParameter.logicalId,
+            senderEmail.logicalId,
+            senderName.logicalId,
+            sesRegion.logicalId,
+            enableWorkMail.logicalId,
           ],
         },
         {
           Label: { default: 'Platform Settings' },
           Parameters: [
             db.multiAzParameter.logicalId,
-            wafRequestRateLimitParameter.logicalId,
+            wafRequestRateLimit.logicalId,
           ],
         },
         {
           Label: { default: 'Supabase - API Versions' },
           Parameters: [
-            authApiVersionParameter.logicalId,
-            restApiVersionParameter.logicalId,
-            realtimeApiVersionParameter.logicalId,
-            storageApiVersionParameter.logicalId,
-            postgresMetaApiVersionParameter.logicalId,
+            authApiVersion.logicalId,
+            restApiVersion.logicalId,
+            realtimeApiVersion.logicalId,
+            storageApiVersion.logicalId,
+            postgresMetaApiVersion.logicalId,
           ],
         },
         {
@@ -479,22 +479,22 @@ export class SupabaseStack extends cdk.Stack {
         },
       ],
       ParameterLabels: {
-        [disableSignupParameter.logicalId]: { default: 'Disable User Signups' },
-        [siteUrlParameter.logicalId]: { default: 'Site URL' },
-        [redirectUrlsParameter.logicalId]: { default: 'Redirect URLs' },
-        [jwtExpiryLimitParameter.logicalId]: { default: 'JWT expiry limit' },
-        [passwordMinLengthParameter.logicalId]: { default: 'Min password length' },
-        [smtpAdminEmailParameter.logicalId]: { default: 'SMTP Admin Email Address' },
-        [smtpSenderNameParameter.logicalId]: { default: 'SMTP Sender Name' },
-        [sesRegionParameter.logicalId]: { default: 'Amazon SES Region' },
-        [workMailEnabledParameter.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
+        [disableSignup.logicalId]: { default: 'Disable User Signups' },
+        [siteUrl.logicalId]: { default: 'Site URL' },
+        [redirectUrls.logicalId]: { default: 'Redirect URLs' },
+        [jwtExpiryLimit.logicalId]: { default: 'JWT expiry limit' },
+        [passwordMinLength.logicalId]: { default: 'Min password length' },
+        [senderEmail.logicalId]: { default: 'SMTP Admin Email Address' },
+        [senderName.logicalId]: { default: 'SMTP Sender Name' },
+        [sesRegion.logicalId]: { default: 'Amazon SES Region' },
+        [enableWorkMail.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
         [db.multiAzParameter.logicalId]: { default: 'Database Multi-AZ' },
-        [wafRequestRateLimitParameter.logicalId]: { default: 'WAF Request Rate Limit' },
-        [authApiVersionParameter.logicalId]: { default: 'Auth API Version - GoTrue' },
-        [restApiVersionParameter.logicalId]: { default: 'Rest API Version - PostgREST' },
-        [realtimeApiVersionParameter.logicalId]: { default: 'Realtime API Version' },
-        [storageApiVersionParameter.logicalId]: { default: 'Storage API Version' },
-        [postgresMetaApiVersionParameter.logicalId]: { default: 'Postgres Meta API Version' },
+        [wafRequestRateLimit.logicalId]: { default: 'WAF Request Rate Limit' },
+        [authApiVersion.logicalId]: { default: 'Auth API Version - GoTrue' },
+        [restApiVersion.logicalId]: { default: 'Rest API Version - PostgREST' },
+        [realtimeApiVersion.logicalId]: { default: 'Realtime API Version' },
+        [storageApiVersion.logicalId]: { default: 'Storage API Version' },
+        [postgresMetaApiVersion.logicalId]: { default: 'Postgres Meta API Version' },
         [studioVersionParameter.logicalId]: { default: 'Supabase Studio Version' },
         [studio.acmCertArnParameter.logicalId]: { default: 'ACM Certificate ARN' },
       },
