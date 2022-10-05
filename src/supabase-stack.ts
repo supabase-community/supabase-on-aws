@@ -423,18 +423,17 @@ export class SupabaseStack extends cdk.Stack {
     meta.addDatabaseBackend(db);
 
     // Supabase Studio
-    const studioVersionParameter = new cdk.CfnParameter(this, 'StudioVersionParameter', {
+    const studioVersion = new cdk.CfnParameter(this, 'StudioVersion', {
       type: 'String',
       default: 'latest',
       allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/studio`,
-      //description: 'Docker image tag - https://hub.docker.com/r/supabase/studio/tags',
     });
 
     const studio = new SupabaseStudio(this, 'Studio', {
       cluster,
       containerDefinition: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/studio:${studioVersionParameter.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/studio:${studioVersion.valueAsString}`),
         portMappings: [{ containerPort: 3000 }],
         environment: {
           STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
@@ -504,8 +503,8 @@ export class SupabaseStack extends cdk.Stack {
         {
           Label: { default: 'Supabase - Studio Settings' },
           Parameters: [
-            studioVersionParameter.logicalId,
-            studio.acmCertArnParameter.logicalId,
+            studioVersion.logicalId,
+            studio.acmCertArn.logicalId,
           ],
         },
       ],
@@ -528,8 +527,8 @@ export class SupabaseStack extends cdk.Stack {
         [realtimeApiVersion.logicalId]: { default: 'Realtime API Version' },
         [storageApiVersion.logicalId]: { default: 'Storage API Version' },
         [postgresMetaApiVersion.logicalId]: { default: 'Postgres Meta API Version' },
-        [studioVersionParameter.logicalId]: { default: 'Supabase Studio Version' },
-        [studio.acmCertArnParameter.logicalId]: { default: 'ACM Certificate ARN' },
+        [studioVersion.logicalId]: { default: 'Supabase Studio Version' },
+        [studio.acmCertArn.logicalId]: { default: 'ACM Certificate ARN' },
       },
     };
 

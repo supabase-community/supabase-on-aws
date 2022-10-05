@@ -9,7 +9,7 @@ import { SupabaseService, SupabaseServiceProps } from './supabase-service';
 export class SupabaseStudio extends SupabaseService {
   loadBalancer: elb.ApplicationLoadBalancer;
   userPool: cognito.UserPool;
-  acmCertArnParameter: cdk.CfnParameter;
+  acmCertArn: cdk.CfnParameter;
 
   /**
    * Deploy Next.js on ECS Fargate with ApplicationLoadBalancer.
@@ -89,14 +89,14 @@ export class SupabaseStudio extends SupabaseService {
 
     // for HTTPS
     const dummyCertArn = 'arn:aws:acm:us-west-2:123456789012:certificate/no-cert-it-is-not-secure-to-use-http';
-    this.acmCertArnParameter = new cdk.CfnParameter(this, 'CertificateArnParameter', {
+    this.acmCertArn = new cdk.CfnParameter(this, 'CertificateArn', {
       description: 'ACM Certificate ARN for Supabase studio',
       type: 'String',
       default: dummyCertArn,
       allowedPattern: '^arn:aws:acm:[\\w-]+:[0-9]{12}:certificate/[\\w-]{36}$',
     });
 
-    const isHttp = new cdk.CfnCondition(this, 'HttpCondition', { expression: cdk.Fn.conditionEquals(this.acmCertArnParameter, dummyCertArn) });
+    const isHttp = new cdk.CfnCondition(this, 'HttpCondition', { expression: cdk.Fn.conditionEquals(this.acmCertArn, dummyCertArn) });
 
     this.userPool = new cognito.UserPool(this, 'UserPool', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -126,7 +126,7 @@ export class SupabaseStudio extends SupabaseService {
     const cfnListener = listener.node.defaultChild as elb.CfnListener;
     cfnListener.addPropertyOverride('Protocol', cdk.Fn.conditionIf(isHttp.logicalId, 'HTTP', 'HTTPS'));
     cfnListener.addPropertyOverride('Port', cdk.Fn.conditionIf(isHttp.logicalId, 80, 443));
-    cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, [{ CertificateArn: this.acmCertArnParameter.valueAsString }]));
+    cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, [{ CertificateArn: this.acmCertArn.valueAsString }]));
     cfnListener.addPropertyOverride('DefaultActions.0.Order', cdk.Fn.conditionIf(isHttp.logicalId, 1, 2));
     cfnListener.addPropertyOverride('DefaultActions.1', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, {
       Order: 1,
