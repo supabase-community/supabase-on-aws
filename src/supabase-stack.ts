@@ -6,6 +6,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { ManagedPrefixList } from './aws-prefix-list';
 import { WorkMail } from './aws-workmail';
+import { ApiGateway } from './supabase-api-gateway';
 import { SupabaseAuth } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
@@ -422,6 +423,9 @@ export class SupabaseStack extends cdk.Stack {
     storage.addDatabaseBackend(db);
     meta.addDatabaseBackend(db);
 
+    const apigw = new ApiGateway(this, 'ApiGateway', { vpc });
+    apigw.addRoute('/auth/v1/{proxy+}', auth);
+
     // Supabase Studio
     const studioVersion = new cdk.CfnParameter(this, 'StudioVersion', {
       type: 'String',
@@ -477,7 +481,7 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
-          Label: { default: 'Database Settings' },
+          Label: { default: 'Infrastructure - Database Settings' },
           Parameters: [
             dbMultiAz.logicalId,
             minAcu.logicalId,
@@ -485,13 +489,13 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
-          Label: { default: 'Security Settings' },
+          Label: { default: 'Infrastructure - Security Settings' },
           Parameters: [
             wafRequestRateLimit.logicalId,
           ],
         },
         {
-          Label: { default: 'Supabase - API Versions' },
+          Label: { default: 'Infrastructure - API Versions' },
           Parameters: [
             authApiVersion.logicalId,
             restApiVersion.logicalId,
@@ -514,8 +518,8 @@ export class SupabaseStack extends cdk.Stack {
         [redirectUrls.logicalId]: { default: 'Redirect URLs' },
         [jwtExpiryLimit.logicalId]: { default: 'JWT expiry limit' },
         [passwordMinLength.logicalId]: { default: 'Min password length' },
-        [senderEmail.logicalId]: { default: 'SMTP Admin Email Address' },
-        [senderName.logicalId]: { default: 'SMTP Sender Name' },
+        [senderEmail.logicalId]: { default: 'Sender Email Address' },
+        [senderName.logicalId]: { default: 'Sender Name' },
         [sesRegion.logicalId]: { default: 'Amazon SES Region' },
         [enableWorkMail.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
         [dbMultiAz.logicalId]: { default: 'Database Multi-AZ' },
@@ -535,7 +539,7 @@ export class SupabaseStack extends cdk.Stack {
     for (let i in auth.externalAuthProviders) {
       const provider = auth.externalAuthProviders[i];
       cfnInterface.ParameterGroups.push({
-        Label: { default: `Supabase - External Auth Provider - ${provider.name}` },
+        Label: { default: `External Auth Provider - ${provider.name}` },
         Parameters: [provider.enabledParameter.logicalId, provider.clientIdParameter.logicalId, provider.secretParameter.logicalId],
       });
       cfnInterface.ParameterLabels[provider.enabledParameter.logicalId] = { default: `${provider.name} Enabled` };
