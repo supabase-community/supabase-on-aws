@@ -6,7 +6,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { ManagedPrefixList } from './aws-prefix-list';
 import { WorkMail } from './aws-workmail';
-import { ApiGateway } from './supabase-api-gateway';
+//import { ApiGateway } from './supabase-api-gateway';
 import { SupabaseAuth } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
@@ -30,6 +30,20 @@ export class SupabaseStack extends cdk.Stack {
     super(scope, id, props);
 
     const { gqlEnabled } = props;
+
+    // Mappings
+    const fargateTaskSize = new cdk.CfnMapping(this, 'FargateTaskSize', {
+      mapping: {
+        'nano': { cpu: 256, memory: 512 },
+        'micro': { cpu: 256, memory: 1024 },
+        'small': { cpu: 512, memory: 1024 },
+        'medium': { cpu: 1024, memory: 2048 },
+        'large': { cpu: 2048, memory: 4096 },
+        'xlarge': { cpu: 4096, memory: 8192 },
+        '2xlarge': { cpu: 8192, memory: 16384 },
+        '4xlarge': { cpu: 16384, memory: 32768 },
+      },
+    });
 
     // Parameters
     const disableSignup = new cdk.CfnParameter(this, 'DisableSignup', {
@@ -126,7 +140,120 @@ export class SupabaseStack extends cdk.Stack {
       maxValue: 128,
     });
 
-    // Parameters - Supabase Version
+    const kongTaskSize = new cdk.CfnParameter(this, 'KongTaskSize', {
+      description: 'Fargare task size for API Gateway (Kong)',
+      type: 'String',
+      default: 'medium',
+      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+    });
+    const kongMinTasks = new cdk.CfnParameter(this, 'KongMinTasks', {
+      description: 'Minimum fargate task count for API Gateway (Kong)',
+      type: 'Number',
+      default: 1,
+      minValue: 1,
+    });
+    const kongMaxTasks = new cdk.CfnParameter(this, 'KongMaxTasks', {
+      description: 'Maximum fargate task count for API Gateway (Kong)',
+      type: 'Number',
+      default: 20,
+      minValue: 1,
+    });
+
+    const authTaskSize = new cdk.CfnParameter(this, 'AuthTaskSize', {
+      description: 'Fargare task size for Auth API (GoTrue)',
+      type: 'String',
+      default: 'medium',
+      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+    });
+    const authMinTasks = new cdk.CfnParameter(this, 'AuthMinTasks', {
+      description: 'Minimum fargate task count for Auth API (GoTrue)',
+      type: 'Number',
+      default: 1,
+      minValue: 1,
+    });
+    const authMaxTasks = new cdk.CfnParameter(this, 'AuthMaxTasks', {
+      description: 'Maximum fargate task count for Auth API (GoTrue)',
+      type: 'Number',
+      default: 20,
+      minValue: 1,
+    });
+
+    const restTaskSize = new cdk.CfnParameter(this, 'RestTaskSize', {
+      description: 'Fargare task size for Rest API (PostgREST)',
+      type: 'String',
+      default: 'medium',
+      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+    });
+    const restMinTasks = new cdk.CfnParameter(this, 'RestMinTasks', {
+      description: 'Minimum fargate task count for Rest API (PostgREST)',
+      type: 'Number',
+      default: 1,
+      minValue: 1,
+    });
+    const restMaxTasks = new cdk.CfnParameter(this, 'RestMaxTasks', {
+      description: 'Maximum fargate task count for Rest API (PostgREST)',
+      type: 'Number',
+      default: 20,
+      minValue: 1,
+    });
+
+    const realtimeTaskSize = new cdk.CfnParameter(this, 'RealtimeTaskSize', {
+      description: 'Fargare task size for Realtime API)',
+      type: 'String',
+      default: 'medium',
+      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+    });
+    const realtimeMinTasks = new cdk.CfnParameter(this, 'RealtimeMinTasks', {
+      description: 'Minimum fargate task count for Realtime API',
+      type: 'Number',
+      default: 1,
+      minValue: 1,
+    });
+    const realtimeMaxTasks = new cdk.CfnParameter(this, 'RealtimeMaxTasks', {
+      description: 'Maximum fargate task count for Realtime API',
+      type: 'Number',
+      default: 1,
+      minValue: 1,
+    });
+
+    const storageTaskSize = new cdk.CfnParameter(this, 'StorageTaskSize', {
+      description: 'Fargare task size for Storage API',
+      type: 'String',
+      default: 'medium',
+      allowedValues: ['micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+    });
+    const storageMinTasks = new cdk.CfnParameter(this, 'StorageMinTasks', {
+      description: 'Minimum fargate task count for Storage API',
+      type: 'Number',
+      default: 1,
+      minValue: 1,
+    });
+    const storageMaxTasks = new cdk.CfnParameter(this, 'StorageMaxTasks', {
+      description: 'Maximum fargate task count for Storage API',
+      type: 'Number',
+      default: 20,
+      minValue: 1,
+    });
+
+    const postgresMetaTaskSize = new cdk.CfnParameter(this, 'PostgresMetaTaskSize', {
+      description: 'Fargare task size for PostgresMeta API',
+      type: 'String',
+      default: 'medium',
+      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+    });
+    const postgresMetaMinTasks = new cdk.CfnParameter(this, 'PostgresMetaMinTasks', {
+      description: 'Minimum fargate task count for PostgresMeta API',
+      type: 'Number',
+      default: 1,
+      minValue: 1,
+    });
+    const postgresMetaMaxTasks = new cdk.CfnParameter(this, 'PostgresMetaMaxTasks', {
+      description: 'Maximum fargate task count for PostgresMeta API',
+      type: 'Number',
+      default: 20,
+      minValue: 1,
+    });
+
     const authApiVersion = new cdk.CfnParameter(this, 'AuthApiVersion', {
       type: 'String',
       default: 'v2.17.5',
@@ -209,6 +336,10 @@ export class SupabaseStack extends cdk.Stack {
           retries: 3,
         },
       },
+      cpu: fargateTaskSize.findInMap(kongTaskSize.valueAsString, 'cpu'),
+      memory: fargateTaskSize.findInMap(kongTaskSize.valueAsString, 'memory'),
+      minTasks: kongMinTasks.valueAsNumber,
+      maxTasks: kongMaxTasks.valueAsNumber,
     });
     const kongLoadBalancer = kong.addNetworkLoadBalancer();
 
@@ -276,6 +407,10 @@ export class SupabaseStack extends cdk.Stack {
       },
       apiExternalUrl,
       externalAuthProviders: ['Google', 'Facebook', 'Twitter', 'GitHub'],
+      cpu: fargateTaskSize.findInMap(authTaskSize.valueAsString, 'cpu'),
+      memory: fargateTaskSize.findInMap(authTaskSize.valueAsString, 'memory'),
+      minTasks: authMinTasks.valueAsNumber,
+      maxTasks: authMaxTasks.valueAsNumber,
     });
 
     const rest = new SupabaseService(this, 'Rest', {
@@ -293,6 +428,10 @@ export class SupabaseStack extends cdk.Stack {
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
         },
       },
+      cpu: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'cpu'),
+      memory: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'memory'),
+      minTasks: restMinTasks.valueAsNumber,
+      maxTasks: restMaxTasks.valueAsNumber,
     });
 
     if (gqlEnabled) {
@@ -318,6 +457,10 @@ export class SupabaseStack extends cdk.Stack {
             JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
           },
         },
+        cpu: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'cpu'),
+        memory: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'memory'),
+        minTasks: restMinTasks.valueAsNumber,
+        maxTasks: restMaxTasks.valueAsNumber,
       });
       graphql.addDatabaseBackend(db);
       kong.addBackend(graphql);
@@ -350,7 +493,10 @@ export class SupabaseStack extends cdk.Stack {
         },
         command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
       },
-      autoScalingEnabled: false,
+      cpu: fargateTaskSize.findInMap(realtimeTaskSize.valueAsString, 'cpu'),
+      memory: fargateTaskSize.findInMap(realtimeTaskSize.valueAsString, 'memory'),
+      minTasks: realtimeMinTasks.valueAsNumber,
+      maxTasks: realtimeMaxTasks.valueAsNumber,
     });
 
     const bucket = new s3.Bucket(this, 'Bucket', {
@@ -386,7 +532,11 @@ export class SupabaseStack extends cdk.Stack {
           retries: 3,
         },
       },
-      cpuArchitecture: ecs.CpuArchitecture.X86_64, // storage-api does not work on ARM64
+      cpuArchitecture: 'x86_64', // storage-api does not work on ARM64
+      cpu: fargateTaskSize.findInMap(storageTaskSize.valueAsString, 'cpu'),
+      memory: fargateTaskSize.findInMap(storageTaskSize.valueAsString, 'memory'),
+      minTasks: storageMinTasks.valueAsNumber,
+      maxTasks: storageMaxTasks.valueAsNumber,
     });
     bucket.grantReadWrite(storage.ecsService.taskDefinition.taskRole);
 
@@ -406,6 +556,10 @@ export class SupabaseStack extends cdk.Stack {
           PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
         },
       },
+      cpu: fargateTaskSize.findInMap(postgresMetaTaskSize.valueAsString, 'cpu'),
+      memory: fargateTaskSize.findInMap(postgresMetaTaskSize.valueAsString, 'memory'),
+      minTasks: postgresMetaMinTasks.valueAsNumber,
+      maxTasks: postgresMetaMaxTasks.valueAsNumber,
     });
 
     kong.addBackend(auth);
@@ -423,8 +577,12 @@ export class SupabaseStack extends cdk.Stack {
     storage.addDatabaseBackend(db);
     meta.addDatabaseBackend(db);
 
-    const apigw = new ApiGateway(this, 'ApiGateway', { vpc });
-    apigw.addRoute('/auth/v1/{proxy+}', auth);
+    //const apigw = new ApiGateway(this, 'ApiGateway', { vpc });
+    //apigw.addRoute('/auth/v1/{proxy+}', auth);
+    //apigw.addRoute('/rest/v1/{proxy+}', rest);
+    //apigw.addRoute('/realtime/v1/{proxy+}', realtime);
+    //apigw.addRoute('/storage/v1/{proxy+}', storage);
+    //apigw.addRoute('/pg/{proxy+}', meta);
 
     // Supabase Studio
     const studioVersion = new cdk.CfnParameter(this, 'StudioVersion', {
@@ -450,8 +608,6 @@ export class SupabaseStack extends cdk.Stack {
           SUPABASE_SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
         },
       },
-      cpu: 256,
-      memory: 512,
     });
 
     this.exportValue(jwt.anonToken, { name: 'ApiKey' });
@@ -481,7 +637,7 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
-          Label: { default: 'Infrastructure - Database Settings' },
+          Label: { default: 'Infrastructure - Database' },
           Parameters: [
             dbMultiAz.logicalId,
             minAcu.logicalId,
@@ -489,23 +645,66 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
-          Label: { default: 'Infrastructure - Security Settings' },
+          Label: { default: 'Infrastructure - Security' },
           Parameters: [
             wafRequestRateLimit.logicalId,
           ],
         },
         {
-          Label: { default: 'Infrastructure - API Versions' },
+          Label: { default: 'Infrastructure - API Gateway (Kong)' },
           Parameters: [
-            authApiVersion.logicalId,
-            restApiVersion.logicalId,
-            realtimeApiVersion.logicalId,
-            storageApiVersion.logicalId,
-            postgresMetaApiVersion.logicalId,
+            kongTaskSize.logicalId,
+            kongMinTasks.logicalId,
+            kongMaxTasks.logicalId,
           ],
         },
         {
-          Label: { default: 'Supabase - Studio Settings' },
+          Label: { default: 'Infrastructure - Auth API (GoTrue)' },
+          Parameters: [
+            authApiVersion.logicalId,
+            authTaskSize.logicalId,
+            authMinTasks.logicalId,
+            authMaxTasks.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Infrastructure - Rest API (PostgREST)' },
+          Parameters: [
+            restApiVersion.logicalId,
+            restTaskSize.logicalId,
+            restMinTasks.logicalId,
+            restMaxTasks.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Infrastructure - Realtime API' },
+          Parameters: [
+            realtimeApiVersion.logicalId,
+            realtimeTaskSize.logicalId,
+            realtimeMinTasks.logicalId,
+            realtimeMaxTasks.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Infrastructure - Storage API' },
+          Parameters: [
+            storageApiVersion.logicalId,
+            storageTaskSize.logicalId,
+            storageMinTasks.logicalId,
+            storageMaxTasks.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Infrastructure - Postgres Meta API' },
+          Parameters: [
+            postgresMetaApiVersion.logicalId,
+            postgresMetaTaskSize.logicalId,
+            postgresMetaMinTasks.logicalId,
+            postgresMetaMaxTasks.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Infrastructure - Supabase Studio' },
           Parameters: [
             studioVersion.logicalId,
             studio.acmCertArn.logicalId,
@@ -526,11 +725,36 @@ export class SupabaseStack extends cdk.Stack {
         [minAcu.logicalId]: { default: 'Minimum Aurora Capacity Units' },
         [maxAcu.logicalId]: { default: 'Maximum Aurora Capacity Units' },
         [wafRequestRateLimit.logicalId]: { default: 'WAF Request Rate Limit' },
+
+        [kongTaskSize.logicalId]: { default: 'Fargate Task Size' },
+        [kongMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
+        [kongMaxTasks.logicalId]: { default: 'Maximum Fargate Task Count' },
+
         [authApiVersion.logicalId]: { default: 'Auth API Version - GoTrue' },
+        [authTaskSize.logicalId]: { default: 'Fargate Task Size' },
+        [authMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
+        [authMaxTasks.logicalId]: { default: 'Maximum Fargate Task Count' },
+
         [restApiVersion.logicalId]: { default: 'Rest API Version - PostgREST' },
+        [restTaskSize.logicalId]: { default: 'Fargate Task Size' },
+        [restMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
+        [restMaxTasks.logicalId]: { default: 'Maximum Fargate Task Count' },
+
         [realtimeApiVersion.logicalId]: { default: 'Realtime API Version' },
+        [realtimeTaskSize.logicalId]: { default: 'Fargate Task Size' },
+        [realtimeMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
+        [realtimeMaxTasks.logicalId]: { default: 'Maximum Fargate Task Count' },
+
         [storageApiVersion.logicalId]: { default: 'Storage API Version' },
+        [storageTaskSize.logicalId]: { default: 'Fargate Task Size' },
+        [storageMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
+        [storageMaxTasks.logicalId]: { default: 'Maximum Fargate Task Count' },
+
         [postgresMetaApiVersion.logicalId]: { default: 'Postgres Meta API Version' },
+        [postgresMetaTaskSize.logicalId]: { default: 'Fargate Task Size' },
+        [postgresMetaMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
+        [postgresMetaMaxTasks.logicalId]: { default: 'Maximum Fargate Task Count' },
+
         [studioVersion.logicalId]: { default: 'Supabase Studio Version' },
         [studio.acmCertArn.logicalId]: { default: 'ACM Certificate ARN' },
       },

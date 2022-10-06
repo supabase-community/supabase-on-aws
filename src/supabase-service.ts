@@ -12,17 +12,14 @@ import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { SupabaseDatabase } from './supabase-db';
 
-const otelCpuRate = 0.1;
-const otelMemRate = 0.1;
-
 export interface SupabaseServiceProps {
   cluster: ecs.ICluster;
   containerDefinition: ecs.ContainerDefinitionOptions;
-  cpu?: number;
-  memory?: number;
-  cpuArchitecture?: ecs.CpuArchitecture;
-  autoScalingEnabled?: boolean;
-  otelCollectorEnabled?: boolean;
+  cpuArchitecture?: 'x86_64'|'arm64';
+  cpu?: string;
+  memory?: string;
+  minTasks?: number;
+  maxTasks?: number;
 }
 
 export class SupabaseService extends Construct {
@@ -37,22 +34,22 @@ export class SupabaseService extends Construct {
 
     const serviceName = id.toLowerCase();
     const { cluster, containerDefinition } = props;
-    const cpu = props.cpu || 1024;
-    const memory = props.memory || 2048;
-    const cpuArchitecture = props.cpuArchitecture || ecs.CpuArchitecture.ARM64;
-    const autoScalingEnabled = (typeof props.autoScalingEnabled == 'undefined') ? true : props.autoScalingEnabled;
-    const otelCollectorEnabled = (typeof props.otelCollectorEnabled == 'undefined') ? false : props.autoScalingEnabled;
+    const cpu = props.cpu || '256';
+    const memory = props.memory || '512';
+    const minTasks = props.minTasks || 1;
+    const maxTasks = props.maxTasks || 20;
+    const cpuArchitecture = (props.cpuArchitecture == 'x86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
 
     this.listenerPort = containerDefinition.portMappings![0].containerPort;
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDefinition', {
-      cpu,
-      memoryLimitMiB: memory,
       runtimePlatform: {
         operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
         cpuArchitecture,
       },
     });
+    (taskDefinition.node.defaultChild as ecs.CfnTaskDefinition).addPropertyOverride('Cpu', cpu);
+    (taskDefinition.node.defaultChild as ecs.CfnTaskDefinition).addPropertyOverride('Memory', memory);
 
     this.logGroup = new logs.LogGroup(this, 'Logs', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -61,64 +58,55 @@ export class SupabaseService extends Construct {
 
     const awsLogDriver = new ecs.AwsLogDriver({ logGroup: this.logGroup, streamPrefix: 'ecs' });
 
-    const appCpuRate = (otelCollectorEnabled) ? 1.0 - otelCpuRate : 1.0;
-    const appMemRate = (otelCollectorEnabled) ? 1.0 - otelMemRate : 1.0;
-
     const appContainer = taskDefinition.addContainer('AppContainer', {
       ...containerDefinition,
       containerName: 'app',
-      cpu: Math.round(cpu * appCpuRate),
-      memoryReservationMiB: Math.round(memory * appMemRate),
       essential: true,
       logging: awsLogDriver,
     });
     appContainer.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 65536, hardLimit: 65536 });
 
-    if (otelCollectorEnabled) {
-      const otelPolicy = new iam.Policy(this, 'OpenTelemetryPolicy', {
-        policyName: 'OpenTelemetryPolicy',
-        statements: [new iam.PolicyStatement({
-          actions: [
-            'logs:PutLogEvents',
-            'logs:CreateLogGroup',
-            'logs:CreateLogStream',
-            'logs:DescribeLogStreams',
-            'logs:DescribeLogGroups',
-            'xray:PutTraceSegments',
-            'xray:PutTelemetryRecords',
-            'xray:GetSamplingRules',
-            'xray:GetSamplingTargets',
-            'xray:GetSamplingStatisticSummaries',
-            'ssm:GetParameters',
-          ],
-          resources: ['*'],
-        })],
-      });
-      taskDefinition.taskRole.attachInlinePolicy(otelPolicy);
-
-      const otelContainer = taskDefinition.addContainer('OtelContainer', {
-        containerName: 'otel-collector',
-        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:latest'),
-        command: ['--config=/etc/ecs/ecs-xray.yaml'],
-        cpu: Math.round(cpu * otelCpuRate),
-        memoryReservationMiB: Math.round(memory * otelMemRate),
-        essential: true,
-        //healthCheck: {
-        //  command: ["CMD-SHELL", "curl -f http://127.0.0.1:13133/ || exit 1"],
-        //  interval: cdk.Duration.seconds(5),
-        //  timeout: cdk.Duration.seconds(2),
-        //  startPeriod: cdk.Duration.seconds(10),
-        //  retries: 3,
-        //},
-        readonlyRootFilesystem: true,
-        logging: awsLogDriver,
-      });
-
-      appContainer.addContainerDependencies({
-        container: otelContainer,
-        condition: ecs.ContainerDependencyCondition.START,
-      });
-    }
+    //const otelPolicy = new iam.Policy(this, 'OpenTelemetryPolicy', {
+    //  policyName: 'OpenTelemetryPolicy',
+    //  statements: [new iam.PolicyStatement({
+    //    actions: [
+    //      'logs:PutLogEvents',
+    //      'logs:CreateLogGroup',
+    //      'logs:CreateLogStream',
+    //      'logs:DescribeLogStreams',
+    //      'logs:DescribeLogGroups',
+    //      'xray:PutTraceSegments',
+    //      'xray:PutTelemetryRecords',
+    //      'xray:GetSamplingRules',
+    //      'xray:GetSamplingTargets',
+    //      'xray:GetSamplingStatisticSummaries',
+    //      'ssm:GetParameters',
+    //    ],
+    //    resources: ['*'],
+    //  })],
+    //});
+    //taskDefinition.taskRole.attachInlinePolicy(otelPolicy);
+    //const otelContainer = taskDefinition.addContainer('OtelContainer', {
+    //  containerName: 'otel-collector',
+    //  image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:latest'),
+    //  command: ['--config=/etc/ecs/ecs-xray.yaml'],
+    //  //cpu: Math.round(cpu * otelCpuRate),
+    //  //memoryReservationMiB: Math.round(memory * otelMemRate),
+    //  essential: true,
+    //  //healthCheck: {
+    //  //  command: ["CMD-SHELL", "curl -f http://127.0.0.1:13133/ || exit 1"],
+    //  //  interval: cdk.Duration.seconds(5),
+    //  //  timeout: cdk.Duration.seconds(2),
+    //  //  startPeriod: cdk.Duration.seconds(10),
+    //  //  retries: 3,
+    //  //},
+    //  readonlyRootFilesystem: true,
+    //  logging: awsLogDriver,
+    //});
+    //appContainer.addContainerDependencies({
+    //  container: otelContainer,
+    //  condition: ecs.ContainerDependencyCondition.START,
+    //});
 
     this.ecsService = new ecs.FargateService(this, 'Fargate', {
       cluster,
@@ -155,14 +143,12 @@ export class SupabaseService extends Construct {
       })],
     }));
 
-    if (autoScalingEnabled) {
-      const autoScaling = this.ecsService.autoScaleTaskCount({ maxCapacity: 100 });
-      autoScaling.scaleOnCpuUtilization('ScaleOnCpu', {
-        targetUtilizationPercent: 50,
-        scaleInCooldown: cdk.Duration.seconds(60),
-        scaleOutCooldown: cdk.Duration.seconds(60),
-      });
-    }
+    const autoScaling = this.ecsService.autoScaleTaskCount({ minCapacity: minTasks, maxCapacity: maxTasks });
+    autoScaling.scaleOnCpuUtilization('ScaleOnCpu', {
+      targetUtilizationPercent: 50,
+      scaleInCooldown: cdk.Duration.seconds(60),
+      scaleOutCooldown: cdk.Duration.seconds(60),
+    });
 
   }
 
