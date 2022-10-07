@@ -43,6 +43,7 @@ export class SupabaseStack extends cdk.Stack {
         '4xlarge': { cpu: 16384, memory: 32768 },
       },
     });
+    const allowedFargateTaskSize = ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'];
 
     // Parameters
     const disableSignup = new cdk.CfnParameter(this, 'DisableSignup', {
@@ -143,7 +144,7 @@ export class SupabaseStack extends cdk.Stack {
       description: 'Fargare task size for API Gateway (Kong)',
       type: 'String',
       default: 'medium',
-      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+      allowedValues: allowedFargateTaskSize,
     });
     const kongMinTasks = new cdk.CfnParameter(this, 'KongMinTasks', {
       description: 'Minimum fargate task count for API Gateway (Kong)',
@@ -162,7 +163,7 @@ export class SupabaseStack extends cdk.Stack {
       description: 'Fargare task size for Auth API (GoTrue)',
       type: 'String',
       default: 'medium',
-      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+      allowedValues: allowedFargateTaskSize,
     });
     const authMinTasks = new cdk.CfnParameter(this, 'AuthMinTasks', {
       description: 'Minimum fargate task count for Auth API (GoTrue)',
@@ -181,7 +182,7 @@ export class SupabaseStack extends cdk.Stack {
       description: 'Fargare task size for Rest API (PostgREST)',
       type: 'String',
       default: 'medium',
-      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+      allowedValues: allowedFargateTaskSize,
     });
     const restMinTasks = new cdk.CfnParameter(this, 'RestMinTasks', {
       description: 'Minimum fargate task count for Rest API (PostgREST)',
@@ -200,7 +201,7 @@ export class SupabaseStack extends cdk.Stack {
       description: 'Fargare task size for Realtime API)',
       type: 'String',
       default: 'medium',
-      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+      allowedValues: allowedFargateTaskSize,
     });
     const realtimeMinTasks = new cdk.CfnParameter(this, 'RealtimeMinTasks', {
       description: 'Minimum fargate task count for Realtime API',
@@ -219,7 +220,7 @@ export class SupabaseStack extends cdk.Stack {
       description: 'Fargare task size for Storage API',
       type: 'String',
       default: 'medium',
-      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+      allowedValues: allowedFargateTaskSize,
     });
     const storageMinTasks = new cdk.CfnParameter(this, 'StorageMinTasks', {
       description: 'Minimum fargate task count for Storage API',
@@ -238,7 +239,7 @@ export class SupabaseStack extends cdk.Stack {
       description: 'Fargare task size for PostgresMeta API',
       type: 'String',
       default: 'nano',
-      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+      allowedValues: allowedFargateTaskSize,
     });
     const postgresMetaMinTasks = new cdk.CfnParameter(this, 'PostgresMetaMinTasks', {
       description: 'Minimum fargate task count for PostgresMeta API',
