@@ -27,11 +27,6 @@ export class ApiGateway extends Construct {
 
     this.vpcLink = new apigw.VpcLink(this, 'VpcLink', { vpc, securityGroups: [this.securityGroup] });
 
-    const logGroup = new logs.LogGroup(this, 'Logs', {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      retention: logs.RetentionDays.ONE_MONTH,
-    });
-
     this.api = new apigw.HttpApi(this, 'HttpApi', {
       apiName: this.node.path.replace(/\//g, '-'),
       corsPreflight: {
@@ -44,20 +39,52 @@ export class ApiGateway extends Construct {
       },
     });
 
-    const apiArn = `arn:${cdk.Aws.PARTITION}:apigateway:${cdk.Aws.REGION}::/apis/${this.api.apiId}`;
-    const accessLogSettingsArn = `${apiArn}/stages/$default/accesslogsettings`;
+    new AccessLog(this, 'AccessLog', { apiId: this.api.apiId });
 
-    const accessLogSettings = new cr.AwsCustomResource(this, 'AccessLogSettings', {
+    this.domainName = cdk.Fn.select(2, cdk.Fn.split('/', this.api.apiEndpoint));
+  }
+
+  addRoute(path: string, service: SupabaseService) {
+    const parameterMapping = new apigw.ParameterMapping();
+    parameterMapping.overwritePath(apigw.MappingValue.custom('/${request.path.proxy}'));
+    const integration = new HttpServiceDiscoveryIntegration(service.node.id, service.cloudMapService, { vpcLink: this.vpcLink, parameterMapping });
+    this.api.addRoutes({ path, integration });
+    this.securityGroup.connections.allowTo(service.ecsService, ec2.Port.tcp(service.listenerPort));
+  }
+}
+
+interface AccessLogProps {
+  apiId: string;
+  stageName?: string;
+  logFormat?: string;
+}
+
+class AccessLog extends logs.LogGroup {
+
+  constructor(scope: Construct, id: string, props: AccessLogProps) {
+    const removalPolicy = cdk.RemovalPolicy.DESTROY;
+    const retention = logs.RetentionDays.ONE_MONTH;
+
+    super(scope, id, { removalPolicy, retention });
+
+    const apiId = props.apiId;
+    const stageName = props.stageName || '$default';
+    const logFormat = props.logFormat || '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }';
+
+    const apiArn = `arn:${cdk.Aws.PARTITION}:apigateway:${cdk.Aws.REGION}::/apis/${apiId}`;
+    const accessLogSettingsArn = `${apiArn}/stages/${stageName}/accesslogsettings`;
+
+    new cr.AwsCustomResource(this, 'Settings', {
       resourceType: 'Custom::ApiGatewayAccessLogSettings',
       onCreate: {
         service: 'ApiGatewayV2',
         action: 'updateStage',
         parameters: {
-          ApiId: this.api.apiId,
-          StageName: '$default',
+          ApiId: apiId,
+          StageName: stageName,
           AccessLogSettings: {
-            DestinationArn: logGroup.logGroupArn,
-            Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }',
+            DestinationArn: this.logGroupArn,
+            Format: logFormat,
           },
         },
         physicalResourceId: cr.PhysicalResourceId.of(accessLogSettingsArn),
@@ -66,25 +93,25 @@ export class ApiGateway extends Construct {
         service: 'ApiGatewayV2',
         action: 'updateStage',
         parameters: {
-          ApiId: this.api.apiId,
-          StageName: '$default',
+          ApiId: apiId,
+          StageName: stageName,
           AccessLogSettings: {
-            DestinationArn: logGroup.logGroupArn,
-            Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }',
+            DestinationArn: this.logGroupArn,
+            Format: logFormat,
           },
         },
         physicalResourceId: cr.PhysicalResourceId.of(accessLogSettingsArn),
       },
-      onDelete: {
-        service: 'ApiGatewayV2',
-        action: 'updateStage',
-        parameters: {
-          ApiId: this.api.apiId,
-          StageName: '$default',
-          AccessLogSettings: {},
-        },
-        physicalResourceId: cr.PhysicalResourceId.of(accessLogSettingsArn),
-      },
+      //onDelete: {
+      //  service: 'ApiGatewayV2',
+      //  action: 'updateStage',
+      //  parameters: {
+      //    ApiId: apiId,
+      //    StageName: stageName,
+      //    AccessLogSettings: {},
+      //  },
+      //  physicalResourceId: cr.PhysicalResourceId.of(accessLogSettingsArn),
+      //},
       policy: cr.AwsCustomResourcePolicy.fromStatements([
         new iam.PolicyStatement({
           actions: ['apigateway:UpdateStage'],
@@ -101,7 +128,7 @@ export class ApiGateway extends Construct {
             'logs:GetLogEvents',
             'logs:FilterLogEvents',
           ],
-          resources: [logGroup.logGroupArn],
+          resources: ['*'],
         }),
         new iam.PolicyStatement({
           actions: [
@@ -119,14 +146,5 @@ export class ApiGateway extends Construct {
       ]),
     });
 
-    this.domainName = cdk.Fn.select(2, cdk.Fn.split('/', this.api.apiEndpoint));
-  }
-
-  addRoute(path: string, service: SupabaseService) {
-    const parameterMapping = new apigw.ParameterMapping();
-    parameterMapping.overwritePath(apigw.MappingValue.requestPathParam('proxy'));
-    const integration = new HttpServiceDiscoveryIntegration(service.node.id, service.cloudMapService, { vpcLink: this.vpcLink, parameterMapping });
-    this.api.addRoutes({ path, integration });
-    this.securityGroup.connections.allowTo(service.ecsService, ec2.Port.tcp(service.listenerPort));
   }
 }
