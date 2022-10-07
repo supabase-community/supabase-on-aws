@@ -237,7 +237,7 @@ export class SupabaseStack extends cdk.Stack {
     const postgresMetaTaskSize = new cdk.CfnParameter(this, 'PostgresMetaTaskSize', {
       description: 'Fargare task size for PostgresMeta API',
       type: 'String',
-      default: 'medium',
+      default: 'nano',
       allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
     });
     const postgresMetaMinTasks = new cdk.CfnParameter(this, 'PostgresMetaMinTasks', {
