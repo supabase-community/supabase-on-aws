@@ -6,7 +6,6 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { ManagedPrefixList } from './aws-prefix-list';
 import { WorkMail } from './aws-workmail';
-//import { ApiGateway } from './supabase-api-gateway';
 import { SupabaseAuth } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
@@ -576,13 +575,6 @@ export class SupabaseStack extends cdk.Stack {
     realtime.addDatabaseBackend(db);
     storage.addDatabaseBackend(db);
     meta.addDatabaseBackend(db);
-
-    //const apigw = new ApiGateway(this, 'ApiGateway', { vpc });
-    //apigw.addRoute('/auth/v1/{proxy+}', auth);
-    //apigw.addRoute('/rest/v1/{proxy+}', rest);
-    //apigw.addRoute('/realtime/v1/{proxy+}', realtime);
-    //apigw.addRoute('/storage/v1/{proxy+}', storage);
-    //apigw.addRoute('/pg/{proxy+}', meta);
 
     // Supabase Studio
     const studioVersion = new cdk.CfnParameter(this, 'StudioVersion', {
