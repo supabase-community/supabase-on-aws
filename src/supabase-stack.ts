@@ -203,18 +203,18 @@ export class SupabaseStack extends cdk.Stack {
       default: 'medium',
       allowedValues: allowedFargateTaskSize,
     });
-    const realtimeMinTasks = new cdk.CfnParameter(this, 'RealtimeMinTasks', {
-      description: 'Minimum fargate task count for Realtime API',
-      type: 'Number',
-      default: 1,
-      minValue: 1,
-    });
-    const realtimeMaxTasks = new cdk.CfnParameter(this, 'RealtimeMaxTasks', {
-      description: 'Maximum fargate task count for Realtime API',
-      type: 'Number',
-      default: 1,
-      minValue: 1,
-    });
+    //const realtimeMinTasks = new cdk.CfnParameter(this, 'RealtimeMinTasks', {
+    //  description: 'Minimum fargate task count for Realtime API',
+    //  type: 'Number',
+    //  default: 1,
+    //  minValue: 1,
+    //});
+    //const realtimeMaxTasks = new cdk.CfnParameter(this, 'RealtimeMaxTasks', {
+    //  description: 'Maximum fargate task count for Realtime API',
+    //  type: 'Number',
+    //  default: 1,
+    //  minValue: 1,
+    //});
 
     const storageTaskSize = new cdk.CfnParameter(this, 'StorageTaskSize', {
       description: 'Fargare task size for Storage API',
@@ -495,8 +495,8 @@ export class SupabaseStack extends cdk.Stack {
       },
       cpu: fargateTaskSize.findInMap(realtimeTaskSize.valueAsString, 'cpu'),
       memory: fargateTaskSize.findInMap(realtimeTaskSize.valueAsString, 'memory'),
-      minTasks: realtimeMinTasks.valueAsNumber,
-      maxTasks: realtimeMaxTasks.valueAsNumber,
+      //minTasks: realtimeMinTasks.valueAsNumber,
+      //maxTasks: realtimeMaxTasks.valueAsNumber,
     });
 
     const bucket = new s3.Bucket(this, 'Bucket', {
@@ -674,8 +674,8 @@ export class SupabaseStack extends cdk.Stack {
           Parameters: [
             realtimeApiVersion.logicalId,
             realtimeTaskSize.logicalId,
-            realtimeMinTasks.logicalId,
-            realtimeMaxTasks.logicalId,
+            //realtimeMinTasks.logicalId,
+            //realtimeMaxTasks.logicalId,
           ],
         },
         {
@@ -735,8 +735,8 @@ export class SupabaseStack extends cdk.Stack {
 
         [realtimeApiVersion.logicalId]: { default: 'Realtime API Version' },
         [realtimeTaskSize.logicalId]: { default: 'Fargate Task Size' },
-        [realtimeMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [realtimeMaxTasks.logicalId]: { default: 'Maximum Fargate Task Count' },
+        //[realtimeMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
+        //[realtimeMaxTasks.logicalId]: { default: 'Maximum Fargate Task Count' },
 
         [storageApiVersion.logicalId]: { default: 'Storage API Version' },
         [storageTaskSize.logicalId]: { default: 'Fargate Task Size' },

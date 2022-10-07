@@ -37,7 +37,7 @@ export class SupabaseService extends Construct {
     const cpu = props.cpu || '256';
     const memory = props.memory || '512';
     const minTasks = props.minTasks || 1;
-    const maxTasks = props.maxTasks || 20;
+    const maxTasks = props.maxTasks || 1;
     const cpuArchitecture = (props.cpuArchitecture == 'x86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
 
     this.listenerPort = containerDefinition.portMappings![0].containerPort;
