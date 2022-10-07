@@ -219,7 +219,7 @@ export class SupabaseStack extends cdk.Stack {
       description: 'Fargare task size for Storage API',
       type: 'String',
       default: 'medium',
-      allowedValues: ['micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
     });
     const storageMinTasks = new cdk.CfnParameter(this, 'StorageMinTasks', {
       description: 'Minimum fargate task count for Storage API',
