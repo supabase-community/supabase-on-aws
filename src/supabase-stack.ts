@@ -630,17 +630,17 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
+          Label: { default: 'Infrastructure - Security' },
+          Parameters: [
+            wafRequestRateLimit.logicalId,
+          ],
+        },
+        {
           Label: { default: 'Infrastructure - Database' },
           Parameters: [
             dbMultiAz.logicalId,
             minAcu.logicalId,
             maxAcu.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure - Security' },
-          Parameters: [
-            wafRequestRateLimit.logicalId,
           ],
         },
         {
@@ -714,10 +714,11 @@ export class SupabaseStack extends cdk.Stack {
         [senderName.logicalId]: { default: 'Sender Name' },
         [sesRegion.logicalId]: { default: 'Amazon SES Region' },
         [enableWorkMail.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
+        [wafRequestRateLimit.logicalId]: { default: 'WAF Request Rate Limit' },
+
         [dbMultiAz.logicalId]: { default: 'Database Multi-AZ' },
         [minAcu.logicalId]: { default: 'Minimum Aurora Capacity Units' },
         [maxAcu.logicalId]: { default: 'Maximum Aurora Capacity Units' },
-        [wafRequestRateLimit.logicalId]: { default: 'WAF Request Rate Limit' },
 
         [kongTaskSize.logicalId]: { default: 'Fargate Task Size' },
         [kongMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
