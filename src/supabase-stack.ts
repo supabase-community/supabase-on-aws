@@ -2,10 +2,12 @@ import * as cdk from 'aws-cdk-lib';
 import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as events from 'aws-cdk-lib/aws-events';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { ManagedPrefixList } from './aws-prefix-list';
 import { WorkMail } from './aws-workmail';
+import { ForceDeployJob } from './ecs-force-deploy-job';
 import { SupabaseAuth } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
@@ -602,6 +604,36 @@ export class SupabaseStack extends cdk.Stack {
         },
       },
     });
+
+    const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
+
+    const dbSecretRotatedRule = new events.Rule(this, 'DatabaseSecretRotated', {
+      description: 'Supabase - Database secret rotated',
+      eventPattern: {
+        source: ['aws.secretsmanager'],
+        detail: {
+          eventName: ['RotationSucceeded'],
+          additionalEventData: {
+            SecretId: [dbSecret.secretArn],
+          },
+        },
+      },
+    });
+
+    const authParameterChangedRule = new events.Rule(this, 'AuthParameterChanged', {
+      description: 'Supabase - Auth parameter changed',
+      eventPattern: {
+        source: ['aws.ssm'],
+        detailType: ['Parameter Store Change'],
+        detail: {
+          name: [{ prefix: `/${cdk.Aws.STACK_NAME}/${auth.node.id}/` }],
+          operation: ['Update'],
+        },
+      },
+    });
+
+    forceDeployJob.addTrigger({ rule: dbSecretRotatedRule, services: [auth, rest, realtime, storage, meta, studio] });
+    forceDeployJob.addTrigger({ rule: authParameterChangedRule, services: [auth] });
 
     this.exportValue(jwt.anonToken, { name: 'ApiKey' });
     this.exportValue(apiExternalUrl, { name: 'Url' });

@@ -27,7 +27,6 @@ export class SupabaseService extends Construct {
   ecsService: ecs.FargateService;
   cloudMapService: servicediscovery.Service;
   logGroup: logs.LogGroup;
-  forceDeployFunction: targets.LambdaFunction;
 
   constructor(scope: Construct, id: string, props: SupabaseServiceProps) {
     super(scope, id);
@@ -128,21 +127,6 @@ export class SupabaseService extends Construct {
     });
     (this.cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
 
-    this.forceDeployFunction = new targets.LambdaFunction(new NodejsFunction(this, 'ForceDeployFunction', {
-      description: 'Supabase - Force deploy ECS service function',
-      entry: 'src/functions/ecs-force-deploy.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
-      architecture: lambda.Architecture.ARM_64,
-      environment: {
-        ECS_CLUSTER_NAME: cluster.clusterName,
-        ECS_SERVICE_NAME: this.ecsService.serviceName,
-      },
-      initialPolicy: [new iam.PolicyStatement({
-        actions: ['ecs:UpdateService'],
-        resources: [this.ecsService.serviceArn],
-      })],
-    }));
-
     const autoScaling = this.ecsService.autoScaleTaskCount({ minCapacity: minTasks, maxCapacity: maxTasks });
     autoScaling.scaleOnCpuUtilization('ScaleOnCpu', {
       targetUtilizationPercent: 50,
@@ -186,19 +170,5 @@ export class SupabaseService extends Construct {
   addDatabaseBackend(backend: SupabaseDatabase) {
     this.ecsService.connections.allowToDefaultPort(backend);
     this.ecsService.node.defaultChild?.node.addDependency(backend.node.findChild('Instance1'));
-
-    new events.Rule(this, 'DatabaseSecretRotated', {
-      description: `Supabase - Force deploy ${this.node.id}, when DB secret rotated`,
-      eventPattern: {
-        source: ['aws.secretsmanager'],
-        detail: {
-          eventName: ['RotationSucceeded'],
-          additionalEventData: {
-            SecretId: [backend.secret?.secretArn],
-          },
-        },
-      },
-      targets: [this.forceDeployFunction],
-    });
   }
 }

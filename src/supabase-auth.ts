@@ -1,6 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
-import * as events from 'aws-cdk-lib/aws-events';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import { SupabaseService, SupabaseServiceProps } from './supabase-service';
@@ -40,20 +39,6 @@ export class SupabaseAuth extends SupabaseService {
     super(scope, id, props);
 
     this.externalAuthProviders = authProvicers;
-
-    new events.Rule(this, 'ParameterChange', {
-      description: `Supabase - Force deploy ${serviceName}, when parameters changed`,
-      eventPattern: {
-        source: ['aws.ssm'],
-        detailType: ['Parameter Store Change'],
-        detail: {
-          name: [{ prefix: `/${cdk.Aws.STACK_NAME}/${serviceName}/` }],
-          operation: ['Update'],
-        },
-      },
-      targets: [this.forceDeployFunction],
-    });
-
   }
 
 }
