@@ -314,10 +314,10 @@ export class SupabaseStack extends cdk.Stack {
 
     const kong = new SupabaseService(this, 'Kong', {
       cluster,
-      containerDefinition: {
+      taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/kong:latest'),
         //image: ecs.ContainerImage.fromAsset('./src/containers/kong', { platform: Platform.LINUX_ARM64 }),
-        portMappings: [{ containerPort: 8000 }, { containerPort: 8100 }],
+        containerPort: 8000,
         environment: {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
           KONG_PLUGINS: 'request-transformer,cors,key-auth,acl,opentelemetry',
@@ -338,12 +338,14 @@ export class SupabaseStack extends cdk.Stack {
           retries: 3,
         },
       },
-      cpu: fargateTaskSize.findInMap(kongTaskSize.valueAsString, 'cpu'),
-      memory: fargateTaskSize.findInMap(kongTaskSize.valueAsString, 'memory'),
-      minTasks: kongMinTasks.valueAsNumber,
-      maxTasks: kongMaxTasks.valueAsNumber,
+      taskSpec: {
+        cpu: fargateTaskSize.findInMap(kongTaskSize.valueAsString, 'cpu'),
+        memory: fargateTaskSize.findInMap(kongTaskSize.valueAsString, 'memory'),
+        minTasks: kongMinTasks.valueAsNumber,
+        maxTasks: kongMaxTasks.valueAsNumber,
+      },
     });
-    const kongLoadBalancer = kong.addNetworkLoadBalancer();
+    const kongLoadBalancer = kong.addNetworkLoadBalancer({ healthCheckPort: 8100 });
 
     const cfPrefixList = new ManagedPrefixList(this, 'CloudFrontManagedPrefixList', { name: 'com.amazonaws.global.cloudfront.origin-facing' });
     kong.ecsService.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
@@ -353,9 +355,9 @@ export class SupabaseStack extends cdk.Stack {
 
     const auth = new SupabaseAuth(this, 'Auth', {
       cluster,
-      containerDefinition: {
+      taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/gotrue:${authApiVersion.valueAsString}`),
-        portMappings: [{ containerPort: 9999 }],
+        containerPort: 9999,
         environment: {
           // Top-Level - https://github.com/supabase/gotrue#top-level
           GOTRUE_SITE_URL: siteUrl.valueAsString,
@@ -409,17 +411,19 @@ export class SupabaseStack extends cdk.Stack {
       },
       apiExternalUrl,
       externalAuthProviders: ['Google', 'Facebook', 'Twitter', 'GitHub'],
-      cpu: fargateTaskSize.findInMap(authTaskSize.valueAsString, 'cpu'),
-      memory: fargateTaskSize.findInMap(authTaskSize.valueAsString, 'memory'),
-      minTasks: authMinTasks.valueAsNumber,
-      maxTasks: authMaxTasks.valueAsNumber,
+      taskSpec: {
+        cpu: fargateTaskSize.findInMap(authTaskSize.valueAsString, 'cpu'),
+        memory: fargateTaskSize.findInMap(authTaskSize.valueAsString, 'memory'),
+        minTasks: authMinTasks.valueAsNumber,
+        maxTasks: authMaxTasks.valueAsNumber,
+      },
     });
 
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
-      containerDefinition: {
+      taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(`postgrest/postgrest:${restApiVersion.valueAsString}`),
-        portMappings: [{ containerPort: 3000 }],
+        containerPort: 3000,
         environment: {
           PGRST_DB_SCHEMAS: 'public,storage,graphql_public',
           PGRST_DB_ANON_ROLE: 'anon',
@@ -430,20 +434,22 @@ export class SupabaseStack extends cdk.Stack {
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
         },
       },
-      cpu: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'cpu'),
-      memory: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'memory'),
-      minTasks: restMinTasks.valueAsNumber,
-      maxTasks: restMaxTasks.valueAsNumber,
+      taskSpec: {
+        cpu: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'cpu'),
+        memory: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'memory'),
+        minTasks: restMinTasks.valueAsNumber,
+        maxTasks: restMaxTasks.valueAsNumber,
+      },
     });
 
     if (gqlEnabled) {
       // GraphQL - use postgraphile insted of pg_graphql
       const graphql = new SupabaseService(this, 'GraphQL', {
         cluster,
-        containerDefinition: {
+        taskImageOptions: {
           image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/postgraphile:latest'),
           //image: ecs.ContainerImage.fromAsset('./src/containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
-          portMappings: [{ containerPort: 5000 }],
+          containerPort: 5000,
           //healthCheck: {
           //  command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1'],
           //  interval: cdk.Duration.seconds(5),
@@ -459,10 +465,12 @@ export class SupabaseStack extends cdk.Stack {
             JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
           },
         },
-        cpu: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'cpu'),
-        memory: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'memory'),
-        minTasks: restMinTasks.valueAsNumber,
-        maxTasks: restMaxTasks.valueAsNumber,
+        taskSpec: {
+          cpu: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'cpu'),
+          memory: fargateTaskSize.findInMap(restTaskSize.valueAsString, 'memory'),
+          minTasks: restMinTasks.valueAsNumber,
+          maxTasks: restMaxTasks.valueAsNumber,
+        },
       });
       graphql.addDatabaseBackend(db);
       kong.addBackend(graphql);
@@ -471,9 +479,9 @@ export class SupabaseStack extends cdk.Stack {
 
     const realtime = new SupabaseService(this, 'Realtime', {
       cluster,
-      containerDefinition: {
+      taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/realtime:${realtimeApiVersion.valueAsString}`),
-        portMappings: [{ containerPort: 4000 }],
+        containerPort: 4000,
         environment: {
           DB_SSL: 'false',
           PORT: '4000',
@@ -495,10 +503,12 @@ export class SupabaseStack extends cdk.Stack {
         },
         command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
       },
-      cpu: fargateTaskSize.findInMap(realtimeTaskSize.valueAsString, 'cpu'),
-      memory: fargateTaskSize.findInMap(realtimeTaskSize.valueAsString, 'memory'),
-      //minTasks: realtimeMinTasks.valueAsNumber,
-      //maxTasks: realtimeMaxTasks.valueAsNumber,
+      taskSpec: {
+        cpu: fargateTaskSize.findInMap(realtimeTaskSize.valueAsString, 'cpu'),
+        memory: fargateTaskSize.findInMap(realtimeTaskSize.valueAsString, 'memory'),
+        //minTasks: realtimeMinTasks.valueAsNumber,
+        //maxTasks: realtimeMaxTasks.valueAsNumber,
+      },
     });
 
     const bucket = new s3.Bucket(this, 'Bucket', {
@@ -509,9 +519,9 @@ export class SupabaseStack extends cdk.Stack {
 
     const storage = new SupabaseService(this, 'Storage', {
       cluster,
-      containerDefinition: {
+      taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/storage-api:${storageApiVersion.valueAsString}`),
-        portMappings: [{ containerPort: 5000 }],
+        containerPort: 5000,
         environment: {
           POSTGREST_URL: 'http://rest.supabase.local:3000',
           PGOPTIONS: '-c search_path=storage,public',
@@ -534,19 +544,21 @@ export class SupabaseStack extends cdk.Stack {
           retries: 3,
         },
       },
-      cpuArchitecture: 'x86_64', // storage-api does not work on ARM64
-      cpu: fargateTaskSize.findInMap(storageTaskSize.valueAsString, 'cpu'),
-      memory: fargateTaskSize.findInMap(storageTaskSize.valueAsString, 'memory'),
-      minTasks: storageMinTasks.valueAsNumber,
-      maxTasks: storageMaxTasks.valueAsNumber,
+      taskSpec: {
+        cpuArchitecture: 'x86_64', // storage-api does not work on ARM64
+        cpu: fargateTaskSize.findInMap(storageTaskSize.valueAsString, 'cpu'),
+        memory: fargateTaskSize.findInMap(storageTaskSize.valueAsString, 'memory'),
+        minTasks: storageMinTasks.valueAsNumber,
+        maxTasks: storageMaxTasks.valueAsNumber,
+      },
     });
     bucket.grantReadWrite(storage.ecsService.taskDefinition.taskRole);
 
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
-      containerDefinition: {
+      taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/postgres-meta:${postgresMetaApiVersion.valueAsString}`),
-        portMappings: [{ containerPort: 8080 }],
+        containerPort: 8080,
         environment: {
           PG_META_PORT: '8080',
         },
@@ -558,10 +570,12 @@ export class SupabaseStack extends cdk.Stack {
           PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
         },
       },
-      cpu: fargateTaskSize.findInMap(postgresMetaTaskSize.valueAsString, 'cpu'),
-      memory: fargateTaskSize.findInMap(postgresMetaTaskSize.valueAsString, 'memory'),
-      minTasks: postgresMetaMinTasks.valueAsNumber,
-      maxTasks: postgresMetaMaxTasks.valueAsNumber,
+      taskSpec: {
+        cpu: fargateTaskSize.findInMap(postgresMetaTaskSize.valueAsString, 'cpu'),
+        memory: fargateTaskSize.findInMap(postgresMetaTaskSize.valueAsString, 'memory'),
+        minTasks: postgresMetaMinTasks.valueAsNumber,
+        maxTasks: postgresMetaMaxTasks.valueAsNumber,
+      },
     });
 
     kong.addBackend(auth);
@@ -589,9 +603,9 @@ export class SupabaseStack extends cdk.Stack {
 
     const studio = new SupabaseStudio(this, 'Studio', {
       cluster,
-      containerDefinition: {
+      taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/studio:${studioVersion.valueAsString}`),
-        portMappings: [{ containerPort: 3000 }],
+        containerPort: 3000,
         environment: {
           STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
           SUPABASE_URL: `${apiExternalUrl}`, // for API Docs

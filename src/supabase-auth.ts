@@ -19,8 +19,8 @@ export class SupabaseAuth extends SupabaseService {
     const serviceName = id;
     const redirectUri = `${props.apiExternalUrl}/auth/v1/callback`;
 
-    const env = props.containerDefinition.environment!;
-    const secrets = props.containerDefinition.secrets!;
+    const env = props.taskImageOptions.environment!;
+    const secrets = props.taskImageOptions.secrets!;
 
     env.API_EXTERNAL_URL = props.apiExternalUrl;
     const authProvicers: AuthProvicer[] = [];

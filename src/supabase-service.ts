@@ -1,25 +1,30 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
+import { NetworkLoadBalancedTaskImageOptions } from 'aws-cdk-lib/aws-ecs-patterns';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import * as events from 'aws-cdk-lib/aws-events';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+//import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { SupabaseDatabase } from './supabase-db';
 
+interface SupabaseTaskImageOptions extends NetworkLoadBalancedTaskImageOptions {
+  containerPort: number;
+  healthCheck?: ecs.HealthCheck;
+  command?: string[];
+}
+
 export interface SupabaseServiceProps {
   cluster: ecs.ICluster;
-  containerDefinition: ecs.ContainerDefinitionOptions;
-  cpuArchitecture?: 'x86_64'|'arm64';
-  cpu?: string;
-  memory?: string;
-  minTasks?: number;
-  maxTasks?: number;
+  taskImageOptions: SupabaseTaskImageOptions;
+  taskSpec?: {
+    cpuArchitecture?: 'x86_64'|'arm64';
+    cpu?: string;
+    memory?: string;
+    minTasks?: number;
+    maxTasks?: number;
+  };
 }
 
 export class SupabaseService extends Construct {
@@ -32,14 +37,14 @@ export class SupabaseService extends Construct {
     super(scope, id);
 
     const serviceName = id.toLowerCase();
-    const { cluster, containerDefinition } = props;
-    const cpu = props.cpu || '256';
-    const memory = props.memory || '512';
-    const minTasks = props.minTasks || 1;
-    const maxTasks = props.maxTasks || 1;
-    const cpuArchitecture = (props.cpuArchitecture == 'x86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
+    const { cluster, taskImageOptions, taskSpec } = props;
+    const cpu = taskSpec?.cpu || '256';
+    const memory = taskSpec?.memory || '512';
+    const minTasks = taskSpec?.minTasks || 1;
+    const maxTasks = taskSpec?.maxTasks || 1;
+    const cpuArchitecture = (taskSpec?.cpuArchitecture == 'x86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
 
-    this.listenerPort = containerDefinition.portMappings![0].containerPort;
+    this.listenerPort = taskImageOptions.containerPort;
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDefinition', {
       runtimePlatform: {
@@ -55,14 +60,19 @@ export class SupabaseService extends Construct {
       retention: logs.RetentionDays.ONE_MONTH,
     });
 
-    const awsLogDriver = new ecs.AwsLogDriver({ logGroup: this.logGroup, streamPrefix: 'ecs' });
+    const logDriver = new ecs.AwsLogDriver({ logGroup: this.logGroup, streamPrefix: 'ecs' });
 
-    const appContainer = taskDefinition.addContainer('AppContainer', {
-      ...containerDefinition,
-      containerName: 'app',
-      essential: true,
-      logging: awsLogDriver,
+    const containerName = taskImageOptions.containerName ?? 'app';
+    const appContainer = taskDefinition.addContainer(containerName, {
+      image: taskImageOptions.image,
+      logging: logDriver,
+      environment: taskImageOptions.environment,
+      secrets: taskImageOptions.secrets,
+      dockerLabels: taskImageOptions.dockerLabels,
+      healthCheck: taskImageOptions.healthCheck,
+      command: taskImageOptions.command,
     });
+    appContainer.addPortMappings({ containerPort: taskImageOptions.containerPort });
     appContainer.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 65536, hardLimit: 65536 });
 
     //const otelPolicy = new iam.Policy(this, 'OpenTelemetryPolicy', {
@@ -85,8 +95,7 @@ export class SupabaseService extends Construct {
     //  })],
     //});
     //taskDefinition.taskRole.attachInlinePolicy(otelPolicy);
-    //const otelContainer = taskDefinition.addContainer('OtelContainer', {
-    //  containerName: 'otel-collector',
+    //const otelContainer = taskDefinition.addContainer('otel-collector', {
     //  image: ecs.ContainerImage.fromRegistry('public.ecr.aws/aws-observability/aws-otel-collector:latest'),
     //  command: ['--config=/etc/ecs/ecs-xray.yaml'],
     //  //cpu: Math.round(cpu * otelCpuRate),
@@ -100,7 +109,7 @@ export class SupabaseService extends Construct {
     //  //  retries: 3,
     //  //},
     //  readonlyRootFilesystem: true,
-    //  logging: awsLogDriver,
+    //  logging: logDriver,
     //});
     //appContainer.addContainerDependencies({
     //  container: otelContainer,
@@ -136,11 +145,11 @@ export class SupabaseService extends Construct {
 
   }
 
-  addNetworkLoadBalancer() {
+  addNetworkLoadBalancer(props: { healthCheckPort: number}) {
+    const healthCheckPort = props.healthCheckPort;
+
     const vpc = this.ecsService.cluster.vpc;
-    const vpcInternal = ec2.Peer.ipv4(vpc.vpcCidrBlock);
-    const healthCheckPort = ec2.Port.tcp(this.ecsService.taskDefinition.defaultContainer!.portMappings.slice(-1)[0].containerPort); // 2nd port
-    this.ecsService.connections.allowFrom(vpcInternal, healthCheckPort, 'NLB healthcheck');
+    this.ecsService.connections.allowFrom(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.tcp(healthCheckPort), 'NLB healthcheck');
 
     const targetGroup = new elb.NetworkTargetGroup(this, 'TargetGroup', {
       port: this.listenerPort,
