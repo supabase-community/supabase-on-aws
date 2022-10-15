@@ -8,7 +8,7 @@ import { Construct } from 'constructs';
 import { ManagedPrefixList } from './aws-prefix-list';
 import { WorkMail } from './aws-workmail';
 import { ForceDeployJob } from './ecs-force-deploy-job';
-import { SupabaseAuth } from './supabase-auth';
+import { SupabaseAuth, AuthProvicerName } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwt } from './supabase-jwt';
@@ -370,7 +370,7 @@ export class SupabaseStack extends cdk.Stack {
           // API - https://github.com/supabase/gotrue#api
           GOTRUE_API_HOST: '0.0.0.0',
           GOTRUE_API_PORT: '9999',
-          //API_EXTERNAL_URL: apiExternalUrl,
+          API_EXTERNAL_URL: apiExternalUrl,
           // Database - https://github.com/supabase/gotrue#database
           GOTRUE_DB_DRIVER: 'postgres',
           // Observability
@@ -409,8 +409,6 @@ export class SupabaseStack extends cdk.Stack {
           retries: 3,
         },
       },
-      apiExternalUrl,
-      externalAuthProviders: ['Google', 'Facebook', 'Twitter', 'GitHub'],
       taskSpec: {
         cpu: fargateTaskSize.findInMap(authTaskSize.valueAsString, 'cpu'),
         memory: fargateTaskSize.findInMap(authTaskSize.valueAsString, 'memory'),
@@ -418,6 +416,10 @@ export class SupabaseStack extends cdk.Stack {
         maxTasks: authMaxTasks.valueAsNumber,
       },
     });
+    auth.addExternalAuthProvider('Google');
+    auth.addExternalAuthProvider('Facebook');
+    auth.addExternalAuthProvider('Twitter');
+    auth.addExternalAuthProvider('GitHub');
 
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
@@ -800,15 +802,21 @@ export class SupabaseStack extends cdk.Stack {
       },
     };
 
-    for (let i in auth.externalAuthProviders) {
-      const provider = auth.externalAuthProviders[i];
-      cfnInterface.ParameterGroups.push({
-        Label: { default: `External Auth Provider - ${provider.name}` },
-        Parameters: [provider.enabledParameter.logicalId, provider.clientIdParameter.logicalId, provider.secretParameter.logicalId],
-      });
-      cfnInterface.ParameterLabels[provider.enabledParameter.logicalId] = { default: `${provider.name} Enabled` };
-      cfnInterface.ParameterLabels[provider.clientIdParameter.logicalId] = { default: `${provider.name} Client ID` };
-      cfnInterface.ParameterLabels[provider.secretParameter.logicalId] = { default: `${provider.name} Client Secret` };
+    for (let provicerName in auth.externalAuthProvider) {
+      const provider = auth.externalAuthProvider[provicerName as AuthProvicerName];
+      if (typeof provider != 'undefined') {
+        cfnInterface.ParameterGroups.push({
+          Label: { default: `External Auth Provider - ${provider.name}` },
+          Parameters: [
+            provider.enabledParameter.logicalId,
+            provider.clientIdParameter.logicalId,
+            provider.secretParameter.logicalId,
+          ],
+        });
+        cfnInterface.ParameterLabels[provider.enabledParameter.logicalId] = { default: `${provider.name} Enabled` };
+        cfnInterface.ParameterLabels[provider.clientIdParameter.logicalId] = { default: `${provider.name} Client ID` };
+        cfnInterface.ParameterLabels[provider.secretParameter.logicalId] = { default: `${provider.name} Client Secret` };
+      }
     }
 
     // for CloudFormation
