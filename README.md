@@ -32,7 +32,6 @@
 - API
   - All containers run on ECS Fargate (Graviton2).
     - Only Storage API run on x86 pratform.
-  - All containers are allocated 1 vCPU/2GB memory.
   - All components are configured with AutoScaling.
     - Only Realtime API does not autoscale
   - GraphQL is not supported, because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
@@ -43,12 +42,25 @@
 - Service Discovery
   - Use [Cloud Map](https://aws.amazon.com/cloud-map/) as internal DNS.
     - Each component is discovered as `***.supabase.local`.
-  - By default, [App Mesh](https://aws.amazon.com/app-mesh/) is used as service mesh.
-    - You can disable App Mesh via CDK.
 - Studio
   - You can use authentication using Cognito UserPool.
     - Need to set certificate ARN.
     - By default, use http without authentication.
+
+#### Fargate Task Size
+
+```json
+{
+  'nano': { cpu: 256, memory: 512 },
+  'micro': { cpu: 256, memory: 1024 },
+  'small': { cpu: 512, memory: 1024 },
+  'medium': { cpu: 1024, memory: 2048 },
+  'large': { cpu: 2048, memory: 4096 },
+  'xlarge': { cpu: 4096, memory: 8192 },
+  '2xlarge': { cpu: 8192, memory: 16384 },
+  '4xlarge': { cpu: 16384, memory: 32768 },
+}
+```
 
 ## Deploy via CDK
 
