@@ -98,7 +98,7 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
-      description: 'Use Amazon SES as SMTP server. If Amazon WorkMail is enabled, it set us-west-2',
+      description: 'Use Amazon SES as SMTP server. If Amazon WorkMail is enabled, Please set us-east-1, us-west-2 or eu-west-1',
       type: 'String',
       default: 'us-west-2',
       allowedValues: sesSmtpSupportedRegions,
@@ -300,14 +300,20 @@ export class SupabaseStack extends cdk.Stack {
       vpc,
     });
 
-    const workMail = new WorkMail(this, 'WorkMail', { region: 'us-west-2', alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
+    new cdk.CfnRule(this, 'CheckWorkMailRegion', {
+      ruleCondition: workMailEnabled.expression,
+      assertions: [{
+        assert: cdk.Fn.conditionContains(['us-east-1', 'us-west-2', 'eu-west-1'], sesRegion.valueAsString),
+        assertDescription: 'Amazon WorkMail is supported only in us-east-1, us-west-2 or eu-west-1. Please change Amazon SES Region.',
+      }],
+    });
+    const workMail = new WorkMail(this, 'WorkMail', { region: sesRegion.valueAsString, alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
     (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabled.logicalId);
 
     const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, `noreply@${workMail.domain}`, senderEmail.valueAsString);
-    const smtpRegion = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMail.region, sesRegion.valueAsString);
-    const smtpHost = `email-smtp.${smtpRegion.toString()}.amazonaws.com`;
+    const smtpHost = `email-smtp.${sesRegion.valueAsString}.amazonaws.com`;
 
-    const mail = new SupabaseMail(this, 'SupabaseMail', { region: smtpRegion.toString() });
+    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString });
 
     const db = new SupabaseDatabase(this, 'Database', { vpc, multiAzEnabled: dbMultiAzEnabled, minCapacity: minAcu.valueAsNumber, maxCapacity: maxAcu.valueAsNumber });
     const dbSecret = db.secret!;

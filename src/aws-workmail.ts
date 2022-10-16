@@ -7,7 +7,7 @@ import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
 interface WorkMailProps {
-  region: 'us-east-1'|'us-west-2'|'eu-west-1';
+  region: string;
   alias: string;
 }
 
