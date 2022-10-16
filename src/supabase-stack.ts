@@ -300,12 +300,14 @@ export class SupabaseStack extends cdk.Stack {
       vpc,
     });
 
-    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString });
     const workMail = new WorkMail(this, 'WorkMail', { region: 'us-west-2', alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
     (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabled.logicalId);
 
     const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, `noreply@${workMail.domain}`, senderEmail.valueAsString);
-    const smtpHost = cdk.Fn.conditionIf(workMailEnabled.logicalId, `email-smtp.${workMail.region}.amazonaws.com`, `email-smtp.${sesRegion.valueAsString}.amazonaws.com`);
+    const smtpRegion = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMail.region, sesRegion.valueAsString);
+    const smtpHost = `email-smtp.${smtpRegion.toString()}.amazonaws.com`;
+
+    const mail = new SupabaseMail(this, 'SupabaseMail', { region: smtpRegion.toString() });
 
     const db = new SupabaseDatabase(this, 'Database', { vpc, multiAzEnabled: dbMultiAzEnabled, minCapacity: minAcu.valueAsNumber, maxCapacity: maxAcu.valueAsNumber });
     const dbSecret = db.secret!;
