@@ -816,14 +816,14 @@ export class SupabaseStack extends cdk.Stack {
         cfnInterface.ParameterGroups.push({
           Label: { default: `External Auth Provider - ${provider.name}` },
           Parameters: [
-            provider.enabledParameter.logicalId,
-            provider.clientIdParameter.logicalId,
-            provider.secretParameter.logicalId,
+            provider.enabled.logicalId,
+            provider.clientId.logicalId,
+            provider.secret.logicalId,
           ],
         });
-        cfnInterface.ParameterLabels[provider.enabledParameter.logicalId] = { default: `${provider.name} Enabled` };
-        cfnInterface.ParameterLabels[provider.clientIdParameter.logicalId] = { default: `${provider.name} Client ID` };
-        cfnInterface.ParameterLabels[provider.secretParameter.logicalId] = { default: `${provider.name} Client Secret` };
+        cfnInterface.ParameterLabels[provider.enabled.logicalId] = { default: `${provider.name} Enabled` };
+        cfnInterface.ParameterLabels[provider.clientId.logicalId] = { default: `${provider.name} Client ID` };
+        cfnInterface.ParameterLabels[provider.secret.logicalId] = { default: `${provider.name} Client Secret` };
       }
     }
 

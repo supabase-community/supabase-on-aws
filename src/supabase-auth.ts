@@ -23,10 +23,10 @@ export class SupabaseAuth extends SupabaseService {
     const authProvicer = new AuthProvicer(this, name, { parameterPrefix: `/${cdk.Aws.STACK_NAME}/${this.node.id}/External/${name}` });
     const container = this.ecsService.taskDefinition.defaultContainer!;
     const envPrefix = `GOTRUE_EXTERNAL_${name.toUpperCase()}`;
-    container.addEnvironment(`${envPrefix}_ENABLED`, authProvicer.enabledParameter.valueAsString);
+    container.addEnvironment(`${envPrefix}_ENABLED`, authProvicer.enabled.valueAsString);
     container.addEnvironment(`${envPrefix}_REDIRECT_URI`, this.redirectUri);
-    container.addSecret(`${envPrefix}_CLIENT_ID`, ecs.Secret.fromSsmParameter(authProvicer.clientId));
-    container.addSecret(`${envPrefix}_SECRET`, ecs.Secret.fromSsmParameter(authProvicer.secret));
+    container.addSecret(`${envPrefix}_CLIENT_ID`, ecs.Secret.fromSsmParameter(authProvicer.clientIdParameter));
+    container.addSecret(`${envPrefix}_SECRET`, ecs.Secret.fromSsmParameter(authProvicer.secretParameter));
     this.externalAuthProvider[name] = authProvicer;
     return authProvicer;
   }
@@ -39,11 +39,11 @@ interface AuthProvicerProps {
 
 class AuthProvicer extends Construct {
   name: string;
-  enabledParameter: cdk.CfnParameter;
-  clientIdParameter: cdk.CfnParameter;
-  secretParameter: cdk.CfnParameter;
-  clientId: StringParameter;
-  secret: StringParameter;
+  enabled: cdk.CfnParameter;
+  clientId: cdk.CfnParameter;
+  secret: cdk.CfnParameter;
+  clientIdParameter: StringParameter;
+  secretParameter: StringParameter;
 
   constructor(scope: Construct, id: string, props: AuthProvicerProps) {
     super(scope, id);
@@ -51,38 +51,56 @@ class AuthProvicer extends Construct {
     this.name = id;
     const { parameterPrefix } = props;
 
-    this.enabledParameter = new cdk.CfnParameter(this, 'EnabledParameter', {
+    this.enabled = new cdk.CfnParameter(this, 'Enabled', {
       description: 'Whether this external provider is enabled or not',
       type: 'String',
       default: 'false',
       allowedValues: ['true', 'false'],
     });
 
-    this.clientIdParameter = new cdk.CfnParameter(this, 'ClientIdParameter', {
+    const enabledCondition = new cdk.CfnCondition(this, 'EnabledCondition', { expression: cdk.Fn.conditionEquals(this.enabled, 'true') });
+
+    this.clientId = new cdk.CfnParameter(this, 'ClientId', {
       description: 'The OAuth2 Client ID registered with the external provider.',
       type: 'String',
-      default: 'replace-with-your-client-id',
+      default: '',
     });
 
-    this.secretParameter = new cdk.CfnParameter(this, 'SecretParameter', {
+    this.secret = new cdk.CfnParameter(this, 'Secret', {
       description: 'The OAuth2 Client Secret provided by the external provider when you registered.',
       type: 'String',
-      default: 'replace-with-your-client-secret',
+      default: '',
       noEcho: true,
     });
 
-    this.clientId = new StringParameter(this, 'ClientId', {
+    this.clientIdParameter = new StringParameter(this, 'ClientIdParameter', {
       description: 'The OAuth2 Client ID registered with the external provider.',
       simpleName: false,
       parameterName: `${parameterPrefix}/ClientId`,
-      stringValue: this.clientIdParameter.valueAsString,
+      stringValue: cdk.Fn.conditionIf(enabledCondition.logicalId, this.clientId.valueAsString, 'null').toString(),
     });
 
-    this.secret = new StringParameter(this, 'Secret', {
+    this.secretParameter = new StringParameter(this, 'SecretParameter', {
       description: 'The OAuth2 Client Secret provided by the external provider when you registered.',
       simpleName: false,
       parameterName: `${parameterPrefix}/Secret`,
-      stringValue: this.secretParameter.valueAsString,
+      stringValue: cdk.Fn.conditionIf(enabledCondition.logicalId, this.secret.valueAsString, 'null').toString(),
+    });
+
+    new cdk.CfnRule(this, 'CheckClientId', {
+      ruleCondition: enabledCondition.expression,
+      assertions: [{
+        assert: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(this.clientId, '')),
+        assertDescription: `${id} Client Id is must not null, if ${id} is enabled as external auth provider.`,
+      }],
+    });
+
+    new cdk.CfnRule(this, 'CheckSecret', {
+      ruleCondition: enabledCondition.expression,
+      assertions: [{
+        assert: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(this.secret, '')),
+        assertDescription: `${id} Client Secret is must not null, if ${id} is enabled as external auth provider.`,
+      }],
     });
 
   }
