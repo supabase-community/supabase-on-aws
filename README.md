@@ -49,18 +49,16 @@
 
 #### Fargate Task Size
 
-```json
-{
-  'nano': { cpu: 256, memory: 512 },
-  'micro': { cpu: 256, memory: 1024 },
-  'small': { cpu: 512, memory: 1024 },
-  'medium': { cpu: 1024, memory: 2048 },
-  'large': { cpu: 2048, memory: 4096 },
-  'xlarge': { cpu: 4096, memory: 8192 },
-  '2xlarge': { cpu: 8192, memory: 16384 },
-  '4xlarge': { cpu: 16384, memory: 32768 },
-}
-```
+| Size | vCPU | Memory |
+|:--|:--|:--|
+| nano | 256 | 512 |
+| micro | 256 | 1024 |
+| small | 512 | 1024 |
+| medium | 1024 | 2048 |
+| large | 2048 | 4096 |
+| xlarge | 4096 | 8192 |
+| 2xlarge | 8192 | 16384 |
+| 4xlarge | 16384 | 512 |
 
 ## Deploy via CDK
 
