@@ -1,8 +1,6 @@
 import { WorkMailClient, CreateOrganizationCommand, DeleteOrganizationCommand } from '@aws-sdk/client-workmail';
 import { CdkCustomResourceHandler } from 'aws-lambda';
 
-const workMailRegions = ['us-east-1', 'us-west-2', 'eu-west-1'];
-
 const createOrg = async (region: string, alias: string) => {
   const client = new WorkMailClient({ region });
   const cmd = new CreateOrganizationCommand({ Alias: alias });
@@ -30,8 +28,7 @@ const deleteOrg = async (region: string, organizationId: string) => {
 };
 
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
-  let region: string = event.ResourceProperties.Region;
-  if (workMailRegions.includes(region)) { region = 'us-west-2'; };
+  const region: string = event.ResourceProperties.Region;
   const alias: string = event.ResourceProperties.Alias;
 
   switch (event.RequestType) {
