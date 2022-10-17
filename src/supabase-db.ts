@@ -24,7 +24,9 @@ interface SupabaseDatabaseProps {
   maxCapacity: number;
 }
 
-export class SupabaseDatabase extends rds.DatabaseCluster {
+export class SupabaseDatabase extends Construct {
+  cluster: rds.DatabaseCluster;
+  secret: secretsmanager.ISecret;
   url: {
     writer: ssm.StringParameter;
     writerSearchPathAuth: ssm.StringParameter;
@@ -32,6 +34,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
   };
 
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
+    super(scope, id);
 
     const { vpc, multiAzEnabled, minCapacity, maxCapacity } = props;
 
@@ -39,7 +42,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       version: rds.AuroraPostgresEngineVersion.of('14.3', '14'),
     });
 
-    const parameterGroup = new rds.ParameterGroup(scope, 'ParameterGroup', {
+    const parameterGroup = new rds.ParameterGroup(this, 'ParameterGroup', {
       engine,
       description: 'Supabase parameter group for aurora-postgresql',
       parameters: {
@@ -57,7 +60,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       },
     });
 
-    super(scope, id, {
+    this.cluster = new rds.DatabaseCluster(this, 'Cluster', {
       engine,
       parameterGroup,
       storageEncrypted: true,
@@ -71,8 +74,8 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       defaultDatabaseName: 'postgres',
     });
 
-    const secret = this.secret!;
-    (this.node.findChild('Instance2') as rds.CfnDBInstance).addOverride('Condition', multiAzEnabled.logicalId);
+    this.secret = this.cluster.secret!;
+    (this.cluster.node.findChild('Instance2') as rds.CfnDBInstance).addOverride('Condition', multiAzEnabled.logicalId);
 
     // Support for Aurora Serverless v2 ---------------------------------------------------
     const serverlessV2ScalingConfiguration = {
@@ -85,49 +88,51 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
         service: 'RDS',
         action: 'modifyDBCluster',
         parameters: {
-          DBClusterIdentifier: this.clusterIdentifier,
+          DBClusterIdentifier: this.cluster.clusterIdentifier,
           ServerlessV2ScalingConfiguration: serverlessV2ScalingConfiguration,
         },
-        physicalResourceId: cr.PhysicalResourceId.of(this.clusterIdentifier),
+        physicalResourceId: cr.PhysicalResourceId.of(this.cluster.clusterIdentifier),
       },
       onUpdate: {
         service: 'RDS',
         action: 'modifyDBCluster',
         parameters: {
-          DBClusterIdentifier: this.clusterIdentifier,
+          DBClusterIdentifier: this.cluster.clusterIdentifier,
           ServerlessV2ScalingConfiguration: serverlessV2ScalingConfiguration,
         },
-        physicalResourceId: cr.PhysicalResourceId.of(this.clusterIdentifier),
+        physicalResourceId: cr.PhysicalResourceId.of(this.cluster.clusterIdentifier),
       },
       policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
         resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
       }),
     });
-    this.node.children.filter(child => child.node.id.startsWith('Instance')).map(child => {
+    this.cluster.node.children.filter(child => child.node.id.startsWith('Instance')).map(child => {
       child.node.addDependency(dbScalingConfigure);
     });
     // Support for Aurora Serverless v2 ---------------------------------------------------
 
     // Sync to SSM Parameter Store for database_url ---------------------------------------
-    const databaseUrl = `postgres://${secret.secretValueFromJson('username').toString()}:${secret.secretValueFromJson('password').toString()}@${secret.secretValueFromJson('host').toString()}:${secret.secretValueFromJson('port').toString()}/${secret.secretValueFromJson('dbname').toString()}`;
+    const username = this.secret.secretValueFromJson('username').toString();
+    const password = this.secret.secretValueFromJson('password').toString();
+    const dbname = this.secret.secretValueFromJson('dbname').toString();
 
     this.url = {
       writer: new ssm.StringParameter(this, 'WriterUrlParameter', {
-        parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/Writer`,
+        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Writer`,
         description: 'The standard connection PostgreSQL URI format.',
-        stringValue: databaseUrl,
+        stringValue: `postgres://${username}:${password}@${this.cluster.clusterEndpoint.hostname}:${this.cluster.clusterEndpoint.port}/${dbname}`,
         simpleName: false,
       }),
       writerSearchPathAuth: new ssm.StringParameter(this, 'WriterSearchPathAuthUrlParameter', {
-        parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/WriterSearchPathAuth`,
+        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/WriterSearchPathAuth`,
         description: 'The standard connection PostgreSQL URI format',
-        stringValue: `${databaseUrl}?search_path=auth`,
+        stringValue: `postgres://${username}:${password}@${this.cluster.clusterEndpoint.hostname}:${this.cluster.clusterEndpoint.port}/${dbname}?search_path=auth`,
         simpleName: false,
       }),
       reader: new ssm.StringParameter(this, 'ReaderUrlParameter', {
-        parameterName: `/${cdk.Aws.STACK_NAME}/Database/Url/Reader`,
+        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Reader`,
         description: 'The standard connection PostgreSQL URI format.',
-        stringValue: databaseUrl,
+        stringValue: `postgres://${username}:${password}@${this.cluster.clusterReadEndpoint.hostname}:${this.cluster.clusterReadEndpoint.port}/${dbname}`,
         simpleName: false,
       }),
     };
@@ -146,7 +151,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     this.url.writer.grantWrite(syncSecretFunction);
     this.url.writerSearchPathAuth.grantWrite(syncSecretFunction);
     this.url.reader.grantWrite(syncSecretFunction);
-    secret.grantRead(syncSecretFunction);
+    this.secret.grantRead(syncSecretFunction);
 
     new events.Rule(this, 'SecretChangeRule', {
       description: 'Supabase - Update parameter store, when DB secret rotated',
@@ -155,7 +160,7 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
         detail: {
           eventName: ['RotationSucceeded'],
           additionalEventData: {
-            SecretId: [secret.secretArn],
+            SecretId: [this.secret.secretArn],
           },
         },
       },
@@ -164,16 +169,16 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
     // Sync to SSM Parameter Store for database_url ---------------------------------------
 
     const rotationSecurityGroup = new ec2.SecurityGroup(this, 'RotationSecurityGroup', { vpc });
-    secret.addRotationSchedule('Rotation', {
+    this.secret.addRotationSchedule('Rotation', {
       automaticallyAfter: cdk.Duration.days(30),
       hostedRotation: secretsmanager.HostedRotation.postgreSqlSingleUser({
-        functionName: `${secret.secretName}RotationFunction`,
+        functionName: `${this.secret.secretName}RotationFunction`,
         excludeCharacters,
         securityGroups: [rotationSecurityGroup],
         vpc,
       }),
     });
-    this.connections.allowDefaultPortFrom(rotationSecurityGroup, 'Lambda to rotate secrets');
+    this.cluster.connections.allowDefaultPortFrom(rotationSecurityGroup, 'Lambda to rotate secrets');
 
     const initFunction = new NodejsFunction(this, 'InitFunction', {
       description: 'Supabase - Database init function',
@@ -199,20 +204,20 @@ export class SupabaseDatabase extends rds.DatabaseCluster {
       vpc,
     });
 
-    this.connections.allowDefaultPortFrom(initFunction);
-    secret.grantRead(initFunction);
+    this.cluster.connections.allowDefaultPortFrom(initFunction);
+    this.secret.grantRead(initFunction);
 
     const initProvider = new cr.Provider(this, 'InitProvider', { onEventHandler: initFunction });
 
-    const init = new cdk.CustomResource(this, 'Init', {
+    const init = new cdk.CustomResource(this, 'InitData', {
       serviceToken: initProvider.serviceToken,
-      resourceType: 'Custom::SupabaseDatabaseInit',
+      resourceType: 'Custom::SupabaseInitData',
       properties: {
-        SecretId: secret.secretArn,
-        Hostname: this.clusterEndpoint.hostname,
+        SecretId: this.secret.secretArn,
+        Hostname: this.cluster.clusterEndpoint.hostname,
       },
     });
-    init.node.addDependency(this.node.findChild('Instance1'));
+    init.node.addDependency(this.cluster.node.findChild('Instance1'));
 
   }
 }

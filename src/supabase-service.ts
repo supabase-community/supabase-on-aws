@@ -177,7 +177,7 @@ export class SupabaseService extends Construct {
   }
 
   addDatabaseBackend(backend: SupabaseDatabase) {
-    this.ecsService.connections.allowToDefaultPort(backend);
-    this.ecsService.node.defaultChild?.node.addDependency(backend.node.findChild('Instance1'));
+    this.ecsService.connections.allowToDefaultPort(backend.cluster);
+    this.ecsService.node.defaultChild?.node.addDependency(backend.cluster.node.findChild('Instance1'));
   }
 }

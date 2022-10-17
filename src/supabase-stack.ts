@@ -318,7 +318,6 @@ export class SupabaseStack extends cdk.Stack {
     const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString });
 
     const db = new SupabaseDatabase(this, 'Database', { vpc, multiAzEnabled: dbMultiAzEnabled, minCapacity: minAcu.valueAsNumber, maxCapacity: maxAcu.valueAsNumber });
-    const dbSecret = db.secret!;
 
     const jwt = new SupabaseJwt(this, 'SupabaseJwt', { issuer: 'supabase', expiresIn: '10y' });
 
@@ -507,11 +506,11 @@ export class SupabaseStack extends cdk.Stack {
         },
         secrets: {
           JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
-          DB_HOST: ecs.Secret.fromSecretsManager(dbSecret, 'host'),
-          DB_PORT: ecs.Secret.fromSecretsManager(dbSecret, 'port'),
-          DB_NAME: ecs.Secret.fromSecretsManager(dbSecret, 'dbname'),
-          DB_USER: ecs.Secret.fromSecretsManager(dbSecret, 'username'),
-          DB_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
+          DB_HOST: ecs.Secret.fromSecretsManager(db.secret, 'host'),
+          DB_PORT: ecs.Secret.fromSecretsManager(db.secret, 'port'),
+          DB_NAME: ecs.Secret.fromSecretsManager(db.secret, 'dbname'),
+          DB_USER: ecs.Secret.fromSecretsManager(db.secret, 'username'),
+          DB_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
         },
         command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
       },
@@ -575,11 +574,11 @@ export class SupabaseStack extends cdk.Stack {
           PG_META_PORT: '8080',
         },
         secrets: {
-          PG_META_DB_HOST: ecs.Secret.fromSecretsManager(dbSecret, 'host'),
-          PG_META_DB_PORT: ecs.Secret.fromSecretsManager(dbSecret, 'port'),
-          PG_META_DB_NAME: ecs.Secret.fromSecretsManager(dbSecret, 'dbname'),
-          PG_META_DB_USER: ecs.Secret.fromSecretsManager(dbSecret, 'username'),
-          PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
+          PG_META_DB_HOST: ecs.Secret.fromSecretsManager(db.secret, 'host'),
+          PG_META_DB_PORT: ecs.Secret.fromSecretsManager(db.secret, 'port'),
+          PG_META_DB_NAME: ecs.Secret.fromSecretsManager(db.secret, 'dbname'),
+          PG_META_DB_USER: ecs.Secret.fromSecretsManager(db.secret, 'username'),
+          PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
         },
       },
       taskSpec: {
@@ -624,7 +623,7 @@ export class SupabaseStack extends cdk.Stack {
           SUPABASE_REST_URL: `${apiExternalUrl}/rest/v1/`,
         },
         secrets: {
-          POSTGRES_PASSWORD: ecs.Secret.fromSecretsManager(dbSecret, 'password'),
+          POSTGRES_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
           SUPABASE_ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
           SUPABASE_SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
         },
@@ -640,7 +639,7 @@ export class SupabaseStack extends cdk.Stack {
         detail: {
           eventName: ['RotationSucceeded'],
           additionalEventData: {
-            SecretId: [dbSecret.secretArn],
+            SecretId: [db.secret.secretArn],
           },
         },
       },
