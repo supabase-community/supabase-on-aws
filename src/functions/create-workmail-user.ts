@@ -2,8 +2,6 @@ import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-sec
 import { WorkMailClient, CreateUserCommand, DeleteUserCommand, RegisterToWorkMailCommand, DeregisterFromWorkMailCommand } from '@aws-sdk/client-workmail';
 import { CdkCustomResourceHandler } from 'aws-lambda';
 
-const workMailRegions = ['us-east-1', 'us-west-2', 'eu-west-1'];
-
 interface WorkMailUserSecret {
   username: string;
   password: string;
@@ -71,8 +69,7 @@ const deleteUser = async (region: string, organizationId: string, userId: string
 };
 
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
-  let region: string = event.ResourceProperties.Region;
-  if (workMailRegions.includes(region)) { region = 'us-west-2'; };
+  const region: string = event.ResourceProperties.Region;
   const organizationId: string = event.ResourceProperties.OrganizationId;
   const secretId: string = event.ResourceProperties.SecretId;
 
