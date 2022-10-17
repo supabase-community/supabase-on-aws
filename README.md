@@ -58,7 +58,7 @@
 | large | 2048 | 4096 |
 | xlarge | 4096 | 8192 |
 | 2xlarge | 8192 | 16384 |
-| 4xlarge | 16384 | 512 |
+| 4xlarge | 16384 | 32768 |
 
 ## Deploy via CDK
 
