@@ -46,10 +46,11 @@ const createUser = async (region: string, organizationId: string, secretId: stri
     DisplayName: username,
     Password: password,
   });
-  const { UserId: userId } = await client.send(cmd);
-  await registerToWorkMail(region, organizationId, userId!, email);
+  const output = await client.send(cmd);
+  const userId = output.UserId!;
+  await registerToWorkMail(region, organizationId, userId, email);
   client.destroy();
-  return userId;
+  return { userId, email };
 };
 
 const deleteUser = async (region: string, organizationId: string, userId: string) => {
@@ -75,14 +76,14 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
 
   switch (event.RequestType) {
     case 'Create': {
-      const userId = await createUser(region, organizationId, secretId);
-      return { PhysicalResourceId: userId, Data: { UserId: userId } };
+      const user = await createUser(region, organizationId, secretId);
+      return { PhysicalResourceId: user.userId, Data: { UserId: user.userId, Email: user.email } };
     }
     case 'Update': {
       const oldUserId = event.PhysicalResourceId;
       await deleteUser(region, organizationId, oldUserId);
-      const userId = await createUser(region, organizationId, secretId);
-      return { PhysicalResourceId: userId, Data: { UserId: userId } };
+      const user = await createUser(region, organizationId, secretId);
+      return { PhysicalResourceId: user.userId, Data: { UserId: user.userId, Email: user.email } };
     }
     case 'Delete': {
       const userId = event.PhysicalResourceId;
