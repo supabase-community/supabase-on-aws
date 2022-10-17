@@ -6,7 +6,7 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { ManagedPrefixList } from './aws-prefix-list';
-import { WorkMail } from './aws-workmail';
+import { Stack as WorkMailStack } from './aws-workmail';
 import { ForceDeployJob } from './ecs-force-deploy-job';
 import { SupabaseAuth, AuthProvicerName } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
@@ -307,10 +307,12 @@ export class SupabaseStack extends cdk.Stack {
         assertDescription: 'Amazon WorkMail is supported only in us-east-1, us-west-2 or eu-west-1. Please change Amazon SES Region.',
       }],
     });
-    const workMail = new WorkMail(this, 'WorkMail', { region: sesRegion.valueAsString, alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
+
+    const workMail = new WorkMailStack(this, 'WorkMail', { region: sesRegion.valueAsString, alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
+    workMail.organization.addUser('Noreply');
     (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabled.logicalId);
 
-    const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, `noreply@${workMail.domain}`, senderEmail.valueAsString);
+    const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, `noreply@${workMail.organization.domain}`, senderEmail.valueAsString);
     const smtpHost = `email-smtp.${sesRegion.valueAsString}.amazonaws.com`;
 
     const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString });
