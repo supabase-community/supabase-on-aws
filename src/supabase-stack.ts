@@ -660,10 +660,24 @@ export class SupabaseStack extends cdk.Stack {
     forceDeployJob.addTrigger({ rule: dbSecretRotatedRule, services: [auth, rest, realtime, storage, meta, studio] });
     forceDeployJob.addTrigger({ rule: authParameterChangedRule, services: [auth] });
 
-    this.exportValue(jwt.anonToken, { name: 'ApiKey' });
-    this.exportValue(apiExternalUrl, { name: 'Url' });
-    new cdk.CfnOutput(this, 'StudioUrl', { value: `http://${studio.loadBalancer.loadBalancerDnsName}` });
-    new cdk.CfnOutput(this, 'StudioUserPool', { value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users` });
+    new cdk.CfnOutput(this, 'SupabaseUrl', {
+      value: apiExternalUrl,
+      description: 'A RESTful endpoint for querying and managing your database.',
+      exportName: `${cdk.Aws.STACK_NAME}Url`,
+    });
+    new cdk.CfnOutput(this, 'SupabasAnonKey', {
+      value: jwt.anonToken,
+      description: 'This key is safe to use in a browser if you have enabled Row Level Security for your tables and configured policies.',
+      exportName: `${cdk.Aws.STACK_NAME}AnonKey`,
+    });
+    new cdk.CfnOutput(this, 'StudioUrl', {
+      value: `http://${studio.loadBalancer.loadBalancerDnsName}`,
+      description: 'Supabase Studio URL (Application Load Balancer)',
+    });
+    new cdk.CfnOutput(this, 'StudioUserPool', {
+      value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users`,
+      description: 'Cognito UserPool for Supabase Studio',
+    });
 
     const cfnInterface = {
       ParameterGroups: [
