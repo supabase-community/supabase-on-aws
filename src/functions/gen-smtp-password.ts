@@ -55,7 +55,7 @@ const updateSecret = async (secretId: string, region: string) => {
       ...secret,
       username: secret.access_key,
       password: smtpPassword,
-      host: `email-smtp.${region}.amazonaws.com`,
+      region,
     } as sesSecret),
   });
   await client.send(cmd);

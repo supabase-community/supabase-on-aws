@@ -1,11 +1,10 @@
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
-import { WorkMailClient, CreateUserCommand, DeleteUserCommand, RegisterToWorkMailCommand, DeregisterFromWorkMailCommand } from '@aws-sdk/client-workmail';
+import { WorkMailClient, CreateUserCommand, DeleteUserCommand, RegisterToWorkMailCommand, DeregisterFromWorkMailCommand, DescribeOrganizationCommand } from '@aws-sdk/client-workmail';
 import { CdkCustomResourceHandler } from 'aws-lambda';
 
 interface WorkMailUserSecret {
   username: string;
   password: string;
-  email: string;
 }
 
 const getSecretValue = async (secretId: string) => {
@@ -14,6 +13,14 @@ const getSecretValue = async (secretId: string) => {
   const { SecretString } = await client.send(cmd);
   const value: WorkMailUserSecret = JSON.parse(SecretString!);
   return value;
+};
+
+const describeMailDomain = async (region: string, organizationId: string) => {
+  const client = new WorkMailClient({ region });
+  const cmd = new DescribeOrganizationCommand({ OrganizationId: organizationId });
+  const { DefaultMailDomain } = await client.send(cmd);
+  client.destroy();
+  return DefaultMailDomain!;
 };
 
 const registerToWorkMail = async (region: string, organizationId: string, entityId: string, email: string) => {
@@ -37,14 +44,16 @@ const deregisterFromWorkMail = async (region: string, organizationId: string, en
   client.destroy();
 };
 
-const createUser = async (region: string, organizationId: string, secretId: string) => {
-  const { username, password, email } = await getSecretValue(secretId);
+const createUser = async (region: string, organizationId: string, secretId: string, displayName: string) => {
+  const mailDomain = await describeMailDomain(region, organizationId);
+  const email = `${displayName.toLowerCase()}@${mailDomain}`;
+  const { username, password } = await getSecretValue(secretId);
   const client = new WorkMailClient({ region });
   const cmd = new CreateUserCommand({
     OrganizationId: organizationId,
     Name: username,
-    DisplayName: username,
     Password: password,
+    DisplayName: displayName,
   });
   const output = await client.send(cmd);
   const userId = output.UserId!;
@@ -73,17 +82,18 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
   const region: string = event.ResourceProperties.Region;
   const organizationId: string = event.ResourceProperties.OrganizationId;
   const secretId: string = event.ResourceProperties.SecretId;
+  const displayName: string = event.ResourceProperties.DisplayName;
 
   switch (event.RequestType) {
     case 'Create': {
-      const user = await createUser(region, organizationId, secretId);
-      return { PhysicalResourceId: user.userId, Data: { UserId: user.userId, Email: user.email } };
+      const user = await createUser(region, organizationId, secretId, displayName);
+      return { PhysicalResourceId: user.email, Data: { UserId: user.userId, Email: user.email } };
     }
     case 'Update': {
       const oldUserId = event.PhysicalResourceId;
       await deleteUser(region, organizationId, oldUserId);
-      const user = await createUser(region, organizationId, secretId);
-      return { PhysicalResourceId: user.userId, Data: { UserId: user.userId, Email: user.email } };
+      const user = await createUser(region, organizationId, secretId, displayName);
+      return { PhysicalResourceId: user.email, Data: { UserId: user.userId, Email: user.email } };
     }
     case 'Delete': {
       const userId = event.PhysicalResourceId;

@@ -7,13 +7,17 @@ import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
 
+interface StackProps extends cdk.NestedStackProps {
+  organization: OrganizationProps;
+}
+
 export class Stack extends cdk.NestedStack {
   organization: Organization;
 
-  constructor(scope: Construct, id: string, props: OrganizationProps) {
-    super(scope, id, { description: 'Amazon WorkMail for Test Domain' });
+  constructor(scope: Construct, id: string, props: StackProps) {
+    super(scope, id, props);
 
-    this.organization = new Organization(this, 'Organization', props);
+    this.organization = new Organization(this, 'Organization', props.organization);
   }
 }
 
@@ -109,6 +113,7 @@ export class Organization extends Construct {
       initialPolicy: [
         new iam.PolicyStatement({
           actions: [
+            'workmail:DescribeOrganization',
             'workmail:CreateUser',
             'workmail:DeleteUser',
             'workmail:RegisterToWorkMail',
@@ -125,48 +130,20 @@ export class Organization extends Construct {
     });
   }
 
-  addUser(id: string) {
-    const user = new User(this, id, { organization: this });
-    return user;
-  }
-}
+  addUser(id: string, secret: Secret) {
+    secret.grantRead(this.createUserProvider.onEventHandler);
 
-interface UserProps {
-  organization: Organization;
-}
-
-export class User extends Construct {
-  secret: Secret;
-
-  constructor(scope: Construct, id: string, props: UserProps) {
-    super(scope, id);
-
-    const userName = id.toLowerCase();
-    const organization = props.organization;
-
-    this.secret = new Secret(this, 'Secret', {
-      description: `Supabase - WorkMail User Secret - ${userName}`,
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({
-          username: userName,
-          email: `${userName}@${organization.domain}`,
-        }),
-        generateStringKey: 'password',
-        passwordLength: 64,
-      },
-    });
-
-    this.secret.grantRead(organization.createUserProvider.onEventHandler);
-
-    new cdk.CfnResource(this, 'Resource', {
+    const user = new cdk.CfnResource(this, id, {
       type: 'Custom::WorkMailUser',
       properties: {
-        ServiceToken: organization.createUserProvider.serviceToken,
-        Region: organization.region,
-        OrganizationId: organization.organizationId,
-        SecretId: this.secret.secretArn,
+        ServiceToken: this.createUserProvider.serviceToken,
+        Region: this.region,
+        OrganizationId: this.organizationId,
+        SecretId: secret.secretArn,
+        DisplayName: id,
       },
     });
 
+    return user;
   }
 }

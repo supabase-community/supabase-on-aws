@@ -308,14 +308,21 @@ export class SupabaseStack extends cdk.Stack {
       }],
     });
 
-    const workMail = new WorkMailStack(this, 'WorkMail', { region: sesRegion.valueAsString, alias: `supabase-${cdk.Aws.ACCOUNT_ID}` });
-    workMail.organization.addUser('Noreply');
+    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString });
+
+    const workMail = new WorkMailStack(this, 'WorkMail', {
+      description: 'Amazon WorkMail for Test Domain',
+      organization: {
+        region: sesRegion.valueAsString,
+        alias: `supabase-${cdk.Aws.ACCOUNT_ID}`,
+      },
+    });
+    const workMailUser = workMail.organization.addUser('Noreply', mail.secret);
     (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabled.logicalId);
 
-    const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, `noreply@${workMail.organization.domain}`, senderEmail.valueAsString);
-    const smtpHost = `email-smtp.${sesRegion.valueAsString}.amazonaws.com`;
-
-    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString });
+    const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.ref, senderEmail.valueAsString);
+    const smtpHost = cdk.Fn.conditionIf(workMailEnabled.logicalId, `smtp.mail.${sesRegion.valueAsString}.awsapps.com`, `email-smtp.${sesRegion.valueAsString}.amazonaws.com`);
+    const smtpUser = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.ref, mail.secret.secretValueFromJson('username').unsafeUnwrap());
 
     const db = new SupabaseDatabase(this, 'Database', { vpc, multiAzEnabled: dbMultiAzEnabled, minCapacity: minAcu.valueAsNumber, maxCapacity: maxAcu.valueAsNumber });
 
@@ -396,6 +403,7 @@ export class SupabaseStack extends cdk.Stack {
           GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmail.toString(),
           GOTRUE_SMTP_HOST: smtpHost.toString(),
           GOTRUE_SMTP_PORT: '465',
+          GOTRUE_SMTP_USER: smtpUser.toString(),
           GOTRUE_SMTP_SENDER_NAME: senderName.valueAsString,
           GOTRUE_MAILER_AUTOCONFIRM: 'false',
           GOTRUE_MAILER_URLPATHS_INVITE: '/auth/v1/verify',
@@ -408,7 +416,6 @@ export class SupabaseStack extends cdk.Stack {
         secrets: {
           GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writerSearchPathAuth),
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
-          GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(mail.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(mail.secret, 'password'),
         },
         healthCheck: {
