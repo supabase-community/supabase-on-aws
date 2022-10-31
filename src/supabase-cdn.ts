@@ -84,6 +84,10 @@ export class SupabaseCdn extends Construct {
             ManagedRuleGroupStatement: {
               VendorName: 'AWS',
               Name: 'AWSManagedRulesBotControlRuleSet',
+              ExcludedRules: [
+                { Name: 'CategoryHttpLibrary' },
+                { Name: 'SignalNonBrowserUserAgent' },
+              ],
             },
           },
           VisibilityConfig: {
