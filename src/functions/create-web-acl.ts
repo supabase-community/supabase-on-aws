@@ -59,23 +59,6 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
     if (typeof rule.Statement?.RateBasedStatement != 'undefined') {
       rule.Statement.RateBasedStatement.Limit = Number(rule.Statement.RateBasedStatement.Limit);
     }
-    // for Supabase Studio SSR
-    if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement.ManagedRuleGroupStatement.Name == 'AWSManagedRulesBotControlRuleSet') {
-      rule.Statement.ManagedRuleGroupStatement.ScopeDownStatement = {
-        NotStatement: {
-          Statement: {
-            ByteMatchStatement: {
-              SearchString: fromUtf8('node-fetch'),
-              FieldToMatch: {
-                SingleHeader: { Name: 'user-agent' },
-              },
-              TextTransformations: [{ Priority: 0, Type: 'NONE' }],
-              PositionalConstraint: 'STARTS_WITH',
-            },
-          },
-        },
-      };
-    };
     //if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement.ManagedRuleGroupStatement.Name == 'AWSManagedRulesATPRuleSet') {
     //  rule.Statement.ManagedRuleGroupStatement.ScopeDownStatement = {
     //    ByteMatchStatement: {
