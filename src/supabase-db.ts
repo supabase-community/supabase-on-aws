@@ -10,11 +10,6 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
-// Support for Aurora Serverless v2
-enum ServerlessInstanceType { SERVERLESS = 'serverless' }
-type CustomInstanceType = ServerlessInstanceType | ec2.InstanceType;
-const CustomInstanceType = { ...ServerlessInstanceType, ...ec2.InstanceType };
-
 const excludeCharacters = '%+~`#$&*()|[]{}:;<>?!\'/@\"\\=^'; // for Password
 
 interface SupabaseDatabaseProps {
@@ -66,7 +61,7 @@ export class SupabaseDatabase extends Construct {
       storageEncrypted: true,
       instances: 2,
       instanceProps: {
-        instanceType: CustomInstanceType.SERVERLESS as unknown as ec2.InstanceType,
+        instanceType: new ec2.InstanceType('serverless'),
         enablePerformanceInsights: true,
         vpc,
       },
@@ -74,42 +69,10 @@ export class SupabaseDatabase extends Construct {
       defaultDatabaseName: 'postgres',
     });
 
-    this.secret = this.cluster.secret!;
+    (this.cluster.node.defaultChild as rds.CfnDBCluster).serverlessV2ScalingConfiguration = { minCapacity, maxCapacity };
     (this.cluster.node.findChild('Instance2') as rds.CfnDBInstance).addOverride('Condition', multiAzEnabled.logicalId);
 
-    // Support for Aurora Serverless v2 ---------------------------------------------------
-    const serverlessV2ScalingConfiguration = {
-      MinCapacity: minCapacity,
-      MaxCapacity: maxCapacity,
-    };
-    const dbScalingConfigure = new cr.AwsCustomResource(this, 'DbScalingConfigure', {
-      resourceType: 'Custom::AuroraServerlessV2ScalingConfiguration',
-      onCreate: {
-        service: 'RDS',
-        action: 'modifyDBCluster',
-        parameters: {
-          DBClusterIdentifier: this.cluster.clusterIdentifier,
-          ServerlessV2ScalingConfiguration: serverlessV2ScalingConfiguration,
-        },
-        physicalResourceId: cr.PhysicalResourceId.of(this.cluster.clusterIdentifier),
-      },
-      onUpdate: {
-        service: 'RDS',
-        action: 'modifyDBCluster',
-        parameters: {
-          DBClusterIdentifier: this.cluster.clusterIdentifier,
-          ServerlessV2ScalingConfiguration: serverlessV2ScalingConfiguration,
-        },
-        physicalResourceId: cr.PhysicalResourceId.of(this.cluster.clusterIdentifier),
-      },
-      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
-        resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
-      }),
-    });
-    this.cluster.node.children.filter(child => child.node.id.startsWith('Instance')).map(child => {
-      child.node.addDependency(dbScalingConfigure);
-    });
-    // Support for Aurora Serverless v2 ---------------------------------------------------
+    this.secret = this.cluster.secret!;
 
     // Sync to SSM Parameter Store for database_url ---------------------------------------
     const username = this.secret.secretValueFromJson('username').toString();
