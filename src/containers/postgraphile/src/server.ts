@@ -9,14 +9,14 @@ import supabaseInflectionPlugin from './custom-plugin/supabase-inflection-plugin
 const port = Number(process.env.PORT || '5000');
 const databaseUrl = process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/postgres';
 const schema = process.env.DATABASE_SCHEMA || 'public';
-const enableXrayTracing = (typeof process.env.ENABLE_XRAY_TRACING == 'undefined') ? false : true;
+const enableXrayTracing = (process.env.ENABLE_XRAY_TRACING == 'true') ? true : false; // default: false
 
 const middleware = postgraphile(databaseUrl, schema, {
-  watchPg: (process.env.PG_WATCH == '0') ? false : true, // default: true,
-  graphiql: (process.env.PG_GRAPHIQL == '0') ? false : true, // default: true
-  enhanceGraphiql: (process.env.PG_ENHANCE_GRAPHIQL == '0') ? false : true, // default: true
-  dynamicJson: (process.env.PG_DYNAMIC_JSON == '0') ? false : true, // default: true
-  ignoreRBAC: (process.env.PG_IGNORE_RBAC == '0') ? false : true, // default: true
+  watchPg: (process.env.PG_WATCH == 'false') ? false : true, // default: true,
+  graphiql: (process.env.PG_GRAPHIQL == 'false') ? false : true, // default: true
+  enhanceGraphiql: (process.env.PG_ENHANCE_GRAPHIQL == 'false') ? false : true, // default: true
+  dynamicJson: (process.env.PG_DYNAMIC_JSON == 'false') ? false : true, // default: true
+  ignoreRBAC: (process.env.PG_IGNORE_RBAC == 'false') ? false : true, // default: true
   jwtSecret: process.env.JWT_SECRET,
   jwtVerifyOptions: {
     audience: process.env.JWT_VERIFY_AUDIENCE?.split(',') || [],
