@@ -22,13 +22,14 @@ export interface SupabaseServiceProps {
     cpuArchitecture?: 'x86_64'|'arm64';
     cpu?: string;
     memory?: string;
-    minTasks?: number;
-    maxTasks?: number;
+    minTasks?: cdk.CfnParameter;
+    maxTasks?: cdk.CfnParameter;
   };
 }
 
 export class SupabaseService extends Construct {
   listenerPort: number;
+  dnsName: string;
   ecsService: ecs.FargateService;
   cloudMapService: servicediscovery.Service;
   logGroup: logs.LogGroup;
@@ -40,9 +41,13 @@ export class SupabaseService extends Construct {
     const { cluster, taskImageOptions, taskSpec } = props;
     const cpu = taskSpec?.cpu || '256';
     const memory = taskSpec?.memory || '512';
-    const minTasks = taskSpec?.minTasks || 1;
-    const maxTasks = taskSpec?.maxTasks || 1;
+    const minTasks = taskSpec?.minTasks?.valueAsNumber || 1;
+    const maxTasks = taskSpec?.maxTasks?.valueAsNumber || 20;
     const cpuArchitecture = (taskSpec?.cpuArchitecture == 'x86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
+
+    const serviceDisabled = (typeof taskSpec?.minTasks != 'undefined' && typeof taskSpec?.maxTasks != 'undefined')
+      ? new cdk.CfnCondition(this, 'ServiceDisabled', { expression: cdk.Fn.conditionAnd(cdk.Fn.conditionEquals(taskSpec?.minTasks, '0'), cdk.Fn.conditionEquals(taskSpec?.maxTasks, '0')) })
+      : undefined;
 
     this.listenerPort = taskImageOptions.containerPort;
 
@@ -127,6 +132,9 @@ export class SupabaseService extends Construct {
       //  { capacityProvider: 'FARGATE_SPOT', base: 0, weight: 0 },
       //],
     });
+    if (typeof serviceDisabled != 'undefined') {
+      (this.ecsService.node.defaultChild as ecs.CfnService).addPropertyOverride('DesiredCount', cdk.Fn.conditionIf(serviceDisabled.logicalId, 0, cdk.Aws.NO_VALUE));
+    }
 
     this.cloudMapService = this.ecsService.enableCloudMap({
       name: serviceName,
@@ -135,6 +143,8 @@ export class SupabaseService extends Construct {
       dnsTtl: cdk.Duration.seconds(10),
     });
     (this.cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
+
+    this.dnsName = `${this.cloudMapService.serviceName}.${this.cloudMapService.namespace.namespaceName}`;
 
     const autoScaling = this.ecsService.autoScaleTaskCount({ minCapacity: minTasks, maxCapacity: maxTasks });
     autoScaling.scaleOnCpuUtilization('ScaleOnCpu', {
