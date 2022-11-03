@@ -327,7 +327,7 @@ export class SupabaseStack extends cdk.Stack {
       description: 'Amazon WorkMail for Test Domain',
       organization: {
         region: sesRegion.valueAsString,
-        alias: `supabase-${cdk.Aws.ACCOUNT_ID}`,
+        alias: cdk.Fn.select(2, cdk.Fn.split('/', cdk.Aws.STACK_ID)),
       },
     });
     const workMailUser = workMail.organization.addUser('Noreply', mail.secret);

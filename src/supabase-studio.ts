@@ -104,7 +104,7 @@ export class SupabaseStudio extends SupabaseService {
       signInAliases: { username: false, email: true },
     });
 
-    const domainPrefix = `supabase-studio-${cdk.Aws.ACCOUNT_ID}`;
+    const domainPrefix = cdk.Fn.select(2, cdk.Fn.split('/', cdk.Aws.STACK_ID));
     this.userPool.addDomain('Domain', {
       cognitoDomain: { domainPrefix },
     });
