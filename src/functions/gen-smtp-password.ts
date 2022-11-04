@@ -28,17 +28,18 @@ export const genSmtpPassword = (key: string, region: string) => {
 };
 
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
-  const region: string = event.ResourceProperties.Region;
   const secretAccessKey: string = event.ResourceProperties.SecretAccessKey;
+  const region: string = event.ResourceProperties.Region;
+  const smtpHost = `email-smtp.${region}.amazonaws.com`;
 
   switch (event.RequestType) {
     case 'Create': {
       const smtpPassword = genSmtpPassword(secretAccessKey, region);
-      return { PhysicalResourceId: `email-smtp.${region}.amazonaws.com/password`, Data: { Password: smtpPassword } };
+      return { PhysicalResourceId: `${smtpHost}/password`, Data: { Password: smtpPassword, Host: smtpHost } };
     }
     case 'Update': {
       const smtpPassword = genSmtpPassword(secretAccessKey, region);
-      return { PhysicalResourceId: `email-smtp.${region}.amazonaws.com/password`, Data: { Password: smtpPassword } };
+      return { PhysicalResourceId: `${smtpHost}/password`, Data: { Password: smtpPassword, Host: smtpHost } };
     }
     case 'Delete': {
       return {};
