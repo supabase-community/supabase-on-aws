@@ -171,11 +171,21 @@ export class SupabaseCdn extends Construct {
     //  queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
     //});
 
+    const responseHeadersPolicy = new cf.ResponseHeadersPolicy(this, 'ResponseHeadersPolicy', {
+      comment: 'Policy for Supabase API',
+      customHeadersBehavior: {
+        customHeaders: [
+          { header: 'server', value: 'cloudfront', override: true },
+        ],
+      },
+    });
+
     this.defaultBehaviorOptions = {
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: cf.AllowedMethods.ALLOW_ALL,
       cachePolicy,
       originRequestPolicy: cf.OriginRequestPolicy.ALL_VIEWER,
+      responseHeadersPolicy,
     };
 
     const staticContentBehavior: cf.BehaviorOptions = {
