@@ -5,7 +5,7 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import { ManagedPrefixList } from './aws-prefix-list';
+import { PrefixList } from './aws-prefix-list';
 import { Stack as WorkMailStack } from './aws-workmail';
 import { ForceDeployJob } from './ecs-force-deploy-job';
 import { SupabaseAuth, AuthProvicerName } from './supabase-auth';
@@ -376,7 +376,7 @@ export class SupabaseStack extends cdk.Stack {
     });
     const kongLoadBalancer = kong.addNetworkLoadBalancer({ healthCheckPort: 8100 });
 
-    const cfPrefixList = new ManagedPrefixList(this, 'CloudFrontManagedPrefixList', { name: 'com.amazonaws.global.cloudfront.origin-facing' });
+    const cfPrefixList = new PrefixList(this, 'CloudFrontPrefixList', { prefixListName: 'com.amazonaws.global.cloudfront.origin-facing' });
     kong.ecsService.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
 
     const cdn = new SupabaseCdn(this, 'Cdn', { origin: kongLoadBalancer, requestRateLimit: wafRequestRateLimit.valueAsNumber });

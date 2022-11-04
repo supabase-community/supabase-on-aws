@@ -1,25 +1,22 @@
-import * as cdk from 'aws-cdk-lib';
-
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
-interface ManagedPrefixListProps {
-  name: string;
+interface PrefixListProps {
+  prefixListName: string;
 }
 
-export class ManagedPrefixList extends cr.AwsCustomResource {
+export class PrefixList extends cr.AwsCustomResource {
   prefixListId: string;
 
-  constructor(scope: Construct, id: string, props: ManagedPrefixListProps) {
+  constructor(scope: Construct, id: string, props: PrefixListProps) {
     super(scope, id, {
-      resourceType: 'Custom::ManagedPrefixList',
-      functionName: 'LookupManagedPrefixList',
+      resourceType: 'Custom::PrefixList',
       policy: cr.AwsCustomResourcePolicy.fromSdkCalls({ resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE }),
       onCreate: {
         service: 'EC2',
         action: 'describeManagedPrefixLists',
         parameters: {
-          Filters: [{ Name: 'prefix-list-name', Values: [props.name] }],
+          Filters: [{ Name: 'prefix-list-name', Values: [props.prefixListName] }],
         },
         //outputPaths: ['PrefixLists.0'],
         physicalResourceId: cr.PhysicalResourceId.fromResponse('PrefixLists.0.PrefixListId'),
