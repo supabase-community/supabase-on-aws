@@ -8,6 +8,7 @@ const createOrg = async (region: string, alias: string) => {
     const output = await client.send(cmd);
     return output;
   } catch (err) {
+    console.error(err);
     throw err;
   } finally {
     client.destroy();
@@ -21,7 +22,8 @@ const deleteOrg = async (region: string, organizationId: string) => {
     await client.send(cmd);
     return;
   } catch (err) {
-    console.warn(err);
+    console.error(err);
+    throw err;
   } finally {
     client.destroy();
   }

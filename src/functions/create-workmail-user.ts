@@ -10,17 +10,34 @@ interface WorkMailUserSecret {
 const getSecretValue = async (secretId: string) => {
   const client = new SecretsManagerClient({});
   const cmd = new GetSecretValueCommand({ SecretId: secretId });
-  const { SecretString } = await client.send(cmd);
-  const value: WorkMailUserSecret = JSON.parse(SecretString!);
+  let secretString: string;
+  try {
+    const output = await client.send(cmd);
+    secretString = output.SecretString!;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  } finally {
+    client.destroy();
+  }
+  const value: WorkMailUserSecret = JSON.parse(secretString);
   return value;
 };
 
 const describeMailDomain = async (region: string, organizationId: string) => {
   const client = new WorkMailClient({ region });
   const cmd = new DescribeOrganizationCommand({ OrganizationId: organizationId });
-  const { DefaultMailDomain } = await client.send(cmd);
-  client.destroy();
-  return DefaultMailDomain!;
+  let mailDomain: string;
+  try {
+    const output = await client.send(cmd);
+    mailDomain = output.DefaultMailDomain!;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  } finally {
+    client.destroy();
+  }
+  return mailDomain;
 };
 
 const registerToWorkMail = async (region: string, organizationId: string, entityId: string, email: string) => {
@@ -30,8 +47,14 @@ const registerToWorkMail = async (region: string, organizationId: string, entity
     EntityId: entityId,
     Email: email,
   });
-  await client.send(cmd);
-  client.destroy();
+  try {
+    await client.send(cmd);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  } finally {
+    client.destroy();
+  }
 };
 
 const deregisterFromWorkMail = async (region: string, organizationId: string, entityId: string) => {
@@ -40,8 +63,14 @@ const deregisterFromWorkMail = async (region: string, organizationId: string, en
     OrganizationId: organizationId,
     EntityId: entityId,
   });
-  await client.send(cmd);
-  client.destroy();
+  try {
+    await client.send(cmd);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  } finally {
+    client.destroy();
+  }
 };
 
 const createUser = async (region: string, organizationId: string, secretId: string, displayName: string) => {
@@ -55,24 +84,32 @@ const createUser = async (region: string, organizationId: string, secretId: stri
     Password: password,
     DisplayName: displayName,
   });
-  const output = await client.send(cmd);
-  const userId = output.UserId!;
+  let userId: string;
+  try {
+    const output = await client.send(cmd);
+    userId = output.UserId!;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  } finally {
+    client.destroy();
+  }
   await registerToWorkMail(region, organizationId, userId, email);
-  client.destroy();
   return { userId, email };
 };
 
 const deleteUser = async (region: string, organizationId: string, userId: string) => {
   const client = new WorkMailClient({ region });
+  await deregisterFromWorkMail(region, organizationId, userId);
+  const cmd = new DeleteUserCommand({
+    OrganizationId: organizationId,
+    UserId: userId,
+  });
   try {
-    await deregisterFromWorkMail(region, organizationId, userId);
-    const cmd = new DeleteUserCommand({
-      OrganizationId: organizationId,
-      UserId: userId,
-    });
     await client.send(cmd);
   } catch (err) {
     console.error(err);
+    throw err;
   } finally {
     client.destroy();
   }
@@ -87,13 +124,13 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
   switch (event.RequestType) {
     case 'Create': {
       const user = await createUser(region, organizationId, secretId, displayName);
-      return { PhysicalResourceId: user.email, Data: { UserId: user.userId, Email: user.email } };
+      return { PhysicalResourceId: user.userId, Data: { UserId: user.userId, Email: user.email } };
     }
     case 'Update': {
       const oldUserId = event.PhysicalResourceId;
       await deleteUser(region, organizationId, oldUserId);
       const user = await createUser(region, organizationId, secretId, displayName);
-      return { PhysicalResourceId: user.email, Data: { UserId: user.userId, Email: user.email } };
+      return { PhysicalResourceId: user.userId, Data: { UserId: user.userId, Email: user.email } };
     }
     case 'Delete': {
       const userId = event.PhysicalResourceId;

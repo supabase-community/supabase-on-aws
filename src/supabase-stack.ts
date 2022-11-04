@@ -335,7 +335,7 @@ export class SupabaseStack extends cdk.Stack {
 
     const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.ref, senderEmail.valueAsString);
     const smtpHost = cdk.Fn.conditionIf(workMailEnabled.logicalId, `smtp.mail.${sesRegion.valueAsString}.awsapps.com`, `email-smtp.${sesRegion.valueAsString}.amazonaws.com`);
-    const smtpUser = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.ref, mail.secret.secretValueFromJson('username').unsafeUnwrap());
+    const smtpUser = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.getAtt('Email'), mail.secret.secretValueFromJson('username').unsafeUnwrap());
 
     const db = new SupabaseDatabase(this, 'Database', { vpc, multiAzEnabled: dbMultiAzEnabled, minCapacity: minAcu.valueAsNumber, maxCapacity: maxAcu.valueAsNumber });
 
