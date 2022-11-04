@@ -7,14 +7,14 @@ export const sign = (key: string[], msg: string) => {
   return hmac.digest('binary').toString().split('');
 };
 
-export const genSmtpPassword = (key: string, region: string) => {
+export const genSmtpPassword = (secretAccessKey: string, region: string) => {
   const date = '11111111';
   const service = 'ses';
   const terminal = 'aws4_request';
   const message = 'SendRawEmail';
   const versionInBytes = [0x04];
 
-  let signature = sign(utf8.encode('AWS4' + key).split(''), date);
+  let signature = sign(utf8.encode('AWS4' + secretAccessKey).split(''), date);
   signature = sign(signature, region);
   signature = sign(signature, service);
   signature = sign(signature, terminal);
@@ -31,15 +31,16 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
   const secretAccessKey: string = event.ResourceProperties.SecretAccessKey;
   const region: string = event.ResourceProperties.Region;
   const smtpHost = `email-smtp.${region}.amazonaws.com`;
+  const physicalResourceId = `${smtpHost}/password`;
 
   switch (event.RequestType) {
     case 'Create': {
       const smtpPassword = genSmtpPassword(secretAccessKey, region);
-      return { PhysicalResourceId: `${smtpHost}/password`, Data: { Password: smtpPassword, Host: smtpHost } };
+      return { PhysicalResourceId: physicalResourceId, Data: { Password: smtpPassword, Host: smtpHost } };
     }
     case 'Update': {
       const smtpPassword = genSmtpPassword(secretAccessKey, region);
-      return { PhysicalResourceId: `${smtpHost}/password`, Data: { Password: smtpPassword, Host: smtpHost } };
+      return { PhysicalResourceId: physicalResourceId, Data: { Password: smtpPassword, Host: smtpHost } };
     }
     case 'Delete': {
       return {};
