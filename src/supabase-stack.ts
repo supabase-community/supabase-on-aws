@@ -330,7 +330,7 @@ export class SupabaseStack extends cdk.Stack {
         alias: cdk.Fn.select(2, cdk.Fn.split('/', cdk.Aws.STACK_ID)),
       },
     });
-    const workMailUser = workMail.organization.addUser('Noreply', mail.secret);
+    const workMailUser = workMail.organization.addUser('Supabase', mail.secret);
     (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabled.logicalId);
 
     const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.ref, senderEmail.valueAsString);
