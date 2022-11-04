@@ -59,6 +59,20 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
     if (typeof rule.Statement?.RateBasedStatement != 'undefined') {
       rule.Statement.RateBasedStatement.Limit = Number(rule.Statement.RateBasedStatement.Limit);
     }
+    if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement.ManagedRuleGroupStatement.Name == 'AWSManagedRulesSQLiRuleSet') {
+      rule.Statement.ManagedRuleGroupStatement.ScopeDownStatement = {
+        NotStatement: {
+          Statement: {
+            ByteMatchStatement: {
+              FieldToMatch: { UriPath: {} },
+              PositionalConstraint: 'STARTS_WITH',
+              SearchString: fromUtf8('/storage/v1/object/'),
+              TextTransformations: [{ Priority: 0, Type: 'NONE' }],
+            },
+          },
+        },
+      };
+    };
     //if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement.ManagedRuleGroupStatement.Name == 'AWSManagedRulesATPRuleSet') {
     //  rule.Statement.ManagedRuleGroupStatement.ScopeDownStatement = {
     //    ByteMatchStatement: {

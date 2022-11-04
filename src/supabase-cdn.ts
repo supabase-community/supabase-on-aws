@@ -68,6 +68,7 @@ export class SupabaseCdn extends Construct {
             ManagedRuleGroupStatement: {
               VendorName: 'AWS',
               Name: 'AWSManagedRulesSQLiRuleSet',
+              Version: 'Version_2.0',
             },
           },
           VisibilityConfig: {
