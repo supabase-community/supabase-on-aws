@@ -1,15 +1,6 @@
 import * as crypto from 'crypto';
-import { SecretsManagerClient, GetSecretValueCommand, UpdateSecretCommand } from '@aws-sdk/client-secrets-manager';
-import { CdkCustomResourceHandler, CdkCustomResourceResponse } from 'aws-lambda';
+import { CdkCustomResourceHandler } from 'aws-lambda';
 import * as utf8 from 'utf8';
-
-interface sesSecret {
-  access_key: string;
-  secret_access_key: string;
-  username?: string;
-  password?: string;
-  host?: string;
-};
 
 export const sign = (key: string[], msg: string) => {
   const hmac = crypto.createHmac('sha256', Buffer.from(key.map((a) => a.charCodeAt(0)))).update(utf8.encode(msg)) as any;
@@ -36,47 +27,21 @@ export const genSmtpPassword = (key: string, region: string) => {
   return Buffer.from(signatureAndVersion).toString('base64');
 };
 
-const client = new SecretsManagerClient({});
-
-const getSecret = async (secretId: string) => {
-  const cmd = new GetSecretValueCommand({ SecretId: secretId });
-  const { SecretString } = await client.send(cmd);
-  const secret = JSON.parse(SecretString!) as sesSecret;
-  console.log('Get secret successfully.');
-  return secret;
-};
-
-const updateSecret = async (secretId: string, region: string) => {
-  const secret = await getSecret(secretId);
-  const smtpPassword = genSmtpPassword(secret.secret_access_key, region);
-  const cmd = new UpdateSecretCommand({
-    SecretId: secretId,
-    SecretString: JSON.stringify({
-      ...secret,
-      username: secret.access_key,
-      password: smtpPassword,
-      region,
-    } as sesSecret),
-  });
-  await client.send(cmd);
-};
-
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
-  const secretId: string = event.ResourceProperties.SecretId;
   const region: string = event.ResourceProperties.Region;
-  const response: CdkCustomResourceResponse = { PhysicalResourceId: `${secretId}/password` };
+  const secretAccessKey: string = event.ResourceProperties.SecretAccessKey;
 
   switch (event.RequestType) {
     case 'Create': {
-      await updateSecret(secretId, region);
-      return response;
+      const smtpPassword = genSmtpPassword(secretAccessKey, region);
+      return { PhysicalResourceId: `email-smtp.${region}.amazonaws.com/password`, Data: { Password: smtpPassword } };
     }
     case 'Update': {
-      await updateSecret(secretId, region);
-      return response;
+      const smtpPassword = genSmtpPassword(secretAccessKey, region);
+      return { PhysicalResourceId: `email-smtp.${region}.amazonaws.com/password`, Data: { Password: smtpPassword } };
     }
     case 'Delete': {
-      return response;
+      return {};
     }
   };
 };
