@@ -105,29 +105,6 @@ export class SupabaseStack extends cdk.Stack {
       allowedValues: ['true', 'false'],
     });
 
-    const dbMultiAz = new cdk.CfnParameter(this, 'DatabaseMultiAz', {
-      description: 'Create a replica at another Availability Zone',
-      type: 'String',
-      default: 'false',
-      allowedValues: ['true', 'false'],
-    });
-
-    const minAcu = new cdk.CfnParameter(this, 'MinAuroraCapacityUnit', {
-      description: 'The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
-      type: 'Number',
-      default: 0.5,
-      minValue: 0.5,
-      maxValue: 128,
-    });
-
-    const maxAcu = new cdk.CfnParameter(this, 'MaxAuroraCapacityUnit', {
-      description: 'The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
-      type: 'Number',
-      default: 32,
-      minValue: 0.5,
-      maxValue: 128,
-    });
-
     const kongTaskSize = new cdk.CfnParameter(this, 'KongTaskSize', {
       description: 'Fargare task size for API Gateway (Kong)',
       type: 'String',
@@ -295,7 +272,6 @@ export class SupabaseStack extends cdk.Stack {
 
     // Condition
     const workMailEnabled = new cdk.CfnCondition(this, 'WorkMailEnabled', { expression: cdk.Fn.conditionEquals(enableWorkMail, 'true') });
-    const dbMultiAzEnabled = new cdk.CfnCondition(this, 'DatabaseMultiAzEnabled', { expression: cdk.Fn.conditionEquals(dbMultiAz, 'true') });
 
     // Resources
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
@@ -331,7 +307,7 @@ export class SupabaseStack extends cdk.Stack {
     const smtpHost = cdk.Fn.conditionIf(workMailEnabled.logicalId, `smtp.mail.${sesRegion.valueAsString}.awsapps.com`, `email-smtp.${sesRegion.valueAsString}.amazonaws.com`);
     const smtpUser = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.getAtt('Email'), mail.secret.secretValueFromJson('username').unsafeUnwrap());
 
-    const db = new SupabaseDatabase(this, 'Database', { vpc, multiAzEnabled: dbMultiAzEnabled, minCapacity: minAcu.valueAsNumber, maxCapacity: maxAcu.valueAsNumber });
+    const db = new SupabaseDatabase(this, 'Database', { vpc });
 
     const jwt = new SupabaseJwt(this, 'SupabaseJwt', { issuer: 'supabase', expiresIn: '10y' });
 
@@ -727,9 +703,9 @@ export class SupabaseStack extends cdk.Stack {
         {
           Label: { default: 'Infrastructure - Database' },
           Parameters: [
-            dbMultiAz.logicalId,
-            minAcu.logicalId,
-            maxAcu.logicalId,
+            db.multiAz.logicalId,
+            db.minCapacity.logicalId,
+            db.maxCapacity.logicalId,
           ],
         },
         {
@@ -813,9 +789,9 @@ export class SupabaseStack extends cdk.Stack {
         [enableWorkMail.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
         [cdn.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
-        [dbMultiAz.logicalId]: { default: 'Database Multi-AZ' },
-        [minAcu.logicalId]: { default: 'Minimum Aurora Capacity Units' },
-        [maxAcu.logicalId]: { default: 'Maximum Aurora Capacity Units' },
+        [db.multiAz.logicalId]: { default: 'Database Multi-AZ' },
+        [db.minCapacity.logicalId]: { default: 'Minimum ACUs' },
+        [db.maxCapacity.logicalId]: { default: 'Maximum ACUs' },
 
         [kongTaskSize.logicalId]: { default: 'Fargate Task Size' },
         [kongMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },

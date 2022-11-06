@@ -63,10 +63,10 @@ Object {
         "",
       ],
     },
-    "DatabaseMultiAzEnabled": Object {
+    "DatabaseMultiAzEnabledFB5AD26C": Object {
       "Fn::Equals": Array [
         Object {
-          "Ref": "DatabaseMultiAz",
+          "Ref": "DatabaseMultiAz04923704",
         },
         "true",
       ],
@@ -376,9 +376,9 @@ Object {
             "default": "Infrastructure - Database",
           },
           "Parameters": Array [
-            "DatabaseMultiAz",
-            "MinAuroraCapacityUnit",
-            "MaxAuroraCapacityUnit",
+            "DatabaseMultiAz04923704",
+            "DatabaseMinCapacity82563E98",
+            "DatabaseMaxCapacityDD9828CB",
           ],
         },
         Object {
@@ -430,6 +430,8 @@ Object {
           "Parameters": Array [
             "RealtimeApiVersion",
             "RealtimeTaskSize",
+            "RealtimeMinTasks",
+            "RealtimeMaxTasks",
           ],
         },
         Object {
@@ -556,7 +558,13 @@ Object {
         "CdnWebAclArn5923748A": Object {
           "default": "Web ACL ARN (AWS WAF)",
         },
-        "DatabaseMultiAz": Object {
+        "DatabaseMaxCapacityDD9828CB": Object {
+          "default": "Maximum ACUs",
+        },
+        "DatabaseMinCapacity82563E98": Object {
+          "default": "Minimum ACUs",
+        },
+        "DatabaseMultiAz04923704": Object {
           "default": "Database Multi-AZ",
         },
         "DisableSignup": Object {
@@ -585,12 +593,6 @@ Object {
         },
         "KongTaskSize": Object {
           "default": "Fargate Task Size",
-        },
-        "MaxAuroraCapacityUnit": Object {
-          "default": "Maximum Aurora Capacity Units",
-        },
-        "MinAuroraCapacityUnit": Object {
-          "default": "Minimum Aurora Capacity Units",
         },
         "PasswordMinLength": Object {
           "default": "Min password length",
@@ -882,7 +884,21 @@ Object {
       "Description": "Web ACL for CloudFront.",
       "Type": "String",
     },
-    "DatabaseMultiAz": Object {
+    "DatabaseMaxCapacityDD9828CB": Object {
+      "Default": 32,
+      "Description": "The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.",
+      "MaxValue": 128,
+      "MinValue": 0.5,
+      "Type": "Number",
+    },
+    "DatabaseMinCapacity82563E98": Object {
+      "Default": 0.5,
+      "Description": "The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.",
+      "MaxValue": 128,
+      "MinValue": 0.5,
+      "Type": "Number",
+    },
+    "DatabaseMultiAz04923704": Object {
       "AllowedValues": Array [
         "true",
         "false",
@@ -911,13 +927,13 @@ Object {
     },
     "GqlMaxTasks": Object {
       "Default": 0,
-      "Description": "Maximum fargate task count for Rest API (PostgREST)",
+      "Description": "Maximum fargate task count for GraphQL API (PostGraphile)",
       "MinValue": 0,
       "Type": "Number",
     },
     "GqlMinTasks": Object {
       "Default": 0,
-      "Description": "Minimum fargate task count for Rest API (PostgREST)",
+      "Description": "Minimum fargate task count for GraphQL API (PostGraphile)",
       "MinValue": 0,
       "Type": "Number",
     },
@@ -933,7 +949,7 @@ Object {
         "4xlarge",
       ],
       "Default": "medium",
-      "Description": "Fargare task size for Rest API (PostgREST)",
+      "Description": "Fargare task size for GraphQL API (PostGraphile)",
       "Type": "String",
     },
     "JwtExpiryLimit": Object {
@@ -969,20 +985,6 @@ Object {
       "Default": "medium",
       "Description": "Fargare task size for API Gateway (Kong)",
       "Type": "String",
-    },
-    "MaxAuroraCapacityUnit": Object {
-      "Default": 32,
-      "Description": "The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.",
-      "MaxValue": 128,
-      "MinValue": 0.5,
-      "Type": "Number",
-    },
-    "MinAuroraCapacityUnit": Object {
-      "Default": 0.5,
-      "Description": "The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.",
-      "MaxValue": 128,
-      "MinValue": 0.5,
-      "Type": "Number",
     },
     "PasswordMinLength": Object {
       "Default": "8",
@@ -1056,7 +1058,7 @@ Object {
         "4xlarge",
       ],
       "Default": "medium",
-      "Description": "Fargare task size for Realtime API)",
+      "Description": "Fargare task size for Realtime API",
       "Type": "String",
     },
     "RedirectUrls": Object {
@@ -3208,10 +3210,10 @@ Object {
         "Port": 5432,
         "ServerlessV2ScalingConfiguration": Object {
           "MaxCapacity": Object {
-            "Ref": "MaxAuroraCapacityUnit",
+            "Ref": "DatabaseMaxCapacityDD9828CB",
           },
           "MinCapacity": Object {
-            "Ref": "MinAuroraCapacityUnit",
+            "Ref": "DatabaseMinCapacity82563E98",
           },
         },
         "StorageEncrypted": true,
@@ -3251,7 +3253,7 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "DatabaseClusterInstance291B00375": Object {
-      "Condition": "DatabaseMultiAzEnabled",
+      "Condition": "DatabaseMultiAzEnabledFB5AD26C",
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
         "VPCPrivateSubnet1DefaultRouteAE1D6490",

@@ -14,9 +14,6 @@ const excludeCharacters = '%+~`#$&*()|[]{}:;<>?!\'/@\"\\=^'; // for Password
 
 interface SupabaseDatabaseProps {
   vpc: ec2.IVpc;
-  multiAzEnabled: cdk.CfnCondition;
-  minCapacity: number;
-  maxCapacity: number;
 }
 
 export class SupabaseDatabase extends Construct {
@@ -27,11 +24,39 @@ export class SupabaseDatabase extends Construct {
     writerSearchPathAuth: ssm.StringParameter;
     reader: ssm.StringParameter;
   };
+  minCapacity: cdk.CfnParameter;
+  maxCapacity: cdk.CfnParameter;
+  multiAz: cdk.CfnParameter;
 
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
     super(scope, id);
 
-    const { vpc, multiAzEnabled, minCapacity, maxCapacity } = props;
+    const { vpc } = props;
+
+    this.multiAz = new cdk.CfnParameter(this, 'MultiAz', {
+      description: 'Create a replica at another Availability Zone',
+      type: 'String',
+      default: 'false',
+      allowedValues: ['true', 'false'],
+    });
+
+    this.minCapacity = new cdk.CfnParameter(this, 'MinCapacity', {
+      description: 'The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
+      type: 'Number',
+      default: 0.5,
+      minValue: 0.5,
+      maxValue: 128,
+    });
+
+    this.maxCapacity = new cdk.CfnParameter(this, 'MaxCapacity', {
+      description: 'The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
+      type: 'Number',
+      default: 32,
+      minValue: 0.5,
+      maxValue: 128,
+    });
+
+    const multiAzEnabled = new cdk.CfnCondition(this, 'MultiAzEnabled', { expression: cdk.Fn.conditionEquals(this.multiAz, 'true') });
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
       version: rds.AuroraPostgresEngineVersion.VER_14_4,
@@ -69,7 +94,11 @@ export class SupabaseDatabase extends Construct {
       defaultDatabaseName: 'postgres',
     });
 
-    (this.cluster.node.defaultChild as rds.CfnDBCluster).serverlessV2ScalingConfiguration = { minCapacity, maxCapacity };
+    (this.cluster.node.defaultChild as rds.CfnDBCluster).serverlessV2ScalingConfiguration = {
+      minCapacity: this.minCapacity.valueAsNumber,
+      maxCapacity: this.maxCapacity.valueAsNumber,
+    };
+
     (this.cluster.node.findChild('Instance2') as rds.CfnDBInstance).addOverride('Condition', multiAzEnabled.logicalId);
 
     this.secret = this.cluster.secret!;
