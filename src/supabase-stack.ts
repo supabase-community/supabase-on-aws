@@ -20,7 +20,7 @@ import { sesSmtpSupportedRegions } from './utils';
 const ecrAlias = 'supabase';
 const ecrRegistry = `public.ecr.aws/${ecrAlias}`;
 const ecrGalleryUrl = `https://gallery.ecr.aws/${ecrAlias}`;
-const imageTagPattern = '^(v[0-9]+.[0-9]+.[0-9]+(.\w)*)|latest$'; // for docker image tags
+const imageTagPattern = '^(v[0-9]+.[0-9]+.[0-9]+(.\w)*)$|latest'; // for docker image tags
 
 export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
@@ -99,18 +99,10 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     const enableWorkMail = new cdk.CfnParameter(this, 'EnableWorkMail', {
-      description: 'Enable Amazon WorkMail. To use "supabase-<account_id>.awsapps.com" domain with Amazon SES.',
+      description: 'Enable Amazon WorkMail. To use "xxx.awsapps.com" domain with Amazon SES.',
       type: 'String',
       default: 'false',
       allowedValues: ['true', 'false'],
-    });
-
-    const wafRequestRateLimit = new cdk.CfnParameter(this, 'WafRequestRateLimit', {
-      description: 'The rate limit is the maximum number of requests from a single IP address that are allowed in a five-minute period. This value is continually evaluated, and requests will be blocked once this limit is reached. The IP address is automatically unblocked after it falls below the limit.',
-      type: 'Number',
-      default: 30000,
-      minValue: 100,
-      maxValue: 20000000,
     });
 
     const dbMultiAz = new cdk.CfnParameter(this, 'DatabaseMultiAz', {
@@ -218,18 +210,20 @@ export class SupabaseStack extends cdk.Stack {
       default: 'medium',
       allowedValues: allowedFargateTaskSize,
     });
-    //const realtimeMinTasks = new cdk.CfnParameter(this, 'RealtimeMinTasks', {
-    //  description: 'Minimum fargate task count for Realtime API',
-    //  type: 'Number',
-    //  default: 1,
-    //  minValue: 0,
-    //});
-    //const realtimeMaxTasks = new cdk.CfnParameter(this, 'RealtimeMaxTasks', {
-    //  description: 'Maximum fargate task count for Realtime API',
-    //  type: 'Number',
-    //  default: 1,
-    //  minValue: 0,
-    //});
+    const realtimeMinTasks = new cdk.CfnParameter(this, 'RealtimeMinTasks', {
+      description: 'Minimum fargate task count for Realtime API',
+      type: 'Number',
+      default: 1,
+      minValue: 0,
+      maxValue: 1,
+    });
+    const realtimeMaxTasks = new cdk.CfnParameter(this, 'RealtimeMaxTasks', {
+      description: 'Maximum fargate task count for Realtime API',
+      type: 'Number',
+      default: 1,
+      minValue: 0,
+      maxValue: 1,
+    });
 
     const storageTaskSize = new cdk.CfnParameter(this, 'StorageTaskSize', {
       description: 'Fargare task size for Storage API',
@@ -379,7 +373,7 @@ export class SupabaseStack extends cdk.Stack {
     const cfPrefixList = new PrefixList(this, 'CloudFrontPrefixList', { prefixListName: 'com.amazonaws.global.cloudfront.origin-facing' });
     kong.ecsService.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
 
-    const cdn = new SupabaseCdn(this, 'Cdn', { origin: kongLoadBalancer, requestRateLimit: wafRequestRateLimit.valueAsNumber });
+    const cdn = new SupabaseCdn(this, 'Cdn', { origin: kongLoadBalancer });
     const apiExternalUrl = `https://${cdn.distribution.domainName}`;
 
     const auth = new SupabaseAuth(this, 'Auth', {
@@ -532,8 +526,8 @@ export class SupabaseStack extends cdk.Stack {
       taskSpec: {
         cpu: fargateTaskSize.findInMap(realtimeTaskSize.valueAsString, 'cpu'),
         memory: fargateTaskSize.findInMap(realtimeTaskSize.valueAsString, 'memory'),
-        //minTasks: realtimeMinTasks,
-        //maxTasks: realtimeMaxTasks,
+        minTasks: realtimeMinTasks,
+        maxTasks: realtimeMaxTasks,
       },
     });
 
@@ -727,7 +721,7 @@ export class SupabaseStack extends cdk.Stack {
         {
           Label: { default: 'Infrastructure - Security' },
           Parameters: [
-            wafRequestRateLimit.logicalId,
+            cdn.webAclArn.logicalId,
           ],
         },
         {
@@ -817,7 +811,7 @@ export class SupabaseStack extends cdk.Stack {
         [senderName.logicalId]: { default: 'Sender Name' },
         [sesRegion.logicalId]: { default: 'Amazon SES Region' },
         [enableWorkMail.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
-        [wafRequestRateLimit.logicalId]: { default: 'WAF Request Rate Limit' },
+        [cdn.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
         [dbMultiAz.logicalId]: { default: 'Database Multi-AZ' },
         [minAcu.logicalId]: { default: 'Minimum Aurora Capacity Units' },

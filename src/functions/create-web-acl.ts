@@ -1,48 +1,207 @@
-import { WAFV2Client, CreateWebACLCommand, UpdateWebACLCommand, DeleteWebACLCommand, GetWebACLCommand, CreateWebACLCommandInput } from '@aws-sdk/client-wafv2';
+import { WAFV2Client, CreateWebACLCommand, UpdateWebACLCommand, DeleteWebACLCommand, GetWebACLCommand, CreateWebACLCommandInput, Rule } from '@aws-sdk/client-wafv2';
 import { fromUtf8 } from '@aws-sdk/util-utf8-node';
-import { CdkCustomResourceHandler, CdkCustomResourceResponse } from 'aws-lambda';
+import { CdkCustomResourceHandler } from 'aws-lambda';
+
+const defaultRules: Rule[] = [
+  {
+    Name: 'AWS-AWSManagedRulesAmazonIpReputationList',
+    Priority: 0,
+    Statement: {
+      ManagedRuleGroupStatement: {
+        VendorName: 'AWS',
+        Name: 'AWSManagedRulesAmazonIpReputationList',
+      },
+    },
+    VisibilityConfig: {
+      SampledRequestsEnabled: true,
+      CloudWatchMetricsEnabled: true,
+      MetricName: 'AWS-AWSManagedRulesAmazonIpReputationList',
+    },
+    OverrideAction: { None: {} },
+  },
+  {
+    Name: 'AWS-AWSManagedRulesKnownBadInputsRuleSet',
+    Priority: 1,
+    Statement: {
+      ManagedRuleGroupStatement: {
+        VendorName: 'AWS',
+        Name: 'AWSManagedRulesKnownBadInputsRuleSet',
+      },
+    },
+    VisibilityConfig: {
+      SampledRequestsEnabled: true,
+      CloudWatchMetricsEnabled: true,
+      MetricName: 'AWS-AWSManagedRulesKnownBadInputsRuleSet',
+    },
+    OverrideAction: { None: {} },
+  },
+  {
+    Name: 'AWS-AWSManagedRulesSQLiRuleSet',
+    Priority: 2,
+    Statement: {
+      ManagedRuleGroupStatement: {
+        VendorName: 'AWS',
+        Name: 'AWSManagedRulesSQLiRuleSet',
+        Version: 'Version_2.0',
+        ScopeDownStatement: {
+          OrStatement: {
+            Statements: [
+              {
+                ByteMatchStatement: {
+                  FieldToMatch: { UriPath: {} },
+                  PositionalConstraint: 'STARTS_WITH',
+                  SearchString: fromUtf8('/auth/'),
+                  TextTransformations: [{ Priority: 0, Type: 'NONE' }],
+                },
+              },
+              {
+                ByteMatchStatement: {
+                  FieldToMatch: { UriPath: {} },
+                  PositionalConstraint: 'STARTS_WITH',
+                  SearchString: fromUtf8('/rest/'),
+                  TextTransformations: [{ Priority: 0, Type: 'NONE' }],
+                },
+              },
+              {
+                ByteMatchStatement: {
+                  FieldToMatch: { UriPath: {} },
+                  PositionalConstraint: 'STARTS_WITH',
+                  SearchString: fromUtf8('/graphql/'),
+                  TextTransformations: [{ Priority: 0, Type: 'NONE' }],
+                },
+              },
+              {
+                ByteMatchStatement: {
+                  FieldToMatch: { UriPath: {} },
+                  PositionalConstraint: 'STARTS_WITH',
+                  SearchString: fromUtf8('/pg/'),
+                  TextTransformations: [{ Priority: 0, Type: 'NONE' }],
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+    VisibilityConfig: {
+      SampledRequestsEnabled: true,
+      CloudWatchMetricsEnabled: true,
+      MetricName: 'AWS-AWSManagedRulesSQLiRuleSet',
+    },
+    OverrideAction: { None: {} },
+  },
+  {
+    Name: 'AWS-AWSManagedRulesBotControlRuleSet',
+    Priority: 3,
+    Statement: {
+      ManagedRuleGroupStatement: {
+        VendorName: 'AWS',
+        Name: 'AWSManagedRulesBotControlRuleSet',
+        ExcludedRules: [
+          { Name: 'CategoryHttpLibrary' },
+          { Name: 'SignalNonBrowserUserAgent' },
+        ],
+      },
+    },
+    VisibilityConfig: {
+      SampledRequestsEnabled: true,
+      CloudWatchMetricsEnabled: true,
+      MetricName: 'AWS-AWSManagedRulesBotControlRuleSet',
+    },
+    OverrideAction: { None: {} },
+  },
+  {
+    Name: 'AWS-AWSManagedRulesATPRuleSet',
+    Priority: 4,
+    Statement: {
+      ManagedRuleGroupStatement: {
+        VendorName: 'AWS',
+        Name: 'AWSManagedRulesATPRuleSet',
+        ExcludedRules: [
+          { Name: 'SignalMissingCredential' },
+        ],
+        ManagedRuleGroupConfigs: [
+          { LoginPath: '/auth/v1/token' },
+          { PayloadType: 'JSON' },
+          { UsernameField: { Identifier: '/email' } },
+          { PasswordField: { Identifier: '/password' } },
+        ],
+      },
+    },
+    VisibilityConfig: {
+      SampledRequestsEnabled: true,
+      CloudWatchMetricsEnabled: true,
+      MetricName: 'AWS-AWSManagedRulesATPRuleSet',
+    },
+    OverrideAction: { None: {} },
+  },
+  {
+    Name: 'RateBasedRule',
+    Priority: 5,
+    Statement: {
+      RateBasedStatement: {
+        Limit: 5 * 60 * 100, // 100req/s
+        AggregateKeyType: 'IP',
+      },
+    },
+    VisibilityConfig: {
+      SampledRequestsEnabled: true,
+      CloudWatchMetricsEnabled: true,
+      MetricName: 'RateBasedRule',
+    },
+    Action: { Block: {} },
+  },
+];
 
 const client = new WAFV2Client({ region: 'us-east-1' });
 
-const getWebAcl = async (name: string, id: string, scope: string = 'CLOUDFRONT') => {
-  const cmd = new GetWebACLCommand({ Id: id, Name: name, Scope: scope });
+const getWebAcl = async (id: string, name: string) => {
+  const cmd = new GetWebACLCommand({ Id: id, Name: name, Scope: 'CLOUDFRONT' });
   const output = await client.send(cmd);
   return output;
 };
 
-const createWebAcl = async (props: CreateWebACLCommandInput): Promise<CdkCustomResourceResponse> => {
-  const cmd = new CreateWebACLCommand(props);
+const createWebAcl = async (name: string, description?: string) => {
+  const cmd = new CreateWebACLCommand({
+    Name: name,
+    Description: description,
+    Scope: 'CLOUDFRONT',
+    VisibilityConfig: {
+      SampledRequestsEnabled: true,
+      CloudWatchMetricsEnabled: true,
+      MetricName: name,
+    },
+    DefaultAction: { Allow: {} },
+    Rules: defaultRules,
+  });
   const { Summary: webAcl } = await client.send(cmd);
-  const res = {
-    PhysicalResourceId: `${webAcl?.Name}|${webAcl?.Id}|${props.Scope}`,
-    Data: { Arn: webAcl?.ARN, Id: webAcl?.Id, Name: webAcl?.Name },
-  };
-  return res;
+  return webAcl!;
 };
 
-const updateWebAcl = async (name: string, id: string, props: CreateWebACLCommandInput): Promise<CdkCustomResourceResponse> => {
-  const { LockToken, WebACL: webAcl } = await getWebAcl(name, id, props.Scope);
-  const cmd = new UpdateWebACLCommand({ ...props, Name: name, Id: id, LockToken });
+const updateWebAcl = async (id: string, name: string, description?: string) => {
+  const { LockToken, WebACL: webAcl } = await getWebAcl(id, name);
+  const cmd = new UpdateWebACLCommand({
+    LockToken,
+    Id: id,
+    Name: name,
+    Description: description,
+    Scope: 'CLOUDFRONT',
+    VisibilityConfig: {
+      SampledRequestsEnabled: true,
+      CloudWatchMetricsEnabled: true,
+      MetricName: name,
+    },
+    DefaultAction: { Allow: {} },
+    Rules: defaultRules,
+  });
+  const { NextLockToken } = await client.send(cmd);
+  return webAcl!;
+};
+
+const deleteWebAcl = async (id: string, name: string) => {
+  const { LockToken } = await getWebAcl(id, name);
+  const cmd = new DeleteWebACLCommand({ Id: id, Name: name, Scope: 'CLOUDFRONT', LockToken });
   await client.send(cmd);
-  const res = {
-    PhysicalResourceId: `${webAcl?.Name}|${webAcl?.Id}|${props.Scope}`,
-    Data: { Arn: webAcl?.ARN, Id: webAcl?.Id, Name: webAcl?.Name },
-  };
-  return res;
-};
-
-const deleteWebAcl = async (name: string, id: string, scope: string = 'CLOUDFRONT'): Promise<CdkCustomResourceResponse> => {
-  const { LockToken } = await getWebAcl(name, id);
-  const cmd = new DeleteWebACLCommand({ Name: name, Id: id, Scope: scope, LockToken });
-  try {
-    await client.send(cmd);
-  } catch (err) {
-    console.warn(err);
-  } finally {
-    return {
-      PhysicalResourceId: `${name}|${id}|${scope}`,
-    };
-  }
 };
 
 const parsePhysicalResourceId = (physicalResourceId: string) => {
@@ -51,62 +210,45 @@ const parsePhysicalResourceId = (physicalResourceId: string) => {
   return { name, id, scope };
 };
 
+const arnToPhysicalResourceId = (arn: string) => {
+  const [arnScope, arnType, name, id] = arn.split(':')[5].split('/');
+  const scope = (arnScope == 'global') ? 'CLOUDFRONT' : 'REGIONAL';
+  return [name, id, scope].join('|');
+};
+
+interface CustomResourceProperties {
+  ServiceToken: string;
+  Name: string;
+  Description?: string;
+}
+
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
-  const props = event.ResourceProperties as CreateWebACLCommandInput & { Name: string; ServiceToken: string };
-  console.log(JSON.stringify(props));
-  props.Rules?.map(rule => {
-    rule.Priority = Number(rule.Priority);
-    if (typeof rule.Statement?.RateBasedStatement != 'undefined') {
-      rule.Statement.RateBasedStatement.Limit = Number(rule.Statement.RateBasedStatement.Limit);
-    }
-    if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement.ManagedRuleGroupStatement.Name == 'AWSManagedRulesSQLiRuleSet') {
-      rule.Statement.ManagedRuleGroupStatement.ScopeDownStatement = {
-        NotStatement: {
-          Statement: {
-            ByteMatchStatement: {
-              FieldToMatch: { UriPath: {} },
-              PositionalConstraint: 'STARTS_WITH',
-              SearchString: fromUtf8('/storage/v1/object/'),
-              TextTransformations: [{ Priority: 0, Type: 'NONE' }],
-            },
-          },
-        },
-      };
-    };
-    //if (typeof rule.Statement?.ManagedRuleGroupStatement != 'undefined' && rule.Statement.ManagedRuleGroupStatement.Name == 'AWSManagedRulesATPRuleSet') {
-    //  rule.Statement.ManagedRuleGroupStatement.ScopeDownStatement = {
-    //    ByteMatchStatement: {
-    //      SearchString: fromUtf8('password'),
-    //      FieldToMatch: {
-    //        SingleQueryArgument: { Name: 'grant_type' },
-    //      },
-    //      TextTransformations: [{ Priority: 0, Type: 'NONE' }],
-    //      PositionalConstraint: 'EXACTLY',
-    //    },
-    //  };
-    //};
-  });
+  const props = event.ResourceProperties as CustomResourceProperties;
+  const webAclName = props.Name;
+  const webAclDescription = props.Description;
 
   switch (event.RequestType) {
     case 'Create': {
-      const res = await createWebAcl(props);
-      return res;
+      const webAcl = await createWebAcl(webAclName, webAclDescription);
+      return {
+        PhysicalResourceId: arnToPhysicalResourceId(webAcl.ARN!),
+        Data: { Arn: webAcl.ARN, Id: webAcl.Id, Name: webAcl.Name },
+      };
     }
     case 'Update': {
-      let res: CdkCustomResourceResponse;
       const { name, id, scope } = parsePhysicalResourceId(event.PhysicalResourceId);
-      if (props.Name == name) {
-        res = await updateWebAcl(name, id, props);
-      } else {
-        res = await createWebAcl(props);
-        await deleteWebAcl(name, id, scope);
-      }
-      return res;
+      const webAcl = (props.Name == name)
+        ? await updateWebAcl(id, webAclName, webAclDescription)
+        : await createWebAcl(webAclName, webAclDescription);
+      return {
+        PhysicalResourceId: arnToPhysicalResourceId(webAcl.ARN!),
+        Data: { Arn: webAcl.ARN, Id: webAcl.Id, Name: webAcl.Name },
+      };
     }
     case 'Delete': {
       const { name, id, scope } = parsePhysicalResourceId(event.PhysicalResourceId);
-      const res = await deleteWebAcl(name, id, scope);
-      return res;
+      await deleteWebAcl(id, name);
+      return {};
     }
   };
 };

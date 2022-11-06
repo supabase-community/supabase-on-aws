@@ -1,4 +1,3 @@
-import { CreateWebACLCommandInput } from '@aws-sdk/client-wafv2';
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -6,17 +5,11 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
-interface WebACLProps extends Partial<CreateWebACLCommandInput> {
-  Scope: 'CLOUDFRONT'|'REGIONAL';
-}
+export class SupabaseManagedWaf extends cdk.NestedStack {
+  webAcl: cdk.CustomResource;
 
-export class WebACL extends Construct {
-  arn: string;
-  id: string;
-  name: string;
-
-  constructor(scope: Construct, id: string, props: WebACLProps) {
-    super(scope, id);
+  constructor(scope: Construct, id: string, props: cdk.NestedStackProps) {
+    super(scope, id, props);
 
     const crFunction = new NodejsFunction(this, 'Function', {
       description: `Supabase - Create Web ACL Function (${this.node.path}/Function)`,
@@ -49,29 +42,14 @@ export class WebACL extends Construct {
 
     const crProvider = new cr.Provider(this, 'Provider', { onEventHandler: crFunction });
 
-    const webAclName = `${this.node.path.replace(/\//g, '-')}-${cdk.Aws.REGION}`;
-
-    const input: CreateWebACLCommandInput = {
-      Name: webAclName,
-      Description: this.node.path,
-      VisibilityConfig: {
-        SampledRequestsEnabled: true,
-        CloudWatchMetricsEnabled: true,
-        MetricName: webAclName,
-      },
-      DefaultAction: { Allow: {} },
-      ...props,
-    };
-
-    const webAcl = new cdk.CustomResource(this, 'WebAcl', {
+    this.webAcl = new cdk.CustomResource(this, 'WebAcl', {
       serviceToken: crProvider.serviceToken,
       resourceType: 'Custom::WebACL',
-      properties: input,
+      properties: {
+        Name: `${this.node.path.split('/').join('-')}-${cdk.Aws.REGION}`,
+        Description: this.node.path,
+      },
     });
-
-    this.arn = webAcl.getAttString('Arn');
-    this.id = webAcl.getAttString('Id');
-    this.name = webAcl.getAttString('Name');
 
   }
 };
