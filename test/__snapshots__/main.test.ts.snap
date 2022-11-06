@@ -55,6 +55,14 @@ Object {
         "true",
       ],
     },
+    "CdnManagedWafEnabledD3A8F9B9": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Ref": "CdnWebAclArn5923748A",
+        },
+        "",
+      ],
+    },
     "DatabaseMultiAzEnabled": Object {
       "Fn::Equals": Array [
         Object {
@@ -123,6 +131,26 @@ Object {
         },
       ],
     },
+    "RealtimeServiceDisabledD3DB8A99": Object {
+      "Fn::And": Array [
+        Object {
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "RealtimeMinTasks",
+            },
+            "0",
+          ],
+        },
+        Object {
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "RealtimeMaxTasks",
+            },
+            "0",
+          ],
+        },
+      ],
+    },
     "RestServiceDisabled280508EE": Object {
       "Fn::And": Array [
         Object {
@@ -163,12 +191,12 @@ Object {
         },
       ],
     },
-    "StudioHttpCondition14AD1D44": Object {
+    "StudioHttpsDisabledB5A4B82B": Object {
       "Fn::Equals": Array [
         Object {
-          "Ref": "StudioCertificateArn21CD3CC9",
+          "Ref": "StudioAcmCertArn2D10C4B8",
         },
-        "arn:aws:acm:us-west-2:123456789012:certificate/no-cert-it-is-not-secure-to-use-http",
+        "",
       ],
     },
     "WorkMailEnabled": Object {
@@ -340,7 +368,7 @@ Object {
             "default": "Infrastructure - Security",
           },
           "Parameters": Array [
-            "WafRequestRateLimit",
+            "CdnWebAclArn5923748A",
           ],
         },
         Object {
@@ -432,7 +460,7 @@ Object {
           },
           "Parameters": Array [
             "StudioVersion",
-            "StudioCertificateArn21CD3CC9",
+            "StudioAcmCertArn2D10C4B8",
           ],
         },
         Object {
@@ -525,6 +553,9 @@ Object {
         "AuthTwitterSecret2B6750CB": Object {
           "default": "Twitter Client Secret",
         },
+        "CdnWebAclArn5923748A": Object {
+          "default": "Web ACL ARN (AWS WAF)",
+        },
         "DatabaseMultiAz": Object {
           "default": "Database Multi-AZ",
         },
@@ -579,6 +610,12 @@ Object {
         "RealtimeApiVersion": Object {
           "default": "Realtime API Version",
         },
+        "RealtimeMaxTasks": Object {
+          "default": "Maximum Fargate Task Count",
+        },
+        "RealtimeMinTasks": Object {
+          "default": "Minimum Fargate Task Count",
+        },
         "RealtimeTaskSize": Object {
           "default": "Fargate Task Size",
         },
@@ -621,14 +658,11 @@ Object {
         "StorageTaskSize": Object {
           "default": "Fargate Task Size",
         },
-        "StudioCertificateArn21CD3CC9": Object {
+        "StudioAcmCertArn2D10C4B8": Object {
           "default": "ACM Certificate ARN",
         },
         "StudioVersion": Object {
           "default": "Supabase Studio Version",
-        },
-        "WafRequestRateLimit": Object {
-          "default": "WAF Request Rate Limit",
         },
       },
     },
@@ -725,7 +759,7 @@ Object {
   },
   "Parameters": Object {
     "AuthApiVersion": Object {
-      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)|latest$",
+      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
       "Default": "v2.23.0",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
@@ -842,6 +876,12 @@ Object {
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
+    "CdnWebAclArn5923748A": Object {
+      "AllowedPattern": "^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\\\w-]+/[\\\\w]{8}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{12}$|",
+      "Default": "",
+      "Description": "Web ACL for CloudFront.",
+      "Type": "String",
+    },
     "DatabaseMultiAz": Object {
       "AllowedValues": Array [
         "true",
@@ -866,7 +906,7 @@ Object {
         "false",
       ],
       "Default": "false",
-      "Description": "Enable Amazon WorkMail. To use \\"supabase-<account_id>.awsapps.com\\" domain with Amazon SES.",
+      "Description": "Enable Amazon WorkMail. To use \\"xxx.awsapps.com\\" domain with Amazon SES.",
       "Type": "String",
     },
     "GqlMaxTasks": Object {
@@ -945,14 +985,14 @@ Object {
       "Type": "Number",
     },
     "PasswordMinLength": Object {
-      "Default": "16",
+      "Default": "8",
       "Description": "When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.",
       "MaxValue": 128,
       "MinValue": 8,
       "Type": "Number",
     },
     "PostgresMetaApiVersion": Object {
-      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)|latest$",
+      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
       "Default": "v0.50.2",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/postgres-meta",
       "Type": "String",
@@ -985,10 +1025,24 @@ Object {
       "Type": "String",
     },
     "RealtimeApiVersion": Object {
-      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)|latest$",
+      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
       "Default": "v0.25.1",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/realtime",
       "Type": "String",
+    },
+    "RealtimeMaxTasks": Object {
+      "Default": 1,
+      "Description": "Maximum fargate task count for Realtime API",
+      "MaxValue": 1,
+      "MinValue": 0,
+      "Type": "Number",
+    },
+    "RealtimeMinTasks": Object {
+      "Default": 1,
+      "Description": "Minimum fargate task count for Realtime API",
+      "MaxValue": 1,
+      "MinValue": 0,
+      "Type": "Number",
     },
     "RealtimeTaskSize": Object {
       "AllowedValues": Array [
@@ -1084,7 +1138,7 @@ Object {
       "Type": "String",
     },
     "StorageApiVersion": Object {
-      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)|latest$",
+      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
       "Default": "v0.24.3",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
@@ -1116,24 +1170,17 @@ Object {
       "Description": "Fargare task size for Storage API",
       "Type": "String",
     },
-    "StudioCertificateArn21CD3CC9": Object {
-      "AllowedPattern": "^arn:aws:acm:[\\\\w-]+:[0-9]{12}:certificate/[\\\\w-]{36}$",
-      "Default": "arn:aws:acm:us-west-2:123456789012:certificate/no-cert-it-is-not-secure-to-use-http",
+    "StudioAcmCertArn2D10C4B8": Object {
+      "AllowedPattern": "^arn:aws:acm:[\\\\w-]+:[0-9]{12}:certificate/[\\\\w]{8}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{12}$|",
+      "Default": "",
       "Description": "ACM Certificate ARN for Supabase studio",
       "Type": "String",
     },
     "StudioVersion": Object {
-      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)|latest$",
+      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
       "Default": "latest",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/studio",
       "Type": "String",
-    },
-    "WafRequestRateLimit": Object {
-      "Default": 30000,
-      "Description": "The rate limit is the maximum number of requests from a single IP address that are allowed in a five-minute period. This value is continually evaluated, and requests will be blocked once this limit is reached. The IP address is automatically unblocked after it falls below the limit.",
-      "MaxValue": 20000000,
-      "MinValue": 100,
-      "Type": "Number",
     },
   },
   "Resources": Object {
@@ -1734,7 +1781,7 @@ Object {
                     Object {
                       "Fn::GetAtt": Array [
                         "WorkMailNestedStackWorkMailNestedStackResource44BA1505",
-                        "Outputs.SupabaseWorkMailOrganizationNoreply8B0B4200Ref",
+                        "Outputs.SupabaseWorkMailOrganizationUserSupabaseD0C6C408Email",
                       ],
                     },
                     Object {
@@ -1787,7 +1834,7 @@ Object {
                     Object {
                       "Fn::GetAtt": Array [
                         "WorkMailNestedStackWorkMailNestedStackResource44BA1505",
-                        "Outputs.SupabaseWorkMailOrganizationNoreply8B0B4200Ref",
+                        "Outputs.SupabaseWorkMailOrganizationUserSupabaseD0C6C408Email",
                       ],
                     },
                     Object {
@@ -2785,6 +2832,9 @@ Object {
               "Compress": true,
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
               "PathPattern": "*.css",
+              "ResponseHeadersPolicyId": Object {
+                "Ref": "CdnResponseHeadersPolicy36E4B823",
+              },
               "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
               "ViewerProtocolPolicy": "redirect-to-https",
             },
@@ -2802,6 +2852,9 @@ Object {
               "Compress": true,
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
               "PathPattern": "*.png",
+              "ResponseHeadersPolicyId": Object {
+                "Ref": "CdnResponseHeadersPolicy36E4B823",
+              },
               "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
               "ViewerProtocolPolicy": "redirect-to-https",
             },
@@ -2819,6 +2872,9 @@ Object {
               "Compress": true,
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
               "PathPattern": "*.jpg",
+              "ResponseHeadersPolicyId": Object {
+                "Ref": "CdnResponseHeadersPolicy36E4B823",
+              },
               "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
               "ViewerProtocolPolicy": "redirect-to-https",
             },
@@ -2836,6 +2892,9 @@ Object {
               "Compress": true,
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
               "PathPattern": "*.jpeg",
+              "ResponseHeadersPolicyId": Object {
+                "Ref": "CdnResponseHeadersPolicy36E4B823",
+              },
               "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
               "ViewerProtocolPolicy": "redirect-to-https",
             },
@@ -2853,6 +2912,9 @@ Object {
               "Compress": true,
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
               "PathPattern": "*.svg",
+              "ResponseHeadersPolicyId": Object {
+                "Ref": "CdnResponseHeadersPolicy36E4B823",
+              },
               "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
               "ViewerProtocolPolicy": "redirect-to-https",
             },
@@ -2870,6 +2932,9 @@ Object {
               "Compress": true,
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
               "PathPattern": "*.woff",
+              "ResponseHeadersPolicyId": Object {
+                "Ref": "CdnResponseHeadersPolicy36E4B823",
+              },
               "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
               "ViewerProtocolPolicy": "redirect-to-https",
             },
@@ -2887,6 +2952,9 @@ Object {
               "Compress": true,
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
               "PathPattern": "*.woff2",
+              "ResponseHeadersPolicyId": Object {
+                "Ref": "CdnResponseHeadersPolicy36E4B823",
+              },
               "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
               "ViewerProtocolPolicy": "redirect-to-https",
             },
@@ -2904,6 +2972,9 @@ Object {
               "Compress": true,
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
               "PathPattern": "*.js",
+              "ResponseHeadersPolicyId": Object {
+                "Ref": "CdnResponseHeadersPolicy36E4B823",
+              },
               "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
               "ViewerProtocolPolicy": "redirect-to-https",
             },
@@ -2946,6 +3017,9 @@ Object {
             },
             "Compress": true,
             "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
+            "ResponseHeadersPolicyId": Object {
+              "Ref": "CdnResponseHeadersPolicy36E4B823",
+            },
             "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
             "ViewerProtocolPolicy": "redirect-to-https",
           },
@@ -2970,503 +3044,73 @@ Object {
             },
           ],
           "WebACLId": Object {
-            "Fn::GetAtt": Array [
-              "CdnWebAclAA7B79D5",
-              "Arn",
+            "Fn::If": Array [
+              "CdnManagedWafEnabledD3A8F9B9",
+              Object {
+                "Fn::GetAtt": Array [
+                  "CdnManagedWafNestedStackManagedWafNestedStackResourceD2D798AD",
+                  "Outputs.SupabaseCdnManagedWafWebAcl63E0E0ABArn",
+                ],
+              },
+              Object {
+                "Ref": "CdnWebAclArn5923748A",
+              },
             ],
           },
         },
       },
       "Type": "AWS::CloudFront::Distribution",
     },
-    "CdnWebAclAA7B79D5": Object {
+    "CdnManagedWafNestedStackManagedWafNestedStackResourceD2D798AD": Object {
+      "Condition": "CdnManagedWafEnabledD3A8F9B9",
       "DeletionPolicy": "Delete",
       "Properties": Object {
-        "DefaultAction": Object {
-          "Allow": Object {},
-        },
-        "Description": "Supabase/Cdn/WebAcl",
-        "Name": Object {
+        "TemplateURL": Object {
           "Fn::Join": Array [
             "",
             Array [
-              "Supabase-Cdn-WebAcl-",
+              "https://s3.",
               Object {
                 "Ref": "AWS::Region",
               },
+              ".",
+              Object {
+                "Ref": "AWS::URLSuffix",
+              },
+              "/",
+              Object {
+                "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+              },
+              "/2e13fc8178aa9070ce39127096758740275f1b9a6bda8e37997651f93b2f5350.json",
             ],
           ],
-        },
-        "Rules": Array [
-          Object {
-            "Name": "AWS-AWSManagedRulesAmazonIpReputationList",
-            "OverrideAction": Object {
-              "None": Object {},
-            },
-            "Priority": 0,
-            "Statement": Object {
-              "ManagedRuleGroupStatement": Object {
-                "Name": "AWSManagedRulesAmazonIpReputationList",
-                "VendorName": "AWS",
-              },
-            },
-            "VisibilityConfig": Object {
-              "CloudWatchMetricsEnabled": true,
-              "MetricName": "AWS-AWSManagedRulesAmazonIpReputationList",
-              "SampledRequestsEnabled": true,
-            },
-          },
-          Object {
-            "Name": "AWS-AWSManagedRulesKnownBadInputsRuleSet",
-            "OverrideAction": Object {
-              "None": Object {},
-            },
-            "Priority": 1,
-            "Statement": Object {
-              "ManagedRuleGroupStatement": Object {
-                "Name": "AWSManagedRulesKnownBadInputsRuleSet",
-                "VendorName": "AWS",
-              },
-            },
-            "VisibilityConfig": Object {
-              "CloudWatchMetricsEnabled": true,
-              "MetricName": "AWS-AWSManagedRulesKnownBadInputsRuleSet",
-              "SampledRequestsEnabled": true,
-            },
-          },
-          Object {
-            "Name": "AWS-AWSManagedRulesSQLiRuleSet",
-            "OverrideAction": Object {
-              "None": Object {},
-            },
-            "Priority": 2,
-            "Statement": Object {
-              "ManagedRuleGroupStatement": Object {
-                "Name": "AWSManagedRulesSQLiRuleSet",
-                "VendorName": "AWS",
-              },
-            },
-            "VisibilityConfig": Object {
-              "CloudWatchMetricsEnabled": true,
-              "MetricName": "AWS-AWSManagedRulesSQLiRuleSet",
-              "SampledRequestsEnabled": true,
-            },
-          },
-          Object {
-            "Name": "AWS-AWSManagedRulesBotControlRuleSet",
-            "OverrideAction": Object {
-              "None": Object {},
-            },
-            "Priority": 3,
-            "Statement": Object {
-              "ManagedRuleGroupStatement": Object {
-                "ExcludedRules": Array [
-                  Object {
-                    "Name": "CategoryHttpLibrary",
-                  },
-                  Object {
-                    "Name": "SignalNonBrowserUserAgent",
-                  },
-                ],
-                "Name": "AWSManagedRulesBotControlRuleSet",
-                "VendorName": "AWS",
-              },
-            },
-            "VisibilityConfig": Object {
-              "CloudWatchMetricsEnabled": true,
-              "MetricName": "AWS-AWSManagedRulesBotControlRuleSet",
-              "SampledRequestsEnabled": true,
-            },
-          },
-          Object {
-            "Name": "AWS-AWSManagedRulesATPRuleSet",
-            "OverrideAction": Object {
-              "None": Object {},
-            },
-            "Priority": 4,
-            "Statement": Object {
-              "ManagedRuleGroupStatement": Object {
-                "ExcludedRules": Array [
-                  Object {
-                    "Name": "SignalMissingCredential",
-                  },
-                ],
-                "ManagedRuleGroupConfigs": Array [
-                  Object {
-                    "LoginPath": "/auth/v1/token",
-                  },
-                  Object {
-                    "PayloadType": "JSON",
-                  },
-                  Object {
-                    "UsernameField": Object {
-                      "Identifier": "/email",
-                    },
-                  },
-                  Object {
-                    "PasswordField": Object {
-                      "Identifier": "/password",
-                    },
-                  },
-                ],
-                "Name": "AWSManagedRulesATPRuleSet",
-                "VendorName": "AWS",
-              },
-            },
-            "VisibilityConfig": Object {
-              "CloudWatchMetricsEnabled": true,
-              "MetricName": "AWS-AWSManagedRulesATPRuleSet",
-              "SampledRequestsEnabled": true,
-            },
-          },
-          Object {
-            "Action": Object {
-              "Block": Object {},
-            },
-            "Name": "RateBasedRule",
-            "Priority": 5,
-            "Statement": Object {
-              "RateBasedStatement": Object {
-                "AggregateKeyType": "IP",
-                "Limit": Object {
-                  "Ref": "WafRequestRateLimit",
-                },
-              },
-            },
-            "VisibilityConfig": Object {
-              "CloudWatchMetricsEnabled": true,
-              "MetricName": "RateBasedRule",
-              "SampledRequestsEnabled": true,
-            },
-          },
-        ],
-        "Scope": "CLOUDFRONT",
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "CdnWebAclProviderframeworkonEvent40C4DA69",
-            "Arn",
-          ],
-        },
-        "VisibilityConfig": Object {
-          "CloudWatchMetricsEnabled": true,
-          "MetricName": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "Supabase-Cdn-WebAcl-",
-                Object {
-                  "Ref": "AWS::Region",
-                },
-              ],
-            ],
-          },
-          "SampledRequestsEnabled": true,
         },
       },
-      "Type": "Custom::WebACL",
+      "Type": "AWS::CloudFormation::Stack",
       "UpdateReplacePolicy": "Delete",
     },
-    "CdnWebAclFunctionE5C85E3A": Object {
-      "DependsOn": Array [
-        "CdnWebAclFunctionServiceRoleDefaultPolicyB774731F",
-        "CdnWebAclFunctionServiceRoleE5D2304D",
-      ],
+    "CdnResponseHeadersPolicy36E4B823": Object {
       "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "5214d3e31c5130a3d9f34272e84f387f0639e264cce5e8ab9e6109f877fb85a4.zip",
-        },
-        "Description": "Supabase - Create Web ACL Function (Supabase/Cdn/WebAcl/Function)",
-        "Environment": Object {
-          "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-          },
-        },
-        "Handler": "index.handler",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "CdnWebAclFunctionServiceRoleE5D2304D",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs16.x",
-        "Timeout": 15,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "CdnWebAclFunctionServiceRoleDefaultPolicyB774731F": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "wafv2:DeleteWebACL",
-                "wafv2:GetWebACL",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":wafv2:us-east-1:",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":global/webacl/*/*",
-                  ],
-                ],
+        "ResponseHeadersPolicyConfig": Object {
+          "Comment": "Policy for Supabase API",
+          "CustomHeadersConfig": Object {
+            "Items": Array [
+              Object {
+                "Header": "server",
+                "Override": true,
+                "Value": "cloudfront",
               },
-            },
-            Object {
-              "Action": Array [
-                "wafv2:CreateWebACL",
-                "wafv2:UpdateWebACL",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":wafv2:us-east-1:",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":global/webacl/*/*",
-                    ],
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":wafv2:us-east-1:",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":global/ipset/*/*",
-                    ],
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":wafv2:us-east-1:",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":global/managedruleset/*/*",
-                    ],
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":wafv2:us-east-1:",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":global/regexpatternset/*/*",
-                    ],
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":wafv2:us-east-1:",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":global/rulegroup/*/*",
-                    ],
-                  ],
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "CdnWebAclFunctionServiceRoleDefaultPolicyB774731F",
-        "Roles": Array [
-          Object {
-            "Ref": "CdnWebAclFunctionServiceRoleE5D2304D",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "CdnWebAclFunctionServiceRoleE5D2304D": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
             ],
           },
-        ],
+          "Name": "SupabaseCdnResponseHeadersPolicy979C7B2D",
+        },
       },
-      "Type": "AWS::IAM::Role",
+      "Type": "AWS::CloudFront::ResponseHeadersPolicy",
     },
-    "CdnWebAclProviderframeworkonEvent40C4DA69": Object {
-      "DependsOn": Array [
-        "CdnWebAclProviderframeworkonEventServiceRoleDefaultPolicy9B955D7B",
-        "CdnWebAclProviderframeworkonEventServiceRole354C3263",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
-        },
-        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Cdn/WebAcl/Provider)",
-        "Environment": Object {
-          "Variables": Object {
-            "USER_ON_EVENT_FUNCTION_ARN": Object {
-              "Fn::GetAtt": Array [
-                "CdnWebAclFunctionE5C85E3A",
-                "Arn",
-              ],
-            },
-          },
-        },
-        "Handler": "framework.onEvent",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "CdnWebAclProviderframeworkonEventServiceRole354C3263",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs14.x",
-        "Timeout": 900,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "CdnWebAclProviderframeworkonEventServiceRole354C3263": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "CdnWebAclProviderframeworkonEventServiceRoleDefaultPolicy9B955D7B": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "lambda:InvokeFunction",
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "CdnWebAclFunctionE5C85E3A",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "CdnWebAclFunctionE5C85E3A",
-                          "Arn",
-                        ],
-                      },
-                      ":*",
-                    ],
-                  ],
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "CdnWebAclProviderframeworkonEventServiceRoleDefaultPolicy9B955D7B",
-        "Roles": Array [
-          Object {
-            "Ref": "CdnWebAclProviderframeworkonEventServiceRole354C3263",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "CloudFrontManagedPrefixList4E30A88B": Object {
+    "CloudFrontPrefixList22014EFD": Object {
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
-        "CloudFrontManagedPrefixListCustomResourcePolicy18F5EEC5",
+        "CloudFrontPrefixListCustomResourcePolicyB6BABDE5",
       ],
       "Properties": Object {
         "Create": "{\\"service\\":\\"EC2\\",\\"action\\":\\"describeManagedPrefixLists\\",\\"parameters\\":{\\"Filters\\":[{\\"Name\\":\\"prefix-list-name\\",\\"Values\\":[\\"com.amazonaws.global.cloudfront.origin-facing\\"]}]},\\"physicalResourceId\\":{\\"responsePath\\":\\"PrefixLists.0.PrefixListId\\"}}",
@@ -3478,10 +3122,10 @@ Object {
           ],
         },
       },
-      "Type": "Custom::ManagedPrefixList",
+      "Type": "Custom::PrefixList",
       "UpdateReplacePolicy": "Delete",
     },
-    "CloudFrontManagedPrefixListCustomResourcePolicy18F5EEC5": Object {
+    "CloudFrontPrefixListCustomResourcePolicyB6BABDE5": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -3493,7 +3137,7 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "CloudFrontManagedPrefixListCustomResourcePolicy18F5EEC5",
+        "PolicyName": "CloudFrontPrefixListCustomResourcePolicyB6BABDE5",
         "Roles": Array [
           Object {
             "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
@@ -3562,6 +3206,14 @@ Object {
         },
         "MasterUsername": "supabase_admin",
         "Port": 5432,
+        "ServerlessV2ScalingConfiguration": Object {
+          "MaxCapacity": Object {
+            "Ref": "MaxAuroraCapacityUnit",
+          },
+          "MinCapacity": Object {
+            "Ref": "MinAuroraCapacityUnit",
+          },
+        },
         "StorageEncrypted": true,
         "VpcSecurityGroupIds": Array [
           Object {
@@ -3578,8 +3230,6 @@ Object {
     "DatabaseClusterInstance1078CC457": Object {
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
-        "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B",
-        "DatabaseDbScalingConfigureA53A665A",
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
         "VPCPrivateSubnet1RouteTableAssociation347902D1",
         "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
@@ -3604,8 +3254,6 @@ Object {
       "Condition": "DatabaseMultiAzEnabled",
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
-        "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B",
-        "DatabaseDbScalingConfigureA53A665A",
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
         "VPCPrivateSubnet1RouteTableAssociation347902D1",
         "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
@@ -4047,92 +3695,6 @@ Object {
         ],
       },
       "Type": "AWS::RDS::DBSubnetGroup",
-    },
-    "DatabaseDbScalingConfigureA53A665A": Object {
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B",
-      ],
-      "Properties": Object {
-        "Create": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "{\\"service\\":\\"RDS\\",\\"action\\":\\"modifyDBCluster\\",\\"parameters\\":{\\"DBClusterIdentifier\\":\\"",
-              Object {
-                "Ref": "DatabaseCluster5B53A178",
-              },
-              "\\",\\"ServerlessV2ScalingConfiguration\\":{\\"MinCapacity\\":",
-              Object {
-                "Ref": "MinAuroraCapacityUnit",
-              },
-              ",\\"MaxCapacity\\":",
-              Object {
-                "Ref": "MaxAuroraCapacityUnit",
-              },
-              "}},\\"physicalResourceId\\":{\\"id\\":\\"",
-              Object {
-                "Ref": "DatabaseCluster5B53A178",
-              },
-              "\\"}}",
-            ],
-          ],
-        },
-        "InstallLatestAwsSdk": true,
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
-            "Arn",
-          ],
-        },
-        "Update": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "{\\"service\\":\\"RDS\\",\\"action\\":\\"modifyDBCluster\\",\\"parameters\\":{\\"DBClusterIdentifier\\":\\"",
-              Object {
-                "Ref": "DatabaseCluster5B53A178",
-              },
-              "\\",\\"ServerlessV2ScalingConfiguration\\":{\\"MinCapacity\\":",
-              Object {
-                "Ref": "MinAuroraCapacityUnit",
-              },
-              ",\\"MaxCapacity\\":",
-              Object {
-                "Ref": "MaxAuroraCapacityUnit",
-              },
-              "}},\\"physicalResourceId\\":{\\"id\\":\\"",
-              Object {
-                "Ref": "DatabaseCluster5B53A178",
-              },
-              "\\"}}",
-            ],
-          ],
-        },
-      },
-      "Type": "Custom::AuroraServerlessV2ScalingConfiguration",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "rds:ModifyDBCluster",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "DatabaseDbScalingConfigureCustomResourcePolicy8F6D2C0B",
-        "Roles": Array [
-          Object {
-            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
     },
     "DatabaseInitData630DB036": Object {
       "DeletionPolicy": "Delete",
@@ -5604,7 +5166,7 @@ Object {
         "IpProtocol": "tcp",
         "SourcePrefixListId": Object {
           "Fn::GetAtt": Array [
-            "CloudFrontManagedPrefixList4E30A88B",
+            "CloudFrontPrefixList22014EFD",
             "PrefixLists.0.PrefixListId",
           ],
         },
@@ -6763,6 +6325,15 @@ Object {
         "DeploymentController": Object {
           "Type": "ECS",
         },
+        "DesiredCount": Object {
+          "Fn::If": Array [
+            "RealtimeServiceDisabledD3DB8A99",
+            0,
+            Object {
+              "Ref": "AWS::NoValue",
+            },
+          ],
+        },
         "EnableECSManagedTags": true,
         "LaunchType": "FARGATE",
         "NetworkConfiguration": Object {
@@ -6807,8 +6378,12 @@ Object {
     },
     "RealtimeFargateTaskCountTargetCB8D8004": Object {
       "Properties": Object {
-        "MaxCapacity": 20,
-        "MinCapacity": 1,
+        "MaxCapacity": Object {
+          "Ref": "RealtimeMaxTasks",
+        },
+        "MinCapacity": Object {
+          "Ref": "RealtimeMinTasks",
+        },
         "ResourceId": Object {
           "Fn::Join": Array [
             "",
@@ -8596,14 +8171,14 @@ Object {
       "Properties": Object {
         "Certificates": Object {
           "Fn::If": Array [
-            "StudioHttpCondition14AD1D44",
+            "StudioHttpsDisabledB5A4B82B",
             Object {
               "Ref": "AWS::NoValue",
             },
             Array [
               Object {
                 "CertificateArn": Object {
-                  "Ref": "StudioCertificateArn21CD3CC9",
+                  "Ref": "StudioAcmCertArn2D10C4B8",
                 },
               },
             ],
@@ -8613,7 +8188,7 @@ Object {
           Object {
             "Order": Object {
               "Fn::If": Array [
-                "StudioHttpCondition14AD1D44",
+                "StudioHttpsDisabledB5A4B82B",
                 1,
                 2,
               ],
@@ -8625,7 +8200,7 @@ Object {
           },
           Object {
             "Fn::If": Array [
-              "StudioHttpCondition14AD1D44",
+              "StudioHttpsDisabledB5A4B82B",
               Object {
                 "Ref": "AWS::NoValue",
               },
@@ -8641,14 +8216,16 @@ Object {
                     "Ref": "StudioClient100BA227",
                   },
                   "UserPoolDomain": Object {
-                    "Fn::Join": Array [
-                      "",
-                      Array [
-                        "supabase-studio-",
-                        Object {
-                          "Ref": "AWS::AccountId",
-                        },
-                      ],
+                    "Fn::Select": Array [
+                      2,
+                      Object {
+                        "Fn::Split": Array [
+                          "/",
+                          Object {
+                            "Ref": "AWS::StackId",
+                          },
+                        ],
+                      },
                     ],
                   },
                 },
@@ -8663,14 +8240,14 @@ Object {
         },
         "Port": Object {
           "Fn::If": Array [
-            "StudioHttpCondition14AD1D44",
+            "StudioHttpsDisabledB5A4B82B",
             80,
             443,
           ],
         },
         "Protocol": Object {
           "Fn::If": Array [
-            "StudioHttpCondition14AD1D44",
+            "StudioHttpsDisabledB5A4B82B",
             "HTTP",
             "HTTPS",
           ],
@@ -8691,17 +8268,17 @@ Object {
         "SecurityGroupIngress": Array [
           Object {
             "CidrIp": "0.0.0.0/0",
-            "Description": "Allow from anyone on port 80",
-            "FromPort": 80,
-            "IpProtocol": "tcp",
-            "ToPort": 80,
-          },
-          Object {
-            "CidrIp": "0.0.0.0/0",
             "Description": "Allow from anyone on port 443",
             "FromPort": 443,
             "IpProtocol": "tcp",
             "ToPort": 443,
+          },
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow from anyone on port 80",
+            "FromPort": 80,
+            "IpProtocol": "tcp",
+            "ToPort": 80,
           },
         ],
         "VpcId": Object {
@@ -9112,14 +8689,16 @@ Object {
     "StudioUserPoolDomain83E076DB": Object {
       "Properties": Object {
         "Domain": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "supabase-studio-",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-            ],
+          "Fn::Select": Array [
+            2,
+            Object {
+              "Fn::Split": Array [
+                "/",
+                Object {
+                  "Ref": "AWS::StackId",
+                },
+              ],
+            },
           ],
         },
         "UserPoolId": Object {
@@ -9457,7 +9036,6 @@ Object {
     },
     "SupabaseMailGenSmtpPasswordFunction1BD23362": Object {
       "DependsOn": Array [
-        "SupabaseMailGenSmtpPasswordFunctionServiceRoleDefaultPolicyE69CB8D3",
         "SupabaseMailGenSmtpPasswordFunctionServiceRole0A78DBF3",
       ],
       "Properties": Object {
@@ -9465,7 +9043,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "50efe2496e73c96021ae00b2e91ec7d382dfd65820953d545a88687108f23653.zip",
+          "S3Key": "f313788ca3f2fa052e96d53301df52b707c280b900d594a906b624fac83c5505.zip",
         },
         "Description": "Supabase - Generate SMTP Password Function",
         "Environment": Object {
@@ -9514,42 +9092,6 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "SupabaseMailGenSmtpPasswordFunctionServiceRoleDefaultPolicyE69CB8D3": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "secretsmanager:PutSecretValue",
-                "secretsmanager:UpdateSecret",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Ref": "SupabaseMailSecret777E0288",
-              },
-            },
-            Object {
-              "Action": Array [
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:DescribeSecret",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Ref": "SupabaseMailSecret777E0288",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "SupabaseMailGenSmtpPasswordFunctionServiceRoleDefaultPolicyE69CB8D3",
-        "Roles": Array [
-          Object {
-            "Ref": "SupabaseMailGenSmtpPasswordFunctionServiceRole0A78DBF3",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
     },
     "SupabaseMailGenSmtpPasswordProviderframeworkonEvent3038CFFF": Object {
       "DependsOn": Array [
@@ -9688,18 +9230,22 @@ Object {
           "Fn::Join": Array [
             "",
             Array [
-              "{\\"access_key\\":\\"",
+              "{\\"username\\":\\"",
               Object {
                 "Ref": "SupabaseMailAccessKeyA6348E49",
               },
-              "\\",\\"secret_access_key\\":\\"",
+              "\\",\\"password\\":\\"",
               Object {
                 "Fn::GetAtt": Array [
-                  "SupabaseMailAccessKeyA6348E49",
-                  "SecretAccessKey",
+                  "SupabaseMailSmtpPassword3227537A",
+                  "Password",
                 ],
               },
-              "\\"}",
+              "\\",\\"host\\":\\"email-smtp.",
+              Object {
+                "Ref": "SesRegion",
+              },
+              ".amazonaws.com\\"}",
             ],
           ],
         },
@@ -9713,8 +9259,11 @@ Object {
         "Region": Object {
           "Ref": "SesRegion",
         },
-        "SecretId": Object {
-          "Ref": "SupabaseMailSecret777E0288",
+        "SecretAccessKey": Object {
+          "Fn::GetAtt": Array [
+            "SupabaseMailAccessKeyA6348E49",
+            "SecretAccessKey",
+          ],
         },
         "ServiceToken": Object {
           "Fn::GetAtt": Array [
@@ -10112,7 +9661,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/225a662aca23e1b446f118f9e6c9d7cea003ed12c079a1a87d781ad08f157600.json",
+              "/2103ad55ee0df7089f3c041bbb1c498315915d609733b5ebc572864e3b413478.json",
             ],
           ],
         },
