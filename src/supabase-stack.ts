@@ -837,8 +837,8 @@ export class SupabaseStack extends cdk.Stack {
 
         [realtimeApiVersion.logicalId]: { default: 'Realtime API Version' },
         [realtimeTaskSize.logicalId]: { default: 'Fargate Task Size' },
-        //[realtimeMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
-        //[realtimeMaxTasks.logicalId]: { default: 'Maximum Fargate Task Count' },
+        [realtimeMinTasks.logicalId]: { default: 'Minimum Fargate Task Count' },
+        [realtimeMaxTasks.logicalId]: { default: 'Maximum Fargate Task Count' },
 
         [storageApiVersion.logicalId]: { default: 'Storage API Version' },
         [storageTaskSize.logicalId]: { default: 'Fargate Task Size' },
