@@ -45,58 +45,23 @@ export class SupabaseStudio extends SupabaseService {
       securityGroup,
       vpc,
     });
+    this.loadBalancer.connections.allowFrom(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow from anyone on port 443');
+    //this.loadBalancer.connections.allowFrom(ec2.Peer.anyIpv6(), ec2.Port.tcp(443));
 
     const listener = this.loadBalancer.addListener('Listener', {
       protocol: elb.ApplicationProtocol.HTTP,
       defaultTargetGroups: [targetGroup],
     });
 
-    // Graphiql - GraphQL Playground
-    //const gqlContainer = this.addContainer('postgraphile', {
-    //  image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/postgraphile:latest'),
-    //  //image: ecs.ContainerImage.fromAsset('./src/containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
-    //  portMappings: [{ containerPort: 5000 }],
-    //  healthCheck: {
-    //    command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1'],
-    //    interval: cdk.Duration.seconds(5),
-    //    timeout: cdk.Duration.seconds(5),
-    //    retries: 3,
-    //  },
-    //  environment: {
-    //    PG_IGNORE_RBAC: '1',
-    //  },
-    //  secrets: {
-    //    //DATABASE_URL: ecs.Secret.fromSecretsManager(dbSecret, 'url'),
-    //  },
-    //});
-    //const gqlTargetGroup = new elb.ApplicationTargetGroup(this, 'GqlTargetGroup', {
-    //  protocol: elb.ApplicationProtocol.HTTP,
-    //  port: gqlContainer.containerPort,
-    //  targets: [this.ecsService.loadBalancerTarget({ containerName: 'postgraphile' })],
-    //  healthCheck: {
-    //    path: '/health',
-    //    interval: cdk.Duration.seconds(10),
-    //    timeout: cdk.Duration.seconds(5),
-    //  },
-    //  deregistrationDelay: cdk.Duration.seconds(30),
-    //  vpc,
-    //});
-    //listener.addAction('GraphqlAction', {
-    //  priority: 1,
-    //  conditions: [elb.ListenerCondition.pathPatterns(['/graphql', '/graphiql'])],
-    //  action: elb.ListenerAction.forward([gqlTargetGroup]),
-    //});
-
     // for HTTPS
-    const dummyCertArn = 'arn:aws:acm:us-west-2:123456789012:certificate/no-cert-it-is-not-secure-to-use-http';
-    this.acmCertArn = new cdk.CfnParameter(this, 'CertificateArn', {
+    this.acmCertArn = new cdk.CfnParameter(this, 'AcmCertArn', {
       description: 'ACM Certificate ARN for Supabase studio',
       type: 'String',
-      default: dummyCertArn,
-      allowedPattern: '^arn:aws:acm:[\\w-]+:[0-9]{12}:certificate/[\\w-]{36}$',
+      default: '',
+      allowedPattern: '^arn:aws:acm:[\\w-]+:[0-9]{12}:certificate/[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$|',
     });
 
-    const isHttp = new cdk.CfnCondition(this, 'HttpCondition', { expression: cdk.Fn.conditionEquals(this.acmCertArn, dummyCertArn) });
+    const httpsDisabled = new cdk.CfnCondition(this, 'HttpsDisabled', { expression: cdk.Fn.conditionEquals(this.acmCertArn, '') });
 
     this.userPool = new cognito.UserPool(this, 'UserPool', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -124,11 +89,11 @@ export class SupabaseStudio extends SupabaseService {
       },
     });
     const cfnListener = listener.node.defaultChild as elb.CfnListener;
-    cfnListener.addPropertyOverride('Protocol', cdk.Fn.conditionIf(isHttp.logicalId, 'HTTP', 'HTTPS'));
-    cfnListener.addPropertyOverride('Port', cdk.Fn.conditionIf(isHttp.logicalId, 80, 443));
-    cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, [{ CertificateArn: this.acmCertArn.valueAsString }]));
-    cfnListener.addPropertyOverride('DefaultActions.0.Order', cdk.Fn.conditionIf(isHttp.logicalId, 1, 2));
-    cfnListener.addPropertyOverride('DefaultActions.1', cdk.Fn.conditionIf(isHttp.logicalId, cdk.Aws.NO_VALUE, {
+    cfnListener.addPropertyOverride('Protocol', cdk.Fn.conditionIf(httpsDisabled.logicalId, 'HTTP', 'HTTPS'));
+    cfnListener.addPropertyOverride('Port', cdk.Fn.conditionIf(httpsDisabled.logicalId, 80, 443));
+    cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(httpsDisabled.logicalId, cdk.Aws.NO_VALUE, [{ CertificateArn: this.acmCertArn.valueAsString }]));
+    cfnListener.addPropertyOverride('DefaultActions.0.Order', cdk.Fn.conditionIf(httpsDisabled.logicalId, 1, 2));
+    cfnListener.addPropertyOverride('DefaultActions.1', cdk.Fn.conditionIf(httpsDisabled.logicalId, cdk.Aws.NO_VALUE, {
       Order: 1,
       Type: 'authenticate-cognito',
       AuthenticateCognitoConfig: {
@@ -137,8 +102,6 @@ export class SupabaseStudio extends SupabaseService {
         UserPoolDomain: domainPrefix,
       },
     }));
-    this.loadBalancer.connections.allowFrom(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow from anyone on port 443');
-    //this.loadBalancer.connections.allowFrom(ec2.Peer.anyIpv6(), ec2.Port.tcp(443));
 
   }
 }

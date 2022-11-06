@@ -72,7 +72,7 @@ export class SupabaseStack extends cdk.Stack {
     const passwordMinLength = new cdk.CfnParameter(this, 'PasswordMinLength', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
       type: 'Number',
-      default: '16',
+      default: '8',
       minValue: 8,
       maxValue: 128,
     });
