@@ -41,6 +41,7 @@ export class SupabaseCdn extends Construct {
     const webAclId = cdk.Fn.conditionIf(managedWafEnabled.logicalId, waf.webAcl.getAttString('Arn'), this.webAclArn.valueAsString);
 
     const cachePolicy = new cf.CachePolicy(this, 'CachePolicy', {
+      cachePolicyName: `${cdk.Aws.STACK_NAME}-CachePolicy-${cdk.Aws.REGION}`,
       comment: 'Policy for Supabase API',
       minTtl: cdk.Duration.seconds(0),
       maxTtl: cdk.Duration.seconds(600),
@@ -52,6 +53,7 @@ export class SupabaseCdn extends Construct {
     });
 
     const responseHeadersPolicy = new cf.ResponseHeadersPolicy(this, 'ResponseHeadersPolicy', {
+      responseHeadersPolicyName: `${cdk.Aws.STACK_NAME}-ResponseHeadersPolicy-${cdk.Aws.REGION}`,
       comment: 'Policy for Supabase API',
       customHeadersBehavior: {
         customHeaders: [
