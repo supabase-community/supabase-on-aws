@@ -186,26 +186,26 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     const gqlTaskSize = new cdk.CfnParameter(this, 'GqlTaskSize', {
-      description: 'Fargare task size for Rest API (PostgREST)',
+      description: 'Fargare task size for GraphQL API (PostGraphile)',
       type: 'String',
       default: 'medium',
       allowedValues: allowedFargateTaskSize,
     });
     const gqlMinTasks = new cdk.CfnParameter(this, 'GqlMinTasks', {
-      description: 'Minimum fargate task count for Rest API (PostgREST)',
+      description: 'Minimum fargate task count for GraphQL API (PostGraphile)',
       type: 'Number',
       default: 0,
       minValue: 0,
     });
     const gqlMaxTasks = new cdk.CfnParameter(this, 'GqlMaxTasks', {
-      description: 'Maximum fargate task count for Rest API (PostgREST)',
+      description: 'Maximum fargate task count for GraphQL API (PostGraphile)',
       type: 'Number',
       default: 0,
       minValue: 0,
     });
 
     const realtimeTaskSize = new cdk.CfnParameter(this, 'RealtimeTaskSize', {
-      description: 'Fargare task size for Realtime API)',
+      description: 'Fargare task size for Realtime API',
       type: 'String',
       default: 'medium',
       allowedValues: allowedFargateTaskSize,
