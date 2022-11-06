@@ -771,8 +771,8 @@ export class SupabaseStack extends cdk.Stack {
           Parameters: [
             realtimeApiVersion.logicalId,
             realtimeTaskSize.logicalId,
-            //realtimeMinTasks.logicalId,
-            //realtimeMaxTasks.logicalId,
+            realtimeMinTasks.logicalId,
+            realtimeMaxTasks.logicalId,
           ],
         },
         {
