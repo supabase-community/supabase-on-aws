@@ -2788,7 +2788,10 @@ Object {
             "Fn::Join": Array [
               "",
               Array [
-                "SupabaseCdnCachePolicyFE1DC64E-",
+                Object {
+                  "Ref": "AWS::StackName",
+                },
+                "-CachePolicy-",
                 Object {
                   "Ref": "AWS::Region",
                 },
@@ -3104,7 +3107,20 @@ Object {
               },
             ],
           },
-          "Name": "SupabaseCdnResponseHeadersPolicy979C7B2D",
+          "Name": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Ref": "AWS::StackName",
+                },
+                "-ResponseHeadersPolicy-",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+              ],
+            ],
+          },
         },
       },
       "Type": "AWS::CloudFront::ResponseHeadersPolicy",
