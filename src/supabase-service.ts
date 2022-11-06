@@ -18,13 +18,10 @@ interface SupabaseTaskImageOptions extends NetworkLoadBalancedTaskImageOptions {
 export interface SupabaseServiceProps {
   cluster: ecs.ICluster;
   taskImageOptions: SupabaseTaskImageOptions;
-  taskSpec?: {
-    cpuArchitecture?: 'x86_64'|'arm64';
-    cpu?: string;
-    memory?: string;
-    minTasks?: cdk.CfnParameter;
-    maxTasks?: cdk.CfnParameter;
-  };
+  taskSizeMapping: cdk.CfnMapping;
+  cpuArchitecture?: 'x86_64'|'arm64';
+  minTaskCount?: number;
+  maxTaskCount?: number;
 }
 
 export class SupabaseService extends Construct {
@@ -33,21 +30,41 @@ export class SupabaseService extends Construct {
   ecsService: ecs.FargateService;
   cloudMapService: servicediscovery.Service;
   logGroup: logs.LogGroup;
+  taskSize: cdk.CfnParameter;
+  minTaskCount: cdk.CfnParameter;
+  maxTaskCount: cdk.CfnParameter;
 
   constructor(scope: Construct, id: string, props: SupabaseServiceProps) {
     super(scope, id);
 
     const serviceName = id.toLowerCase();
-    const { cluster, taskImageOptions, taskSpec } = props;
-    const cpu = taskSpec?.cpu || '256';
-    const memory = taskSpec?.memory || '512';
-    const minTasks = taskSpec?.minTasks?.valueAsNumber || 1;
-    const maxTasks = taskSpec?.maxTasks?.valueAsNumber || 20;
-    const cpuArchitecture = (taskSpec?.cpuArchitecture == 'x86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
+    const { cluster, taskImageOptions, taskSizeMapping, minTaskCount, maxTaskCount } = props;
+    const cpuArchitecture = (props.cpuArchitecture == 'x86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
 
-    const serviceDisabled = (typeof taskSpec?.minTasks != 'undefined' && typeof taskSpec?.maxTasks != 'undefined')
-      ? new cdk.CfnCondition(this, 'ServiceDisabled', { expression: cdk.Fn.conditionAnd(cdk.Fn.conditionEquals(taskSpec?.minTasks, '0'), cdk.Fn.conditionEquals(taskSpec?.maxTasks, '0')) })
-      : undefined;
+    this.taskSize = new cdk.CfnParameter(this, 'TaskSize', {
+      description: 'Fargare task size',
+      type: 'String',
+      default: 'medium',
+      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+    });
+
+    const cpu = taskSizeMapping.findInMap(this.taskSize.valueAsString, 'cpu');
+    const memory = taskSizeMapping.findInMap(this.taskSize.valueAsString, 'memory');
+
+    this.minTaskCount = new cdk.CfnParameter(this, 'MinTaskCount', {
+      description: 'Minimum fargate task count',
+      type: 'Number',
+      default: minTaskCount || 1,
+      minValue: 0,
+    });
+    this.maxTaskCount = new cdk.CfnParameter(this, 'MaxTaskCount', {
+      description: 'Maximum fargate task count',
+      type: 'Number',
+      default: maxTaskCount || 20,
+      minValue: 0,
+    });
+
+    const serviceDisabled = new cdk.CfnCondition(this, 'ServiceDisabled', { expression: cdk.Fn.conditionAnd(cdk.Fn.conditionEquals(this.minTaskCount, '0'), cdk.Fn.conditionEquals(this.maxTaskCount, '0')) });
 
     this.listenerPort = taskImageOptions.containerPort;
 
@@ -146,7 +163,10 @@ export class SupabaseService extends Construct {
 
     this.dnsName = `${this.cloudMapService.serviceName}.${this.cloudMapService.namespace.namespaceName}`;
 
-    const autoScaling = this.ecsService.autoScaleTaskCount({ minCapacity: minTasks, maxCapacity: maxTasks });
+    const autoScaling = this.ecsService.autoScaleTaskCount({
+      minCapacity: this.minTaskCount.valueAsNumber,
+      maxCapacity: this.maxTaskCount.valueAsNumber,
+    });
     autoScaling.scaleOnCpuUtilization('ScaleOnCpu', {
       targetUtilizationPercent: 50,
       scaleInCooldown: cdk.Duration.seconds(60),
