@@ -9,7 +9,7 @@ import { PrefixList } from './aws-prefix-list';
 import { WorkMailStack } from './aws-workmail';
 import { CognitoAuthenticatedFargateService } from './cognito-authenticated-fargate-service';
 import { ForceDeployJob } from './ecs-force-deploy-job';
-import { SupabaseAuth, AuthProviderName } from './supabase-auth';
+import { SupabaseAuth } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwt } from './supabase-jwt';
@@ -269,10 +269,6 @@ export class SupabaseStack extends cdk.Stack {
       },
       taskSizeMapping,
     });
-    auth.addExternalAuthProvider('Google');
-    auth.addExternalAuthProvider('Facebook');
-    auth.addExternalAuthProvider('Twitter');
-    auth.addExternalAuthProvider('GitHub');
 
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
@@ -657,21 +653,19 @@ export class SupabaseStack extends cdk.Stack {
       },
     };
 
-    for (let provicerName in auth.externalAuthProvider) {
-      const provider = auth.externalAuthProvider[provicerName as AuthProviderName];
-      if (typeof provider != 'undefined') {
-        cfnInterface.ParameterGroups.push({
-          Label: { default: `External Auth Provider - ${provider.name}` },
-          Parameters: [
-            provider.enabled.logicalId,
-            provider.clientId.logicalId,
-            provider.secret.logicalId,
-          ],
-        });
-        cfnInterface.ParameterLabels[provider.enabled.logicalId] = { default: `${provider.name} Enabled` };
-        cfnInterface.ParameterLabels[provider.clientId.logicalId] = { default: `${provider.name} Client ID` };
-        cfnInterface.ParameterLabels[provider.secret.logicalId] = { default: `${provider.name} Client Secret` };
-      }
+    for (let i = 0; i < auth.providers.length; i++) {
+      const provider = auth.providers[i];
+      cfnInterface.ParameterGroups.push({
+        Label: { default: `External Auth Provider ${i+1}` },
+        Parameters: [
+          provider.name.logicalId,
+          provider.clientId.logicalId,
+          provider.secret.logicalId,
+        ],
+      });
+      cfnInterface.ParameterLabels[provider.name.logicalId] = { default: 'Provider Name' };
+      cfnInterface.ParameterLabels[provider.clientId.logicalId] = { default: 'Client ID' };
+      cfnInterface.ParameterLabels[provider.secret.logicalId] = { default: 'Client Secret' };
     }
 
     // for CloudFormation
