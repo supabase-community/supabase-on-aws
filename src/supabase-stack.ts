@@ -521,17 +521,24 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
+          Label: { default: 'Infrastructure - Database' },
+          Parameters: [
+            db.multiAz.logicalId,
+            db.minCapacity.logicalId,
+            db.maxCapacity.logicalId,
+          ],
+        },
+        {
           Label: { default: 'Infrastructure - Security' },
           Parameters: [
             cdn.webAclArn.logicalId,
           ],
         },
         {
-          Label: { default: 'Infrastructure - Database' },
+          Label: { default: 'Infrastructure - Supabase Studio' },
           Parameters: [
-            db.multiAz.logicalId,
-            db.minCapacity.logicalId,
-            db.maxCapacity.logicalId,
+            studioVersion.logicalId,
+            studio.acmCertArn.logicalId,
           ],
         },
         {
@@ -593,13 +600,6 @@ export class SupabaseStack extends cdk.Stack {
             meta.taskSize.logicalId,
             meta.minTaskCount.logicalId,
             meta.maxTaskCount.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure - Supabase Studio' },
-          Parameters: [
-            studioVersion.logicalId,
-            studio.acmCertArn.logicalId,
           ],
         },
       ],
