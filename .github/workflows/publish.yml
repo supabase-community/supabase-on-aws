@@ -22,7 +22,7 @@ jobs:
       - uses: technote-space/get-diff-action@v6
         with:
           PATTERNS: |
-            src/containers/kong/**/*
+            containers/kong/**/*
             .github/workflows/publish.yml
 
       - name: Set up QEMU
@@ -58,8 +58,8 @@ jobs:
         if: env.GIT_DIFF
         uses: docker/build-push-action@v3
         with:
-          context: ./src/containers/kong
-          file: ./src/containers/kong/Dockerfile
+          context: ./containers/kong
+          file: ./containers/kong/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ env.ECR_PUBLIC_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
@@ -80,7 +80,7 @@ jobs:
       - uses: technote-space/get-diff-action@v6
         with:
           PATTERNS: |
-            src/containers/postgraphile/**/*
+            containers/postgraphile/**/*
             .github/workflows/publish.yml
 
       - name: Set up QEMU
@@ -106,8 +106,8 @@ jobs:
         if: env.GIT_DIFF
         uses: docker/build-push-action@v3
         with:
-          context: ./src/containers/postgraphile
-          file: ./src/containers/postgraphile/Dockerfile
+          context: ./containers/postgraphile
+          file: ./containers/postgraphile/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |

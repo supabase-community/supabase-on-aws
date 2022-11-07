@@ -32,7 +32,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "AuthMinTasks",
+              "Ref": "AuthMinTaskCount998F20C4",
             },
             "0",
           ],
@@ -40,7 +40,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "AuthMaxTasks",
+              "Ref": "AuthMaxTaskCount9E585BDA",
             },
             "0",
           ],
@@ -76,7 +76,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "GqlMinTasks",
+              "Ref": "GraphQLMinTaskCount0807D92D",
             },
             "0",
           ],
@@ -84,7 +84,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "GqlMaxTasks",
+              "Ref": "GraphQLMaxTaskCount62412A02",
             },
             "0",
           ],
@@ -96,7 +96,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "KongMinTasks",
+              "Ref": "KongMinTaskCount4451EF4C",
             },
             "0",
           ],
@@ -104,7 +104,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "KongMaxTasks",
+              "Ref": "KongMaxTaskCountA4145D65",
             },
             "0",
           ],
@@ -116,7 +116,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "PostgresMetaMinTasks",
+              "Ref": "MetaMinTaskCountEA12F444",
             },
             "0",
           ],
@@ -124,7 +124,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "PostgresMetaMaxTasks",
+              "Ref": "MetaMaxTaskCount2749DE86",
             },
             "0",
           ],
@@ -136,7 +136,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "RealtimeMinTasks",
+              "Ref": "RealtimeMinTaskCount306F67E8",
             },
             "0",
           ],
@@ -144,7 +144,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "RealtimeMaxTasks",
+              "Ref": "RealtimeMaxTaskCountE72E1120",
             },
             "0",
           ],
@@ -156,7 +156,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "RestMinTasks",
+              "Ref": "RestMinTaskCount073959EA",
             },
             "0",
           ],
@@ -164,7 +164,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "RestMaxTasks",
+              "Ref": "RestMaxTaskCount1D2E84B9",
             },
             "0",
           ],
@@ -176,7 +176,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "StorageMinTasks",
+              "Ref": "StorageMinTaskCount07E65703",
             },
             "0",
           ],
@@ -184,7 +184,7 @@ Object {
         Object {
           "Fn::Equals": Array [
             Object {
-              "Ref": "StorageMaxTasks",
+              "Ref": "StorageMaxTaskCount372C6914",
             },
             "0",
           ],
@@ -210,40 +210,6 @@ Object {
   },
   "Description": "Self-hosted Supabase",
   "Mappings": Object {
-    "FargateTaskSize": Object {
-      "2xlarge": Object {
-        "cpu": 8192,
-        "memory": 16384,
-      },
-      "4xlarge": Object {
-        "cpu": 16384,
-        "memory": 32768,
-      },
-      "large": Object {
-        "cpu": 2048,
-        "memory": 4096,
-      },
-      "medium": Object {
-        "cpu": 1024,
-        "memory": 2048,
-      },
-      "micro": Object {
-        "cpu": 256,
-        "memory": 1024,
-      },
-      "nano": Object {
-        "cpu": 256,
-        "memory": 512,
-      },
-      "small": Object {
-        "cpu": 512,
-        "memory": 1024,
-      },
-      "xlarge": Object {
-        "cpu": 4096,
-        "memory": 8192,
-      },
-    },
     "ServiceprincipalMap": Object {
       "af-south-1": Object {
         "states": "states.af-south-1.amazonaws.com",
@@ -336,6 +302,40 @@ Object {
         "states": "states.us-west-2.amazonaws.com",
       },
     },
+    "TaskSize": Object {
+      "2xlarge": Object {
+        "cpu": 8192,
+        "memory": 16384,
+      },
+      "4xlarge": Object {
+        "cpu": 16384,
+        "memory": 32768,
+      },
+      "large": Object {
+        "cpu": 2048,
+        "memory": 4096,
+      },
+      "medium": Object {
+        "cpu": 1024,
+        "memory": 2048,
+      },
+      "micro": Object {
+        "cpu": 256,
+        "memory": 1024,
+      },
+      "nano": Object {
+        "cpu": 256,
+        "memory": 512,
+      },
+      "small": Object {
+        "cpu": 512,
+        "memory": 1024,
+      },
+      "xlarge": Object {
+        "cpu": 4096,
+        "memory": 8192,
+      },
+    },
   },
   "Metadata": Object {
     "AWS::CloudFormation::Interface": Object {
@@ -386,9 +386,9 @@ Object {
             "default": "Infrastructure - API Gateway (Kong Gateway)",
           },
           "Parameters": Array [
-            "KongTaskSize",
-            "KongMinTasks",
-            "KongMaxTasks",
+            "KongTaskSize93C195E9",
+            "KongMinTaskCount4451EF4C",
+            "KongMaxTaskCountA4145D65",
           ],
         },
         Object {
@@ -397,9 +397,9 @@ Object {
           },
           "Parameters": Array [
             "AuthApiVersion",
-            "AuthTaskSize",
-            "AuthMinTasks",
-            "AuthMaxTasks",
+            "AuthTaskSize9895C206",
+            "AuthMinTaskCount998F20C4",
+            "AuthMaxTaskCount9E585BDA",
           ],
         },
         Object {
@@ -408,9 +408,9 @@ Object {
           },
           "Parameters": Array [
             "RestApiVersion",
-            "RestTaskSize",
-            "RestMinTasks",
-            "RestMaxTasks",
+            "RestTaskSize14E11A14",
+            "RestMinTaskCount073959EA",
+            "RestMaxTaskCount1D2E84B9",
           ],
         },
         Object {
@@ -418,9 +418,9 @@ Object {
             "default": "Infrastructure - GraphQL API (PostGraphile)",
           },
           "Parameters": Array [
-            "GqlTaskSize",
-            "GqlMinTasks",
-            "GqlMaxTasks",
+            "GraphQLTaskSize228AD0D2",
+            "GraphQLMinTaskCount0807D92D",
+            "GraphQLMaxTaskCount62412A02",
           ],
         },
         Object {
@@ -429,9 +429,9 @@ Object {
           },
           "Parameters": Array [
             "RealtimeApiVersion",
-            "RealtimeTaskSize",
-            "RealtimeMinTasks",
-            "RealtimeMaxTasks",
+            "RealtimeTaskSize6077FE1F",
+            "RealtimeMinTaskCount306F67E8",
+            "RealtimeMaxTaskCountE72E1120",
           ],
         },
         Object {
@@ -440,9 +440,9 @@ Object {
           },
           "Parameters": Array [
             "StorageApiVersion",
-            "StorageTaskSize",
-            "StorageMinTasks",
-            "StorageMaxTasks",
+            "StorageTaskSizeB82D9CFB",
+            "StorageMinTaskCount07E65703",
+            "StorageMaxTaskCount372C6914",
           ],
         },
         Object {
@@ -451,9 +451,9 @@ Object {
           },
           "Parameters": Array [
             "PostgresMetaApiVersion",
-            "PostgresMetaTaskSize",
-            "PostgresMetaMinTasks",
-            "PostgresMetaMaxTasks",
+            "MetaTaskSize556D36D9",
+            "MetaMinTaskCountEA12F444",
+            "MetaMaxTaskCount2749DE86",
           ],
         },
         Object {
@@ -537,13 +537,13 @@ Object {
         "AuthGoogleSecretD364B305": Object {
           "default": "Google Client Secret",
         },
-        "AuthMaxTasks": Object {
+        "AuthMaxTaskCount9E585BDA": Object {
           "default": "Maximum Fargate Task Count",
         },
-        "AuthMinTasks": Object {
+        "AuthMinTaskCount998F20C4": Object {
           "default": "Minimum Fargate Task Count",
         },
-        "AuthTaskSize": Object {
+        "AuthTaskSize9895C206": Object {
           "default": "Fargate Task Size",
         },
         "AuthTwitterClientIdA90B5F1F": Object {
@@ -573,25 +573,34 @@ Object {
         "EnableWorkMail": Object {
           "default": "Enable Amazon WorkMail (Test E-mail Domain)",
         },
-        "GqlMaxTasks": Object {
+        "GraphQLMaxTaskCount62412A02": Object {
           "default": "Maximum Fargate Task Count",
         },
-        "GqlMinTasks": Object {
+        "GraphQLMinTaskCount0807D92D": Object {
           "default": "Minimum Fargate Task Count",
         },
-        "GqlTaskSize": Object {
+        "GraphQLTaskSize228AD0D2": Object {
           "default": "Fargate Task Size",
         },
         "JwtExpiryLimit": Object {
           "default": "JWT expiry limit",
         },
-        "KongMaxTasks": Object {
+        "KongMaxTaskCountA4145D65": Object {
           "default": "Maximum Fargate Task Count",
         },
-        "KongMinTasks": Object {
+        "KongMinTaskCount4451EF4C": Object {
           "default": "Minimum Fargate Task Count",
         },
-        "KongTaskSize": Object {
+        "KongTaskSize93C195E9": Object {
+          "default": "Fargate Task Size",
+        },
+        "MetaMaxTaskCount2749DE86": Object {
+          "default": "Maximum Fargate Task Count",
+        },
+        "MetaMinTaskCountEA12F444": Object {
+          "default": "Minimum Fargate Task Count",
+        },
+        "MetaTaskSize556D36D9": Object {
           "default": "Fargate Task Size",
         },
         "PasswordMinLength": Object {
@@ -600,25 +609,16 @@ Object {
         "PostgresMetaApiVersion": Object {
           "default": "Postgres Meta API Version",
         },
-        "PostgresMetaMaxTasks": Object {
-          "default": "Maximum Fargate Task Count",
-        },
-        "PostgresMetaMinTasks": Object {
-          "default": "Minimum Fargate Task Count",
-        },
-        "PostgresMetaTaskSize": Object {
-          "default": "Fargate Task Size",
-        },
         "RealtimeApiVersion": Object {
           "default": "Realtime API Version",
         },
-        "RealtimeMaxTasks": Object {
+        "RealtimeMaxTaskCountE72E1120": Object {
           "default": "Maximum Fargate Task Count",
         },
-        "RealtimeMinTasks": Object {
+        "RealtimeMinTaskCount306F67E8": Object {
           "default": "Minimum Fargate Task Count",
         },
-        "RealtimeTaskSize": Object {
+        "RealtimeTaskSize6077FE1F": Object {
           "default": "Fargate Task Size",
         },
         "RedirectUrls": Object {
@@ -627,13 +627,13 @@ Object {
         "RestApiVersion": Object {
           "default": "Rest API Version - PostgREST",
         },
-        "RestMaxTasks": Object {
+        "RestMaxTaskCount1D2E84B9": Object {
           "default": "Maximum Fargate Task Count",
         },
-        "RestMinTasks": Object {
+        "RestMinTaskCount073959EA": Object {
           "default": "Minimum Fargate Task Count",
         },
-        "RestTaskSize": Object {
+        "RestTaskSize14E11A14": Object {
           "default": "Fargate Task Size",
         },
         "SenderEmail": Object {
@@ -651,13 +651,13 @@ Object {
         "StorageApiVersion": Object {
           "default": "Storage API Version",
         },
-        "StorageMaxTasks": Object {
+        "StorageMaxTaskCount372C6914": Object {
           "default": "Maximum Fargate Task Count",
         },
-        "StorageMinTasks": Object {
+        "StorageMinTaskCount07E65703": Object {
           "default": "Minimum Fargate Task Count",
         },
-        "StorageTaskSize": Object {
+        "StorageTaskSizeB82D9CFB": Object {
           "default": "Fargate Task Size",
         },
         "StudioAcmCertArn2D10C4B8": Object {
@@ -670,8 +670,15 @@ Object {
     },
   },
   "Outputs": Object {
-    "StudioUrl": Object {
-      "Description": "Supabase Studio URL (Application Load Balancer)",
+    "StudioLoadBalancerDNS804F8A6B": Object {
+      "Value": Object {
+        "Fn::GetAtt": Array [
+          "StudioLB850A0917",
+          "DNSName",
+        ],
+      },
+    },
+    "StudioServiceURL4F6A7441": Object {
       "Value": Object {
         "Fn::Join": Array [
           "",
@@ -679,29 +686,10 @@ Object {
             "http://",
             Object {
               "Fn::GetAtt": Array [
-                "StudioLoadBalancer143227F7",
+                "StudioLB850A0917",
                 "DNSName",
               ],
             },
-          ],
-        ],
-      },
-    },
-    "StudioUserPool": Object {
-      "Description": "Cognito UserPool for Supabase Studio",
-      "Value": Object {
-        "Fn::Join": Array [
-          "",
-          Array [
-            "https://",
-            Object {
-              "Ref": "AWS::Region",
-            },
-            ".console.aws.amazon.com/cognito/v2/idp/user-pools/",
-            Object {
-              "Ref": "StudioUserPool94F50620",
-            },
-            "/users",
           ],
         ],
       },
@@ -826,19 +814,19 @@ Object {
       "NoEcho": true,
       "Type": "String",
     },
-    "AuthMaxTasks": Object {
+    "AuthMaxTaskCount9E585BDA": Object {
       "Default": 20,
-      "Description": "Maximum fargate task count for Auth API (GoTrue)",
-      "MinValue": 1,
+      "Description": "Maximum fargate task count",
+      "MinValue": 0,
       "Type": "Number",
     },
-    "AuthMinTasks": Object {
+    "AuthMinTaskCount998F20C4": Object {
       "Default": 1,
-      "Description": "Minimum fargate task count for Auth API (GoTrue)",
-      "MinValue": 1,
+      "Description": "Minimum fargate task count",
+      "MinValue": 0,
       "Type": "Number",
     },
-    "AuthTaskSize": Object {
+    "AuthTaskSize9895C206": Object {
       "AllowedValues": Array [
         "nano",
         "micro",
@@ -850,7 +838,7 @@ Object {
         "4xlarge",
       ],
       "Default": "medium",
-      "Description": "Fargare task size for Auth API (GoTrue)",
+      "Description": "Fargare task size",
       "Type": "String",
     },
     "AuthTwitterClientIdA90B5F1F": Object {
@@ -925,19 +913,19 @@ Object {
       "Description": "Enable Amazon WorkMail. To use \\"xxx.awsapps.com\\" domain with Amazon SES.",
       "Type": "String",
     },
-    "GqlMaxTasks": Object {
-      "Default": 0,
-      "Description": "Maximum fargate task count for GraphQL API (PostGraphile)",
+    "GraphQLMaxTaskCount62412A02": Object {
+      "Default": 20,
+      "Description": "Maximum fargate task count",
       "MinValue": 0,
       "Type": "Number",
     },
-    "GqlMinTasks": Object {
-      "Default": 0,
-      "Description": "Minimum fargate task count for GraphQL API (PostGraphile)",
+    "GraphQLMinTaskCount0807D92D": Object {
+      "Default": 1,
+      "Description": "Minimum fargate task count",
       "MinValue": 0,
       "Type": "Number",
     },
-    "GqlTaskSize": Object {
+    "GraphQLTaskSize228AD0D2": Object {
       "AllowedValues": Array [
         "nano",
         "micro",
@@ -949,7 +937,7 @@ Object {
         "4xlarge",
       ],
       "Default": "medium",
-      "Description": "Fargare task size for GraphQL API (PostGraphile)",
+      "Description": "Fargare task size",
       "Type": "String",
     },
     "JwtExpiryLimit": Object {
@@ -959,19 +947,19 @@ Object {
       "MinValue": 300,
       "Type": "Number",
     },
-    "KongMaxTasks": Object {
+    "KongMaxTaskCountA4145D65": Object {
       "Default": 20,
-      "Description": "Maximum fargate task count for API Gateway (Kong)",
-      "MinValue": 1,
+      "Description": "Maximum fargate task count",
+      "MinValue": 0,
       "Type": "Number",
     },
-    "KongMinTasks": Object {
+    "KongMinTaskCount4451EF4C": Object {
       "Default": 1,
-      "Description": "Minimum fargate task count for API Gateway (Kong)",
-      "MinValue": 1,
+      "Description": "Minimum fargate task count",
+      "MinValue": 0,
       "Type": "Number",
     },
-    "KongTaskSize": Object {
+    "KongTaskSize93C195E9": Object {
       "AllowedValues": Array [
         "nano",
         "micro",
@@ -983,7 +971,34 @@ Object {
         "4xlarge",
       ],
       "Default": "medium",
-      "Description": "Fargare task size for API Gateway (Kong)",
+      "Description": "Fargare task size",
+      "Type": "String",
+    },
+    "MetaMaxTaskCount2749DE86": Object {
+      "Default": 20,
+      "Description": "Maximum fargate task count",
+      "MinValue": 0,
+      "Type": "Number",
+    },
+    "MetaMinTaskCountEA12F444": Object {
+      "Default": 1,
+      "Description": "Minimum fargate task count",
+      "MinValue": 0,
+      "Type": "Number",
+    },
+    "MetaTaskSize556D36D9": Object {
+      "AllowedValues": Array [
+        "nano",
+        "micro",
+        "small",
+        "medium",
+        "large",
+        "xlarge",
+        "2xlarge",
+        "4xlarge",
+      ],
+      "Default": "nano",
+      "Description": "Fargare task size",
       "Type": "String",
     },
     "PasswordMinLength": Object {
@@ -999,54 +1014,25 @@ Object {
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/postgres-meta",
       "Type": "String",
     },
-    "PostgresMetaMaxTasks": Object {
-      "Default": 20,
-      "Description": "Maximum fargate task count for PostgresMeta API",
-      "MinValue": 1,
-      "Type": "Number",
-    },
-    "PostgresMetaMinTasks": Object {
-      "Default": 1,
-      "Description": "Minimum fargate task count for PostgresMeta API",
-      "MinValue": 1,
-      "Type": "Number",
-    },
-    "PostgresMetaTaskSize": Object {
-      "AllowedValues": Array [
-        "nano",
-        "micro",
-        "small",
-        "medium",
-        "large",
-        "xlarge",
-        "2xlarge",
-        "4xlarge",
-      ],
-      "Default": "nano",
-      "Description": "Fargare task size for PostgresMeta API",
-      "Type": "String",
-    },
     "RealtimeApiVersion": Object {
       "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
       "Default": "v0.25.1",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/realtime",
       "Type": "String",
     },
-    "RealtimeMaxTasks": Object {
+    "RealtimeMaxTaskCountE72E1120": Object {
       "Default": 1,
-      "Description": "Maximum fargate task count for Realtime API",
-      "MaxValue": 1,
+      "Description": "Maximum fargate task count",
       "MinValue": 0,
       "Type": "Number",
     },
-    "RealtimeMinTasks": Object {
+    "RealtimeMinTaskCount306F67E8": Object {
       "Default": 1,
-      "Description": "Minimum fargate task count for Realtime API",
-      "MaxValue": 1,
+      "Description": "Minimum fargate task count",
       "MinValue": 0,
       "Type": "Number",
     },
-    "RealtimeTaskSize": Object {
+    "RealtimeTaskSize6077FE1F": Object {
       "AllowedValues": Array [
         "nano",
         "micro",
@@ -1058,7 +1044,7 @@ Object {
         "4xlarge",
       ],
       "Default": "medium",
-      "Description": "Fargare task size for Realtime API",
+      "Description": "Fargare task size",
       "Type": "String",
     },
     "RedirectUrls": Object {
@@ -1071,19 +1057,19 @@ Object {
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/postgrest",
       "Type": "String",
     },
-    "RestMaxTasks": Object {
+    "RestMaxTaskCount1D2E84B9": Object {
       "Default": 20,
-      "Description": "Maximum fargate task count for Rest API (PostgREST)",
+      "Description": "Maximum fargate task count",
       "MinValue": 0,
       "Type": "Number",
     },
-    "RestMinTasks": Object {
+    "RestMinTaskCount073959EA": Object {
       "Default": 1,
-      "Description": "Minimum fargate task count for Rest API (PostgREST)",
+      "Description": "Minimum fargate task count",
       "MinValue": 0,
       "Type": "Number",
     },
-    "RestTaskSize": Object {
+    "RestTaskSize14E11A14": Object {
       "AllowedValues": Array [
         "nano",
         "micro",
@@ -1095,7 +1081,7 @@ Object {
         "4xlarge",
       ],
       "Default": "medium",
-      "Description": "Fargare task size for Rest API (PostgREST)",
+      "Description": "Fargare task size",
       "Type": "String",
     },
     "SenderEmail": Object {
@@ -1145,19 +1131,19 @@ Object {
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
     },
-    "StorageMaxTasks": Object {
+    "StorageMaxTaskCount372C6914": Object {
       "Default": 20,
-      "Description": "Maximum fargate task count for Storage API",
+      "Description": "Maximum fargate task count",
       "MinValue": 0,
       "Type": "Number",
     },
-    "StorageMinTasks": Object {
+    "StorageMinTaskCount07E65703": Object {
       "Default": 1,
-      "Description": "Minimum fargate task count for Storage API",
+      "Description": "Minimum fargate task count",
       "MinValue": 0,
       "Type": "Number",
     },
-    "StorageTaskSize": Object {
+    "StorageTaskSizeB82D9CFB": Object {
       "AllowedValues": Array [
         "nano",
         "micro",
@@ -1169,7 +1155,7 @@ Object {
         "4xlarge",
       ],
       "Default": "medium",
-      "Description": "Fargare task size for Storage API",
+      "Description": "Fargare task size",
       "Type": "String",
     },
     "StudioAcmCertArn2D10C4B8": Object {
@@ -1440,10 +1426,10 @@ Object {
     "AuthFargateTaskCountTarget3E614905": Object {
       "Properties": Object {
         "MaxCapacity": Object {
-          "Ref": "AuthMaxTasks",
+          "Ref": "AuthMaxTaskCount9E585BDA",
         },
         "MinCapacity": Object {
-          "Ref": "AuthMinTasks",
+          "Ref": "AuthMinTaskCount998F20C4",
         },
         "ResourceId": Object {
           "Fn::Join": Array [
@@ -2288,9 +2274,9 @@ Object {
         ],
         "Cpu": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "AuthTaskSize",
+              "Ref": "AuthTaskSize9895C206",
             },
             "cpu",
           ],
@@ -2304,9 +2290,9 @@ Object {
         "Family": "SupabaseAuthTaskDefinition474F8608",
         "Memory": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "AuthTaskSize",
+              "Ref": "AuthTaskSize9895C206",
             },
             "memory",
           ],
@@ -3086,7 +3072,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/2e13fc8178aa9070ce39127096758740275f1b9a6bda8e37997651f93b2f5350.json",
+              "/336d61bd450b9add5050881c1469fe3e84465a0272376664c988df220c0446b9.json",
             ],
           ],
         },
@@ -4211,7 +4197,7 @@ Object {
                   "\\",\\"",
                   Object {
                     "Fn::GetAtt": Array [
-                      "StudioFargateService73D501AC",
+                      "StudioService1995B017",
                       "Name",
                     ],
                   },
@@ -4243,7 +4229,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "b47af8262059295f344b8dacbdf2afacb22d865018734eb1c81ad7c34ea61899.zip",
+          "S3Key": "3f278c7910ed9f5f9f902ace411efd06e21030cf5aacc5bf7a174647193ac5f7.zip",
         },
         "Description": "Supabase - Sync DB secret to parameter store",
         "Environment": Object {
@@ -4799,10 +4785,10 @@ Object {
     "GraphQLFargateTaskCountTargetFBC4BAED": Object {
       "Properties": Object {
         "MaxCapacity": Object {
-          "Ref": "GqlMaxTasks",
+          "Ref": "GraphQLMaxTaskCount62412A02",
         },
         "MinCapacity": Object {
-          "Ref": "GqlMinTasks",
+          "Ref": "GraphQLMinTaskCount0807D92D",
         },
         "ResourceId": Object {
           "Fn::Join": Array [
@@ -4962,9 +4948,9 @@ Object {
         ],
         "Cpu": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "GqlTaskSize",
+              "Ref": "GraphQLTaskSize228AD0D2",
             },
             "cpu",
           ],
@@ -4978,9 +4964,9 @@ Object {
         "Family": "SupabaseGraphQLTaskDefinitionD4D50D38",
         "Memory": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "GqlTaskSize",
+              "Ref": "GraphQLTaskSize228AD0D2",
             },
             "memory",
           ],
@@ -5275,10 +5261,10 @@ Object {
     "KongFargateTaskCountTarget5B86CAE2": Object {
       "Properties": Object {
         "MaxCapacity": Object {
-          "Ref": "KongMaxTasks",
+          "Ref": "KongMaxTaskCountA4145D65",
         },
         "MinCapacity": Object {
-          "Ref": "KongMinTasks",
+          "Ref": "KongMinTaskCount4451EF4C",
         },
         "ResourceId": Object {
           "Fn::Join": Array [
@@ -5635,9 +5621,9 @@ Object {
         ],
         "Cpu": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "KongTaskSize",
+              "Ref": "KongTaskSize93C195E9",
             },
             "cpu",
           ],
@@ -5651,9 +5637,9 @@ Object {
         "Family": "SupabaseKongTaskDefinitionDEF6E72D",
         "Memory": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "KongTaskSize",
+              "Ref": "KongTaskSize93C195E9",
             },
             "memory",
           ],
@@ -5946,10 +5932,10 @@ Object {
     "MetaFargateTaskCountTargetAA0B984C": Object {
       "Properties": Object {
         "MaxCapacity": Object {
-          "Ref": "PostgresMetaMaxTasks",
+          "Ref": "MetaMaxTaskCount2749DE86",
         },
         "MinCapacity": Object {
-          "Ref": "PostgresMetaMinTasks",
+          "Ref": "MetaMinTaskCountEA12F444",
         },
         "ResourceId": Object {
           "Fn::Join": Array [
@@ -6140,9 +6126,9 @@ Object {
         ],
         "Cpu": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "PostgresMetaTaskSize",
+              "Ref": "MetaTaskSize556D36D9",
             },
             "cpu",
           ],
@@ -6156,9 +6142,9 @@ Object {
         "Family": "SupabaseMetaTaskDefinition428DEBA5",
         "Memory": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "PostgresMetaTaskSize",
+              "Ref": "MetaTaskSize556D36D9",
             },
             "memory",
           ],
@@ -6397,10 +6383,10 @@ Object {
     "RealtimeFargateTaskCountTargetCB8D8004": Object {
       "Properties": Object {
         "MaxCapacity": Object {
-          "Ref": "RealtimeMaxTasks",
+          "Ref": "RealtimeMaxTaskCountE72E1120",
         },
         "MinCapacity": Object {
-          "Ref": "RealtimeMinTasks",
+          "Ref": "RealtimeMinTaskCount306F67E8",
         },
         "ResourceId": Object {
           "Fn::Join": Array [
@@ -6634,9 +6620,9 @@ Object {
         ],
         "Cpu": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "RealtimeTaskSize",
+              "Ref": "RealtimeTaskSize6077FE1F",
             },
             "cpu",
           ],
@@ -6650,9 +6636,9 @@ Object {
         "Family": "SupabaseRealtimeTaskDefinition9B533F0B",
         "Memory": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "RealtimeTaskSize",
+              "Ref": "RealtimeTaskSize6077FE1F",
             },
             "memory",
           ],
@@ -6943,10 +6929,10 @@ Object {
     "RestFargateTaskCountTarget12C6E719": Object {
       "Properties": Object {
         "MaxCapacity": Object {
-          "Ref": "RestMaxTasks",
+          "Ref": "RestMaxTaskCount1D2E84B9",
         },
         "MinCapacity": Object {
-          "Ref": "RestMinTasks",
+          "Ref": "RestMinTaskCount073959EA",
         },
         "ResourceId": Object {
           "Fn::Join": Array [
@@ -7107,9 +7093,9 @@ Object {
         ],
         "Cpu": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "RestTaskSize",
+              "Ref": "RestTaskSize14E11A14",
             },
             "cpu",
           ],
@@ -7123,9 +7109,9 @@ Object {
         "Family": "SupabaseRestTaskDefinitionDA0C2E15",
         "Memory": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "RestTaskSize",
+              "Ref": "RestTaskSize14E11A14",
             },
             "memory",
           ],
@@ -7396,10 +7382,10 @@ Object {
     "StorageFargateTaskCountTarget6527B498": Object {
       "Properties": Object {
         "MaxCapacity": Object {
-          "Ref": "StorageMaxTasks",
+          "Ref": "StorageMaxTaskCount372C6914",
         },
         "MinCapacity": Object {
-          "Ref": "StorageMinTasks",
+          "Ref": "StorageMinTaskCount07E65703",
         },
         "ResourceId": Object {
           "Fn::Join": Array [
@@ -7641,9 +7627,9 @@ Object {
         ],
         "Cpu": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "StorageTaskSize",
+              "Ref": "StorageTaskSizeB82D9CFB",
             },
             "cpu",
           ],
@@ -7657,9 +7643,9 @@ Object {
         "Family": "SupabaseStorageTaskDefinition0123FC26",
         "Memory": Object {
           "Fn::FindInMap": Array [
-            "FargateTaskSize",
+            "TaskSize",
             Object {
-              "Ref": "StorageTaskSize",
+              "Ref": "StorageTaskSizeB82D9CFB",
             },
             "memory",
           ],
@@ -7920,7 +7906,7 @@ Object {
                 "https://",
                 Object {
                   "Fn::GetAtt": Array [
-                    "StudioLoadBalancer143227F7",
+                    "StudioLB850A0917",
                     "DNSName",
                   ],
                 },
@@ -7947,210 +7933,7 @@ Object {
       },
       "Type": "AWS::Cognito::UserPoolClient",
     },
-    "StudioFargateCloudmapService9272A74E": Object {
-      "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "SRV",
-            },
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "studio",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
-      },
-      "Type": "AWS::ServiceDiscovery::Service",
-    },
-    "StudioFargateSecurityGroup565A6DE5": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/Studio/Fargate/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "StudioFargateSecurityGroupfromSupabaseStudioLoadBalancerSecurityGroup66DC4D6030005AC2480E": Object {
-      "Properties": Object {
-        "Description": "Load balancer to target",
-        "FromPort": 3000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioFargateSecurityGroup565A6DE5",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioLoadBalancerSecurityGroup73100F94",
-            "GroupId",
-          ],
-        },
-        "ToPort": 3000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "StudioFargateService73D501AC": Object {
-      "DependsOn": Array [
-        "StudioLoadBalancerListener522B10FC",
-      ],
-      "Properties": Object {
-        "Cluster": Object {
-          "Ref": "ClusterEB0386A7",
-        },
-        "DeploymentConfiguration": Object {
-          "DeploymentCircuitBreaker": Object {
-            "Enable": true,
-            "Rollback": true,
-          },
-          "MaximumPercent": 200,
-          "MinimumHealthyPercent": 50,
-        },
-        "DeploymentController": Object {
-          "Type": "ECS",
-        },
-        "EnableECSManagedTags": true,
-        "HealthCheckGracePeriodSeconds": 60,
-        "LaunchType": "FARGATE",
-        "LoadBalancers": Array [
-          Object {
-            "ContainerName": "app",
-            "ContainerPort": 3000,
-            "TargetGroupArn": Object {
-              "Ref": "StudioTargetGroupC1E0E03D",
-            },
-          },
-        ],
-        "NetworkConfiguration": Object {
-          "AwsvpcConfiguration": Object {
-            "AssignPublicIp": "DISABLED",
-            "SecurityGroups": Array [
-              Object {
-                "Fn::GetAtt": Array [
-                  "StudioFargateSecurityGroup565A6DE5",
-                  "GroupId",
-                ],
-              },
-            ],
-            "Subnets": Array [
-              Object {
-                "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
-              },
-              Object {
-                "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A",
-              },
-            ],
-          },
-        },
-        "PropagateTags": "SERVICE",
-        "ServiceRegistries": Array [
-          Object {
-            "ContainerName": "app",
-            "ContainerPort": 3000,
-            "RegistryArn": Object {
-              "Fn::GetAtt": Array [
-                "StudioFargateCloudmapService9272A74E",
-                "Arn",
-              ],
-            },
-          },
-        ],
-        "TaskDefinition": Object {
-          "Ref": "StudioTaskDefinitionFEEA269A",
-        },
-      },
-      "Type": "AWS::ECS::Service",
-    },
-    "StudioFargateTaskCountTarget4C89A82A": Object {
-      "Properties": Object {
-        "MaxCapacity": 20,
-        "MinCapacity": 1,
-        "ResourceId": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "service/",
-              Object {
-                "Ref": "ClusterEB0386A7",
-              },
-              "/",
-              Object {
-                "Fn::GetAtt": Array [
-                  "StudioFargateService73D501AC",
-                  "Name",
-                ],
-              },
-            ],
-          ],
-        },
-        "RoleARN": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":iam::",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
-            ],
-          ],
-        },
-        "ScalableDimension": "ecs:service:DesiredCount",
-        "ServiceNamespace": "ecs",
-      },
-      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
-    },
-    "StudioFargateTaskCountTargetScaleOnCpu7F37171E": Object {
-      "Properties": Object {
-        "PolicyName": "SupabaseStudioFargateTaskCountTargetScaleOnCpu8536576E",
-        "PolicyType": "TargetTrackingScaling",
-        "ScalingTargetId": Object {
-          "Ref": "StudioFargateTaskCountTarget4C89A82A",
-        },
-        "TargetTrackingScalingPolicyConfiguration": Object {
-          "PredefinedMetricSpecification": Object {
-            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
-          },
-          "ScaleInCooldown": 60,
-          "ScaleOutCooldown": 60,
-          "TargetValue": 50,
-        },
-      },
-      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-    },
-    "StudioLoadBalancer143227F7": Object {
+    "StudioLB850A0917": Object {
       "DependsOn": Array [
         "VPCPublicSubnet1DefaultRoute91CEF279",
         "VPCPublicSubnet1RouteTableAssociation0B0896DC",
@@ -8168,7 +7951,7 @@ Object {
         "SecurityGroups": Array [
           Object {
             "Fn::GetAtt": Array [
-              "StudioLoadBalancerSecurityGroup73100F94",
+              "StudioLBSecurityGroupD6350C35",
               "GroupId",
             ],
           },
@@ -8185,7 +7968,24 @@ Object {
       },
       "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
     },
-    "StudioLoadBalancerListener522B10FC": Object {
+    "StudioLBPublicListenerECSGroupB7410BDD": Object {
+      "Properties": Object {
+        "Port": 80,
+        "Protocol": "HTTP",
+        "TargetGroupAttributes": Array [
+          Object {
+            "Key": "stickiness.enabled",
+            "Value": "false",
+          },
+        ],
+        "TargetType": "ip",
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+    },
+    "StudioLBPublicListenerF4E3892D": Object {
       "Properties": Object {
         "Certificates": Object {
           "Fn::If": Array [
@@ -8212,7 +8012,7 @@ Object {
               ],
             },
             "TargetGroupArn": Object {
-              "Ref": "StudioTargetGroupC1E0E03D",
+              "Ref": "StudioLBPublicListenerECSGroupB7410BDD",
             },
             "Type": "forward",
           },
@@ -8254,7 +8054,7 @@ Object {
           },
         ],
         "LoadBalancerArn": Object {
-          "Ref": "StudioLoadBalancer143227F7",
+          "Ref": "StudioLB850A0917",
         },
         "Port": Object {
           "Fn::If": Array [
@@ -8273,30 +8073,23 @@ Object {
       },
       "Type": "AWS::ElasticLoadBalancingV2::Listener",
     },
-    "StudioLoadBalancerSecurityGroup73100F94": Object {
+    "StudioLBSecurityGroupD6350C35": Object {
       "Properties": Object {
-        "GroupDescription": "Supabase/Studio/LoadBalancerSecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
+        "GroupDescription": "Automatically created Security Group for ELB SupabaseStudioLB132CBDFF",
         "SecurityGroupIngress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow from anyone on port 443",
-            "FromPort": 443,
-            "IpProtocol": "tcp",
-            "ToPort": 443,
-          },
           Object {
             "CidrIp": "0.0.0.0/0",
             "Description": "Allow from anyone on port 80",
             "FromPort": 80,
             "IpProtocol": "tcp",
             "ToPort": 80,
+          },
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow from anyone on port 443",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443,
           },
         ],
         "VpcId": Object {
@@ -8305,38 +8098,360 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "StudioLogs5268B2C5": Object {
-      "DeletionPolicy": "Delete",
+    "StudioLBSecurityGrouptoSupabaseStudioServiceSecurityGroup41B519B730004FA74141": Object {
       "Properties": Object {
-        "RetentionInDays": 30,
+        "Description": "Load balancer to target",
+        "DestinationSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "StudioServiceSecurityGroup5209A715",
+            "GroupId",
+          ],
+        },
+        "FromPort": 3000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "StudioLBSecurityGroupD6350C35",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 3000,
       },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
+      "Type": "AWS::EC2::SecurityGroupEgress",
     },
-    "StudioTargetGroupC1E0E03D": Object {
+    "StudioService1995B017": Object {
+      "DependsOn": Array [
+        "StudioLBPublicListenerECSGroupB7410BDD",
+        "StudioLBPublicListenerF4E3892D",
+      ],
       "Properties": Object {
-        "HealthCheckIntervalSeconds": 10,
-        "HealthCheckTimeoutSeconds": 5,
-        "Port": 3000,
-        "Protocol": "HTTP",
-        "TargetGroupAttributes": Array [
+        "Cluster": Object {
+          "Ref": "ClusterEB0386A7",
+        },
+        "DeploymentConfiguration": Object {
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 50,
+        },
+        "EnableECSManagedTags": false,
+        "HealthCheckGracePeriodSeconds": 60,
+        "LaunchType": "FARGATE",
+        "LoadBalancers": Array [
           Object {
-            "Key": "deregistration_delay.timeout_seconds",
-            "Value": "30",
-          },
-          Object {
-            "Key": "stickiness.enabled",
-            "Value": "false",
+            "ContainerName": "web",
+            "ContainerPort": 3000,
+            "TargetGroupArn": Object {
+              "Ref": "StudioLBPublicListenerECSGroupB7410BDD",
+            },
           },
         ],
-        "TargetType": "ip",
+        "NetworkConfiguration": Object {
+          "AwsvpcConfiguration": Object {
+            "AssignPublicIp": "DISABLED",
+            "SecurityGroups": Array [
+              Object {
+                "Fn::GetAtt": Array [
+                  "StudioServiceSecurityGroup5209A715",
+                  "GroupId",
+                ],
+              },
+            ],
+            "Subnets": Array [
+              Object {
+                "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
+              },
+              Object {
+                "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A",
+              },
+            ],
+          },
+        },
+        "TaskDefinition": Object {
+          "Ref": "StudioTaskDef17A0330B",
+        },
+      },
+      "Type": "AWS::ECS::Service",
+    },
+    "StudioServiceSecurityGroup5209A715": Object {
+      "Properties": Object {
+        "GroupDescription": "Supabase/Studio/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
         "VpcId": Object {
           "Ref": "VPCB9E5F0B4",
         },
       },
-      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Type": "AWS::EC2::SecurityGroup",
     },
-    "StudioTaskDefinitionExecutionRoleBBC69CFE": Object {
+    "StudioServiceSecurityGroupfromSupabaseStudioLBSecurityGroup49D6AE2530006CBBD8A2": Object {
+      "Properties": Object {
+        "Description": "Load balancer to target",
+        "FromPort": 3000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "StudioServiceSecurityGroup5209A715",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "StudioLBSecurityGroupD6350C35",
+            "GroupId",
+          ],
+        },
+        "ToPort": 3000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "StudioServiceTaskCountTargetF90DE957": Object {
+      "Properties": Object {
+        "MaxCapacity": 10,
+        "MinCapacity": 1,
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "StudioService1995B017",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "StudioServiceTaskCountTargetScaleOnCpu77890CC4": Object {
+      "Properties": Object {
+        "PolicyName": "SupabaseStudioServiceTaskCountTargetScaleOnCpu0A2EC8EC",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "StudioServiceTaskCountTargetF90DE957",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 50,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+    },
+    "StudioTaskDef17A0330B": Object {
+      "Properties": Object {
+        "ContainerDefinitions": Array [
+          Object {
+            "Environment": Array [
+              Object {
+                "Name": "STUDIO_PG_META_URL",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CdnDistribution149FA6C8",
+                          "DomainName",
+                        ],
+                      },
+                      "/pg",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "SUPABASE_URL",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CdnDistribution149FA6C8",
+                          "DomainName",
+                        ],
+                      },
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "SUPABASE_REST_URL",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "https://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CdnDistribution149FA6C8",
+                          "DomainName",
+                        ],
+                      },
+                      "/rest/v1/",
+                    ],
+                  ],
+                },
+              },
+            ],
+            "Essential": true,
+            "Image": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "public.ecr.aws/supabase/studio:",
+                  Object {
+                    "Ref": "StudioVersion",
+                  },
+                ],
+              ],
+            },
+            "LogConfiguration": Object {
+              "LogDriver": "awslogs",
+              "Options": Object {
+                "awslogs-group": Object {
+                  "Ref": "StudioTaskDefwebLogGroup95CB5D4E",
+                },
+                "awslogs-region": Object {
+                  "Ref": "AWS::Region",
+                },
+                "awslogs-stream-prefix": "Studio",
+              },
+            },
+            "Name": "web",
+            "PortMappings": Array [
+              Object {
+                "ContainerPort": 3000,
+                "Protocol": "tcp",
+              },
+            ],
+            "Secrets": Array [
+              Object {
+                "Name": "POSTGRES_PASSWORD",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                      },
+                      ":password::",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "SUPABASE_ANON_KEY",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ssm:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":parameter",
+                      Object {
+                        "Ref": "SupabaseJwtAnonKey90E80F90",
+                      },
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "SUPABASE_SERVICE_KEY",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ssm:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":parameter",
+                      Object {
+                        "Ref": "SupabaseJwtServiceRoleKey94675B64",
+                      },
+                    ],
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+        "Cpu": "256",
+        "ExecutionRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "StudioTaskDefExecutionRoleA3E52254",
+            "Arn",
+          ],
+        },
+        "Family": "SupabaseStudioTaskDef0ECEB662",
+        "Memory": "512",
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": Array [
+          "FARGATE",
+        ],
+        "TaskRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "StudioTaskDefTaskRole30BC5B9C",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ECS::TaskDefinition",
+    },
+    "StudioTaskDefExecutionRoleA3E52254": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -8353,7 +8468,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "StudioTaskDefinitionExecutionRoleDefaultPolicy1DF00583": Object {
+    "StudioTaskDefExecutionRoleDefaultPolicy806359C6": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -8365,7 +8480,7 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "StudioLogs5268B2C5",
+                  "StudioTaskDefwebLogGroup95CB5D4E",
                   "Arn",
                 ],
               },
@@ -8447,209 +8562,16 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "StudioTaskDefinitionExecutionRoleDefaultPolicy1DF00583",
+        "PolicyName": "StudioTaskDefExecutionRoleDefaultPolicy806359C6",
         "Roles": Array [
           Object {
-            "Ref": "StudioTaskDefinitionExecutionRoleBBC69CFE",
+            "Ref": "StudioTaskDefExecutionRoleA3E52254",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "StudioTaskDefinitionFEEA269A": Object {
-      "Properties": Object {
-        "ContainerDefinitions": Array [
-          Object {
-            "Environment": Array [
-              Object {
-                "Name": "STUDIO_PG_META_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "https://",
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "CdnDistribution149FA6C8",
-                          "DomainName",
-                        ],
-                      },
-                      "/pg",
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "SUPABASE_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "https://",
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "CdnDistribution149FA6C8",
-                          "DomainName",
-                        ],
-                      },
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "SUPABASE_REST_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "https://",
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "CdnDistribution149FA6C8",
-                          "DomainName",
-                        ],
-                      },
-                      "/rest/v1/",
-                    ],
-                  ],
-                },
-              },
-            ],
-            "Essential": true,
-            "Image": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "public.ecr.aws/supabase/studio:",
-                  Object {
-                    "Ref": "StudioVersion",
-                  },
-                ],
-              ],
-            },
-            "LogConfiguration": Object {
-              "LogDriver": "awslogs",
-              "Options": Object {
-                "awslogs-group": Object {
-                  "Ref": "StudioLogs5268B2C5",
-                },
-                "awslogs-region": Object {
-                  "Ref": "AWS::Region",
-                },
-                "awslogs-stream-prefix": "ecs",
-              },
-            },
-            "Name": "app",
-            "PortMappings": Array [
-              Object {
-                "ContainerPort": 3000,
-                "Protocol": "tcp",
-              },
-            ],
-            "Secrets": Array [
-              Object {
-                "Name": "POSTGRES_PASSWORD",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-                      },
-                      ":password::",
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "SUPABASE_ANON_KEY",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":ssm:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":parameter",
-                      Object {
-                        "Ref": "SupabaseJwtAnonKey90E80F90",
-                      },
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "SUPABASE_SERVICE_KEY",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":ssm:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":parameter",
-                      Object {
-                        "Ref": "SupabaseJwtServiceRoleKey94675B64",
-                      },
-                    ],
-                  ],
-                },
-              },
-            ],
-            "Ulimits": Array [
-              Object {
-                "HardLimit": 65536,
-                "Name": "nofile",
-                "SoftLimit": 65536,
-              },
-            ],
-          },
-        ],
-        "Cpu": "256",
-        "ExecutionRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "StudioTaskDefinitionExecutionRoleBBC69CFE",
-            "Arn",
-          ],
-        },
-        "Family": "SupabaseStudioTaskDefinition2986B664",
-        "Memory": "512",
-        "NetworkMode": "awsvpc",
-        "RequiresCompatibilities": Array [
-          "FARGATE",
-        ],
-        "RuntimePlatform": Object {
-          "CpuArchitecture": "ARM64",
-          "OperatingSystemFamily": "LINUX",
-        },
-        "TaskRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "StudioTaskDefinitionTaskRole4FE9D685",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::ECS::TaskDefinition",
-    },
-    "StudioTaskDefinitionTaskRole4FE9D685": Object {
+    "StudioTaskDefTaskRole30BC5B9C": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -8665,6 +8587,11 @@ Object {
         },
       },
       "Type": "AWS::IAM::Role",
+    },
+    "StudioTaskDefwebLogGroup95CB5D4E": Object {
+      "DeletionPolicy": "Retain",
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
     },
     "StudioUserPool94F50620": Object {
       "DeletionPolicy": "Delete",

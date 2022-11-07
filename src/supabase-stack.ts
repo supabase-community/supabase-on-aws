@@ -179,7 +179,7 @@ export class SupabaseStack extends cdk.Stack {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/kong:latest'),
-        //image: ecs.ContainerImage.fromAsset('./src/containers/kong', { platform: Platform.LINUX_ARM64 }),
+        //image: ecs.ContainerImage.fromAsset('./containers/kong', { platform: Platform.LINUX_ARM64 }),
         containerPort: 8000,
         environment: {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
@@ -296,7 +296,7 @@ export class SupabaseStack extends cdk.Stack {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/postgraphile:latest'),
-        //image: ecs.ContainerImage.fromAsset('./src/containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
+        //image: ecs.ContainerImage.fromAsset('./containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
         containerPort: 5000,
         healthCheck: {
           command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1'],
