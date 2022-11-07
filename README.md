@@ -1,5 +1,7 @@
 # Supabase on AWS - CloudFormation/CDK Blueprint
 
+_Launch in minutes. Scale to millions._
+
 This repo includes a blueprint of starting Supabase stack on AWS via CloudFormation/CDK. This blueprint use managed services such as Amazon ECS and Amazon Aurora etc...
 
 ![architecture-diagram](docs/images/architecture-diagram.png)
