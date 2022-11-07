@@ -4,11 +4,11 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import { SupabaseService, SupabaseServiceProps } from './supabase-service';
 
-export type AuthProvicerName = 'Apple'|'Azure'|'Bitbucket'|'Discord'|'Facebook'|'GitHub'|'GitLab'|'Google'|'Keycloak'|'Linkedin'|'Notion'|'Spotify'|'Slack'|'Twitch'|'Twitter'|'WorkOS';
+export type AuthProviderName = 'Apple'|'Azure'|'Bitbucket'|'Discord'|'Facebook'|'GitHub'|'GitLab'|'Google'|'Keycloak'|'Linkedin'|'Notion'|'Spotify'|'Slack'|'Twitch'|'Twitter'|'WorkOS';
 
 export class SupabaseAuth extends SupabaseService {
   redirectUri: string;
-  externalAuthProvider: { [name in AuthProvicerName]?: AuthProvicer } = {};
+  externalAuthProvider: { [name in AuthProviderName]?: AuthProvider } = {};
 
   constructor(scope: Construct, id: string, props: SupabaseServiceProps) {
 
@@ -19,25 +19,25 @@ export class SupabaseAuth extends SupabaseService {
 
   }
 
-  addExternalAuthProvider(name: AuthProvicerName) {
-    const authProvicer = new AuthProvicer(this, name, { parameterPrefix: `/${cdk.Aws.STACK_NAME}/${this.node.id}/External/${name}` });
+  addExternalAuthProvider(name: AuthProviderName) {
+    const authProvider = new AuthProvider(this, name, { parameterPrefix: `/${cdk.Aws.STACK_NAME}/${this.node.id}/External/${name}` });
     const container = this.service.taskDefinition.defaultContainer!;
     const envPrefix = `GOTRUE_EXTERNAL_${name.toUpperCase()}`;
-    container.addEnvironment(`${envPrefix}_ENABLED`, authProvicer.enabled.valueAsString);
+    container.addEnvironment(`${envPrefix}_ENABLED`, authProvider.enabled.valueAsString);
     container.addEnvironment(`${envPrefix}_REDIRECT_URI`, this.redirectUri);
-    container.addSecret(`${envPrefix}_CLIENT_ID`, ecs.Secret.fromSsmParameter(authProvicer.clientIdParameter));
-    container.addSecret(`${envPrefix}_SECRET`, ecs.Secret.fromSsmParameter(authProvicer.secretParameter));
-    this.externalAuthProvider[name] = authProvicer;
-    return authProvicer;
+    container.addSecret(`${envPrefix}_CLIENT_ID`, ecs.Secret.fromSsmParameter(authProvider.clientIdParameter));
+    container.addSecret(`${envPrefix}_SECRET`, ecs.Secret.fromSsmParameter(authProvider.secretParameter));
+    this.externalAuthProvider[name] = authProvider;
+    return authProvider;
   }
 
 }
 
-interface AuthProvicerProps {
+interface AuthProviderProps {
   parameterPrefix: string;
 }
 
-class AuthProvicer extends Construct {
+class AuthProvider extends Construct {
   name: string;
   enabled: cdk.CfnParameter;
   clientId: cdk.CfnParameter;
@@ -45,7 +45,7 @@ class AuthProvicer extends Construct {
   clientIdParameter: StringParameter;
   secretParameter: StringParameter;
 
-  constructor(scope: Construct, id: string, props: AuthProvicerProps) {
+  constructor(scope: Construct, id: string, props: AuthProviderProps) {
     super(scope, id);
 
     this.name = id;

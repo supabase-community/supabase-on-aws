@@ -9,7 +9,7 @@ import { PrefixList } from './aws-prefix-list';
 import { WorkMailStack } from './aws-workmail';
 import { CognitoAuthenticatedFargateService } from './cognito-authenticated-fargate-service';
 import { ForceDeployJob } from './ecs-force-deploy-job';
-import { SupabaseAuth, AuthProvicerName } from './supabase-auth';
+import { SupabaseAuth, AuthProviderName } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwt } from './supabase-jwt';
@@ -658,7 +658,7 @@ export class SupabaseStack extends cdk.Stack {
     };
 
     for (let provicerName in auth.externalAuthProvider) {
-      const provider = auth.externalAuthProvider[provicerName as AuthProvicerName];
+      const provider = auth.externalAuthProvider[provicerName as AuthProviderName];
       if (typeof provider != 'undefined') {
         cfnInterface.ParameterGroups.push({
           Label: { default: `External Auth Provider - ${provider.name}` },
