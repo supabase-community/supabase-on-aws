@@ -11,7 +11,7 @@ interface StackProps extends cdk.NestedStackProps {
   organization: OrganizationProps;
 }
 
-export class Stack extends cdk.NestedStack {
+export class WorkMailStack extends cdk.NestedStack {
   organization: Organization;
 
   constructor(scope: Construct, id: string, props: StackProps) {

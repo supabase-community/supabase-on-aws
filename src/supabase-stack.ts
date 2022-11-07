@@ -6,7 +6,8 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { PrefixList } from './aws-prefix-list';
-import { Stack as WorkMailStack } from './aws-workmail';
+import { WorkMailStack } from './aws-workmail';
+import { CognitoAuthenticatedFargateService } from './cognito-authenticated-fargate-service';
 import { ForceDeployJob } from './ecs-force-deploy-job';
 import { SupabaseAuth, AuthProvicerName } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
@@ -14,7 +15,6 @@ import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwt } from './supabase-jwt';
 import { SupabaseMail } from './supabase-mail';
 import { SupabaseService } from './supabase-service';
-import { SupabaseStudio } from './supabase-studio';
 import { sesSmtpSupportedRegions } from './utils';
 
 const ecrAlias = 'supabase';
@@ -206,7 +206,7 @@ export class SupabaseStack extends cdk.Stack {
     const kongLoadBalancer = kong.addNetworkLoadBalancer({ healthCheckPort: 8100 });
 
     const cfPrefixList = new PrefixList(this, 'CloudFrontPrefixList', { prefixListName: 'com.amazonaws.global.cloudfront.origin-facing' });
-    kong.ecsService.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
+    kong.service.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
 
     const cdn = new SupabaseCdn(this, 'Cdn', { origin: kongLoadBalancer });
     const apiExternalUrl = `https://${cdn.distribution.domainName}`;
@@ -386,7 +386,7 @@ export class SupabaseStack extends cdk.Stack {
       taskSizeMapping,
       cpuArchitecture: 'x86_64', // storage-api does not work on ARM64
     });
-    bucket.grantReadWrite(storage.ecsService.taskDefinition.taskRole);
+    bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
 
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
@@ -408,12 +408,12 @@ export class SupabaseStack extends cdk.Stack {
     });
     meta.taskSize.default = 'nano';
 
-    kong.ecsService.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_AUTH_URL', `http://${auth.dnsName}:${auth.listenerPort}/`);
-    kong.ecsService.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REST_URL', `http://${rest.dnsName}:${rest.listenerPort}/`);
-    kong.ecsService.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_GRAPHQL_URL', `http://${gql.dnsName}:${gql.listenerPort}/graphql`);
-    kong.ecsService.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REALTIME_URL', `http://${realtime.dnsName}:${realtime.listenerPort}/socket/`);
-    kong.ecsService.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_STORAGE_URL', `http://${storage.dnsName}:${storage.listenerPort}/`);
-    kong.ecsService.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_META_HOST', `http://${meta.dnsName}:${meta.listenerPort}/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_AUTH_URL', `http://${auth.dnsName}:${auth.listenerPort}/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REST_URL', `http://${rest.dnsName}:${rest.listenerPort}/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_GRAPHQL_URL', `http://${gql.dnsName}:${gql.listenerPort}/graphql`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REALTIME_URL', `http://${realtime.dnsName}:${realtime.listenerPort}/socket/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_STORAGE_URL', `http://${storage.dnsName}:${storage.listenerPort}/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_META_HOST', `http://${meta.dnsName}:${meta.listenerPort}/`);
 
     kong.addBackend(auth);
     kong.addBackend(rest);
@@ -440,14 +440,14 @@ export class SupabaseStack extends cdk.Stack {
       description: `Docker image tag - ${ecrGalleryUrl}/studio`,
     });
 
-    const studio = new SupabaseStudio(this, 'Studio', {
+    const studio = new CognitoAuthenticatedFargateService(this, 'Studio', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/studio:${studioVersion.valueAsString}`),
         containerPort: 3000,
         environment: {
           STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
-          SUPABASE_URL: `${apiExternalUrl}`, // for API Docs
+          SUPABASE_URL: `${apiExternalUrl}`, // used at API Docs
           SUPABASE_REST_URL: `${apiExternalUrl}/rest/v1/`,
         },
         secrets: {
@@ -456,9 +456,7 @@ export class SupabaseStack extends cdk.Stack {
           SUPABASE_SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
         },
       },
-      taskSizeMapping,
     });
-    studio.taskSize.default = 'nano';
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
 
@@ -499,14 +497,6 @@ export class SupabaseStack extends cdk.Stack {
       value: jwt.anonToken,
       description: 'This key is safe to use in a browser if you have enabled Row Level Security for your tables and configured policies.',
       exportName: `${cdk.Aws.STACK_NAME}AnonKey`,
-    });
-    new cdk.CfnOutput(this, 'StudioUrl', {
-      value: `http://${studio.loadBalancer.loadBalancerDnsName}`,
-      description: 'Supabase Studio URL (Application Load Balancer)',
-    });
-    new cdk.CfnOutput(this, 'StudioUserPool', {
-      value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${studio.userPool.userPoolId}/users`,
-      description: 'Cognito UserPool for Supabase Studio',
     });
 
     const cfnInterface = {
@@ -609,9 +599,6 @@ export class SupabaseStack extends cdk.Stack {
           Label: { default: 'Infrastructure - Supabase Studio' },
           Parameters: [
             studioVersion.logicalId,
-            studio.taskSize.logicalId,
-            studio.minTaskCount.logicalId,
-            studio.maxTaskCount.logicalId,
             studio.acmCertArn.logicalId,
           ],
         },
@@ -666,9 +653,6 @@ export class SupabaseStack extends cdk.Stack {
         [meta.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
         [studioVersion.logicalId]: { default: 'Supabase Studio Version' },
-        [studio.taskSize.logicalId]: { default: 'Fargate Task Size' },
-        [studio.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [studio.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
         [studio.acmCertArn.logicalId]: { default: 'ACM Certificate ARN' },
       },
     };

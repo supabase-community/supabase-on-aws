@@ -21,7 +21,7 @@ export class SupabaseAuth extends SupabaseService {
 
   addExternalAuthProvider(name: AuthProvicerName) {
     const authProvicer = new AuthProvicer(this, name, { parameterPrefix: `/${cdk.Aws.STACK_NAME}/${this.node.id}/External/${name}` });
-    const container = this.ecsService.taskDefinition.defaultContainer!;
+    const container = this.service.taskDefinition.defaultContainer!;
     const envPrefix = `GOTRUE_EXTERNAL_${name.toUpperCase()}`;
     container.addEnvironment(`${envPrefix}_ENABLED`, authProvicer.enabled.valueAsString);
     container.addEnvironment(`${envPrefix}_REDIRECT_URI`, this.redirectUri);

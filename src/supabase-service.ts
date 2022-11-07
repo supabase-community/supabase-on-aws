@@ -27,9 +27,7 @@ export interface SupabaseServiceProps {
 export class SupabaseService extends Construct {
   listenerPort: number;
   dnsName: string;
-  ecsService: ecs.FargateService;
-  cloudMapService: servicediscovery.Service;
-  logGroup: logs.LogGroup;
+  service: ecs.FargateService;
   taskSize: cdk.CfnParameter;
   minTaskCount: cdk.CfnParameter;
   maxTaskCount: cdk.CfnParameter;
@@ -77,12 +75,12 @@ export class SupabaseService extends Construct {
     (taskDefinition.node.defaultChild as ecs.CfnTaskDefinition).addPropertyOverride('Cpu', cpu);
     (taskDefinition.node.defaultChild as ecs.CfnTaskDefinition).addPropertyOverride('Memory', memory);
 
-    this.logGroup = new logs.LogGroup(this, 'Logs', {
+    const logGroup = new logs.LogGroup(this, 'Logs', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       retention: logs.RetentionDays.ONE_MONTH,
     });
 
-    const logDriver = new ecs.AwsLogDriver({ logGroup: this.logGroup, streamPrefix: 'ecs' });
+    const logDriver = new ecs.AwsLogDriver({ logGroup, streamPrefix: 'ecs' });
 
     const containerName = taskImageOptions.containerName ?? 'app';
     const appContainer = taskDefinition.addContainer(containerName, {
@@ -138,7 +136,7 @@ export class SupabaseService extends Construct {
     //  condition: ecs.ContainerDependencyCondition.START,
     //});
 
-    this.ecsService = new ecs.FargateService(this, 'Fargate', {
+    this.service = new ecs.FargateService(this, 'Fargate', {
       cluster,
       taskDefinition,
       circuitBreaker: { rollback: true },
@@ -150,20 +148,20 @@ export class SupabaseService extends Construct {
       //],
     });
     if (typeof serviceDisabled != 'undefined') {
-      (this.ecsService.node.defaultChild as ecs.CfnService).addPropertyOverride('DesiredCount', cdk.Fn.conditionIf(serviceDisabled.logicalId, 0, cdk.Aws.NO_VALUE));
+      (this.service.node.defaultChild as ecs.CfnService).addPropertyOverride('DesiredCount', cdk.Fn.conditionIf(serviceDisabled.logicalId, 0, cdk.Aws.NO_VALUE));
     }
 
-    this.cloudMapService = this.ecsService.enableCloudMap({
+    const cloudMapService = this.service.enableCloudMap({
       name: serviceName,
       dnsRecordType: servicediscovery.DnsRecordType.SRV,
       container: appContainer,
       dnsTtl: cdk.Duration.seconds(10),
     });
-    (this.cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
+    (cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
 
-    this.dnsName = `${this.cloudMapService.serviceName}.${this.cloudMapService.namespace.namespaceName}`;
+    this.dnsName = `${cloudMapService.serviceName}.${cloudMapService.namespace.namespaceName}`;
 
-    const autoScaling = this.ecsService.autoScaleTaskCount({
+    const autoScaling = this.service.autoScaleTaskCount({
       minCapacity: this.minTaskCount.valueAsNumber,
       maxCapacity: this.maxTaskCount.valueAsNumber,
     });
@@ -178,13 +176,13 @@ export class SupabaseService extends Construct {
   addNetworkLoadBalancer(props: { healthCheckPort: number}) {
     const healthCheckPort = props.healthCheckPort;
 
-    const vpc = this.ecsService.cluster.vpc;
-    this.ecsService.connections.allowFrom(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.tcp(healthCheckPort), 'NLB healthcheck');
+    const vpc = this.service.cluster.vpc;
+    this.service.connections.allowFrom(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.tcp(healthCheckPort), 'NLB healthcheck');
 
     const targetGroup = new elb.NetworkTargetGroup(this, 'TargetGroup', {
       port: this.listenerPort,
       targets: [
-        this.ecsService.loadBalancerTarget({ containerName: 'app' }),
+        this.service.loadBalancerTarget({ containerName: 'app' }),
       ],
       healthCheck: {
         port: healthCheckPort.toString(),
@@ -203,11 +201,11 @@ export class SupabaseService extends Construct {
   }
 
   addBackend(backend: SupabaseService) {
-    this.ecsService.connections.allowTo(backend.ecsService, ec2.Port.tcp(backend.listenerPort));
+    this.service.connections.allowTo(backend.service, ec2.Port.tcp(backend.listenerPort));
   }
 
   addDatabaseBackend(backend: SupabaseDatabase) {
-    this.ecsService.connections.allowToDefaultPort(backend.cluster);
-    this.ecsService.node.defaultChild?.node.addDependency(backend.cluster.node.findChild('Instance1'));
+    this.service.connections.allowToDefaultPort(backend.cluster);
+    this.service.node.defaultChild?.node.addDependency(backend.cluster.node.findChild('Instance1'));
   }
 }

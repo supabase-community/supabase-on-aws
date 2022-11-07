@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
+import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
@@ -47,11 +48,11 @@ export class ForceDeployJob extends Construct {
 
   }
 
-  addTrigger(props: { rule: events.Rule; services: SupabaseService[] }) {
+  addTrigger(props: { rule: events.Rule; services: (SupabaseService|ApplicationLoadBalancedFargateService)[] }) {
     const { rule, services } = props;
     const target = new targets.SfnStateMachine(this.stateMachine, {
       input: events.RuleTargetInput.fromObject({
-        services: services.map(x => x.ecsService.serviceName),
+        services: services.map(x => x.service.serviceName),
       }),
     });
     rule.addTarget(target);
