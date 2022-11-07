@@ -36,63 +36,8 @@ const defaultRules: Rule[] = [
     OverrideAction: { None: {} },
   },
   {
-    Name: 'AWS-AWSManagedRulesSQLiRuleSet',
-    Priority: 2,
-    Statement: {
-      ManagedRuleGroupStatement: {
-        VendorName: 'AWS',
-        Name: 'AWSManagedRulesSQLiRuleSet',
-        Version: 'Version_2.0',
-        ScopeDownStatement: {
-          OrStatement: {
-            Statements: [
-              {
-                ByteMatchStatement: {
-                  FieldToMatch: { UriPath: {} },
-                  PositionalConstraint: 'STARTS_WITH',
-                  SearchString: fromUtf8('/auth/'),
-                  TextTransformations: [{ Priority: 0, Type: 'NONE' }],
-                },
-              },
-              {
-                ByteMatchStatement: {
-                  FieldToMatch: { UriPath: {} },
-                  PositionalConstraint: 'STARTS_WITH',
-                  SearchString: fromUtf8('/rest/'),
-                  TextTransformations: [{ Priority: 0, Type: 'NONE' }],
-                },
-              },
-              {
-                ByteMatchStatement: {
-                  FieldToMatch: { UriPath: {} },
-                  PositionalConstraint: 'STARTS_WITH',
-                  SearchString: fromUtf8('/graphql/'),
-                  TextTransformations: [{ Priority: 0, Type: 'NONE' }],
-                },
-              },
-              {
-                ByteMatchStatement: {
-                  FieldToMatch: { UriPath: {} },
-                  PositionalConstraint: 'STARTS_WITH',
-                  SearchString: fromUtf8('/pg/'),
-                  TextTransformations: [{ Priority: 0, Type: 'NONE' }],
-                },
-              },
-            ],
-          },
-        },
-      },
-    },
-    VisibilityConfig: {
-      SampledRequestsEnabled: true,
-      CloudWatchMetricsEnabled: true,
-      MetricName: 'AWS-AWSManagedRulesSQLiRuleSet',
-    },
-    OverrideAction: { None: {} },
-  },
-  {
     Name: 'AWS-AWSManagedRulesBotControlRuleSet',
-    Priority: 3,
+    Priority: 2,
     Statement: {
       ManagedRuleGroupStatement: {
         VendorName: 'AWS',
@@ -101,6 +46,18 @@ const defaultRules: Rule[] = [
           { Name: 'CategoryHttpLibrary' },
           { Name: 'SignalNonBrowserUserAgent' },
         ],
+        ScopeDownStatement: {
+          NotStatement: {
+            Statement: {
+              ByteMatchStatement: {
+                FieldToMatch: { UriPath: {} },
+                PositionalConstraint: 'STARTS_WITH',
+                SearchString: fromUtf8('/pg/'),
+                TextTransformations: [{ Priority: 0, Type: 'NONE' }],
+              },
+            },
+          },
+        },
       },
     },
     VisibilityConfig: {
@@ -112,7 +69,7 @@ const defaultRules: Rule[] = [
   },
   {
     Name: 'AWS-AWSManagedRulesATPRuleSet',
-    Priority: 4,
+    Priority: 3,
     Statement: {
       ManagedRuleGroupStatement: {
         VendorName: 'AWS',
@@ -137,7 +94,7 @@ const defaultRules: Rule[] = [
   },
   {
     Name: 'RateBasedRule',
-    Priority: 5,
+    Priority: 4,
     Statement: {
       RateBasedStatement: {
         Limit: 5 * 60 * 100, // 100req/s
