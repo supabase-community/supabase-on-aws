@@ -3,28 +3,40 @@
 exports[`Snapshot 1`] = `
 Object {
   "Conditions": Object {
-    "AuthFacebookEnabledCondition1AA6B686": Object {
-      "Fn::Equals": Array [
+    "AuthProvider1Enabled983DA6B5": Object {
+      "Fn::Not": Array [
         Object {
-          "Ref": "AuthFacebookEnabled84D700F0",
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "AuthProvider1Name740DD3F6",
+            },
+            "",
+          ],
         },
-        "true",
       ],
     },
-    "AuthGitHubEnabledCondition65BA528D": Object {
-      "Fn::Equals": Array [
+    "AuthProvider2Enabled05B8862B": Object {
+      "Fn::Not": Array [
         Object {
-          "Ref": "AuthGitHubEnabledFEC35C2E",
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "AuthProvider2Name573986E5",
+            },
+            "",
+          ],
         },
-        "true",
       ],
     },
-    "AuthGoogleEnabledCondition72A3AE49": Object {
-      "Fn::Equals": Array [
+    "AuthProvider3Enabled464D1673": Object {
+      "Fn::Not": Array [
         Object {
-          "Ref": "AuthGoogleEnabled673D587B",
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "AuthProvider3NameA8A7785F",
+            },
+            "",
+          ],
         },
-        "true",
       ],
     },
     "AuthServiceDisabledB6209B31": Object {
@@ -45,14 +57,6 @@ Object {
             "0",
           ],
         },
-      ],
-    },
-    "AuthTwitterEnabledCondition285AF0B5": Object {
-      "Fn::Equals": Array [
-        Object {
-          "Ref": "AuthTwitterEnabled870CD7DD",
-        },
-        "true",
       ],
     },
     "CdnManagedWafEnabledD3A8F9B9": Object {
@@ -365,6 +369,16 @@ Object {
         },
         Object {
           "Label": Object {
+            "default": "Infrastructure - Database",
+          },
+          "Parameters": Array [
+            "DatabaseMultiAz04923704",
+            "DatabaseMinCapacity82563E98",
+            "DatabaseMaxCapacityDD9828CB",
+          ],
+        },
+        Object {
+          "Label": Object {
             "default": "Infrastructure - Security",
           },
           "Parameters": Array [
@@ -373,12 +387,11 @@ Object {
         },
         Object {
           "Label": Object {
-            "default": "Infrastructure - Database",
+            "default": "Infrastructure - Supabase Studio",
           },
           "Parameters": Array [
-            "DatabaseMultiAz04923704",
-            "DatabaseMinCapacity82563E98",
-            "DatabaseMaxCapacityDD9828CB",
+            "StudioVersion",
+            "StudioAcmCertArn2D10C4B8",
           ],
         },
         Object {
@@ -458,51 +471,32 @@ Object {
         },
         Object {
           "Label": Object {
-            "default": "Infrastructure - Supabase Studio",
+            "default": "External Auth Provider 1",
           },
           "Parameters": Array [
-            "StudioVersion",
-            "StudioAcmCertArn2D10C4B8",
+            "AuthProvider1Name740DD3F6",
+            "AuthProvider1ClientId5614D178",
+            "AuthProvider1SecretAE54364F",
           ],
         },
         Object {
           "Label": Object {
-            "default": "External Auth Provider - Google",
+            "default": "External Auth Provider 2",
           },
           "Parameters": Array [
-            "AuthGoogleEnabled673D587B",
-            "AuthGoogleClientId9C9AF727",
-            "AuthGoogleSecretD364B305",
+            "AuthProvider2Name573986E5",
+            "AuthProvider2ClientIdF3685A2B",
+            "AuthProvider2Secret2662F55E",
           ],
         },
         Object {
           "Label": Object {
-            "default": "External Auth Provider - Facebook",
+            "default": "External Auth Provider 3",
           },
           "Parameters": Array [
-            "AuthFacebookEnabled84D700F0",
-            "AuthFacebookClientIdA20D3AB2",
-            "AuthFacebookSecret831BBBC1",
-          ],
-        },
-        Object {
-          "Label": Object {
-            "default": "External Auth Provider - Twitter",
-          },
-          "Parameters": Array [
-            "AuthTwitterEnabled870CD7DD",
-            "AuthTwitterClientIdA90B5F1F",
-            "AuthTwitterSecret2B6750CB",
-          ],
-        },
-        Object {
-          "Label": Object {
-            "default": "External Auth Provider - GitHub",
-          },
-          "Parameters": Array [
-            "AuthGitHubEnabledFEC35C2E",
-            "AuthGitHubClientIdC96CF4DC",
-            "AuthGitHubSecretC2AF742F",
+            "AuthProvider3NameA8A7785F",
+            "AuthProvider3ClientId8DF3C6F7",
+            "AuthProvider3Secret29364F33",
           ],
         },
       ],
@@ -510,50 +504,41 @@ Object {
         "AuthApiVersion": Object {
           "default": "Auth API Version - GoTrue",
         },
-        "AuthFacebookClientIdA20D3AB2": Object {
-          "default": "Facebook Client ID",
-        },
-        "AuthFacebookEnabled84D700F0": Object {
-          "default": "Facebook Enabled",
-        },
-        "AuthFacebookSecret831BBBC1": Object {
-          "default": "Facebook Client Secret",
-        },
-        "AuthGitHubClientIdC96CF4DC": Object {
-          "default": "GitHub Client ID",
-        },
-        "AuthGitHubEnabledFEC35C2E": Object {
-          "default": "GitHub Enabled",
-        },
-        "AuthGitHubSecretC2AF742F": Object {
-          "default": "GitHub Client Secret",
-        },
-        "AuthGoogleClientId9C9AF727": Object {
-          "default": "Google Client ID",
-        },
-        "AuthGoogleEnabled673D587B": Object {
-          "default": "Google Enabled",
-        },
-        "AuthGoogleSecretD364B305": Object {
-          "default": "Google Client Secret",
-        },
         "AuthMaxTaskCount9E585BDA": Object {
           "default": "Maximum Fargate Task Count",
         },
         "AuthMinTaskCount998F20C4": Object {
           "default": "Minimum Fargate Task Count",
         },
+        "AuthProvider1ClientId5614D178": Object {
+          "default": "Client ID",
+        },
+        "AuthProvider1Name740DD3F6": Object {
+          "default": "Provider Name",
+        },
+        "AuthProvider1SecretAE54364F": Object {
+          "default": "Client Secret",
+        },
+        "AuthProvider2ClientIdF3685A2B": Object {
+          "default": "Client ID",
+        },
+        "AuthProvider2Name573986E5": Object {
+          "default": "Provider Name",
+        },
+        "AuthProvider2Secret2662F55E": Object {
+          "default": "Client Secret",
+        },
+        "AuthProvider3ClientId8DF3C6F7": Object {
+          "default": "Client ID",
+        },
+        "AuthProvider3NameA8A7785F": Object {
+          "default": "Provider Name",
+        },
+        "AuthProvider3Secret29364F33": Object {
+          "default": "Client Secret",
+        },
         "AuthTaskSize9895C206": Object {
           "default": "Fargate Task Size",
-        },
-        "AuthTwitterClientIdA90B5F1F": Object {
-          "default": "Twitter Client ID",
-        },
-        "AuthTwitterEnabled870CD7DD": Object {
-          "default": "Twitter Enabled",
-        },
-        "AuthTwitterSecret2B6750CB": Object {
-          "default": "Twitter Client Secret",
         },
         "CdnWebAclArn5923748A": Object {
           "default": "Web ACL ARN (AWS WAF)",
@@ -754,66 +739,6 @@ Object {
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
     },
-    "AuthFacebookClientIdA20D3AB2": Object {
-      "Default": "",
-      "Description": "The OAuth2 Client ID registered with the external provider.",
-      "Type": "String",
-    },
-    "AuthFacebookEnabled84D700F0": Object {
-      "AllowedValues": Array [
-        "true",
-        "false",
-      ],
-      "Default": "false",
-      "Description": "Whether this external provider is enabled or not",
-      "Type": "String",
-    },
-    "AuthFacebookSecret831BBBC1": Object {
-      "Default": "",
-      "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
-      "NoEcho": true,
-      "Type": "String",
-    },
-    "AuthGitHubClientIdC96CF4DC": Object {
-      "Default": "",
-      "Description": "The OAuth2 Client ID registered with the external provider.",
-      "Type": "String",
-    },
-    "AuthGitHubEnabledFEC35C2E": Object {
-      "AllowedValues": Array [
-        "true",
-        "false",
-      ],
-      "Default": "false",
-      "Description": "Whether this external provider is enabled or not",
-      "Type": "String",
-    },
-    "AuthGitHubSecretC2AF742F": Object {
-      "Default": "",
-      "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
-      "NoEcho": true,
-      "Type": "String",
-    },
-    "AuthGoogleClientId9C9AF727": Object {
-      "Default": "",
-      "Description": "The OAuth2 Client ID registered with the external provider.",
-      "Type": "String",
-    },
-    "AuthGoogleEnabled673D587B": Object {
-      "AllowedValues": Array [
-        "true",
-        "false",
-      ],
-      "Default": "false",
-      "Description": "Whether this external provider is enabled or not",
-      "Type": "String",
-    },
-    "AuthGoogleSecretD364B305": Object {
-      "Default": "",
-      "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
-      "NoEcho": true,
-      "Type": "String",
-    },
     "AuthMaxTaskCount9E585BDA": Object {
       "Default": 20,
       "Description": "Maximum fargate task count",
@@ -825,6 +750,111 @@ Object {
       "Description": "Minimum fargate task count",
       "MinValue": 0,
       "Type": "Number",
+    },
+    "AuthProvider1ClientId5614D178": Object {
+      "Default": "",
+      "Description": "The OAuth2 Client ID registered with the external provider.",
+      "Type": "String",
+    },
+    "AuthProvider1Name740DD3F6": Object {
+      "AllowedValues": Array [
+        "",
+        "APPLE",
+        "AZURE",
+        "BITBUCKET",
+        "DISCORD",
+        "FACEBOOK",
+        "GITHUB",
+        "GITLAB",
+        "GOOGLE",
+        "KEYCLOAK",
+        "LINKEDIN",
+        "NOTION",
+        "SPOTIFY",
+        "SLACK",
+        "TWITCH",
+        "TWITTER",
+        "WORKOS",
+      ],
+      "Default": "",
+      "Description": "External Auth Provider Name",
+      "Type": "String",
+    },
+    "AuthProvider1SecretAE54364F": Object {
+      "Default": "",
+      "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
+      "NoEcho": true,
+      "Type": "String",
+    },
+    "AuthProvider2ClientIdF3685A2B": Object {
+      "Default": "",
+      "Description": "The OAuth2 Client ID registered with the external provider.",
+      "Type": "String",
+    },
+    "AuthProvider2Name573986E5": Object {
+      "AllowedValues": Array [
+        "",
+        "APPLE",
+        "AZURE",
+        "BITBUCKET",
+        "DISCORD",
+        "FACEBOOK",
+        "GITHUB",
+        "GITLAB",
+        "GOOGLE",
+        "KEYCLOAK",
+        "LINKEDIN",
+        "NOTION",
+        "SPOTIFY",
+        "SLACK",
+        "TWITCH",
+        "TWITTER",
+        "WORKOS",
+      ],
+      "Default": "",
+      "Description": "External Auth Provider Name",
+      "Type": "String",
+    },
+    "AuthProvider2Secret2662F55E": Object {
+      "Default": "",
+      "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
+      "NoEcho": true,
+      "Type": "String",
+    },
+    "AuthProvider3ClientId8DF3C6F7": Object {
+      "Default": "",
+      "Description": "The OAuth2 Client ID registered with the external provider.",
+      "Type": "String",
+    },
+    "AuthProvider3NameA8A7785F": Object {
+      "AllowedValues": Array [
+        "",
+        "APPLE",
+        "AZURE",
+        "BITBUCKET",
+        "DISCORD",
+        "FACEBOOK",
+        "GITHUB",
+        "GITLAB",
+        "GOOGLE",
+        "KEYCLOAK",
+        "LINKEDIN",
+        "NOTION",
+        "SPOTIFY",
+        "SLACK",
+        "TWITCH",
+        "TWITTER",
+        "WORKOS",
+      ],
+      "Default": "",
+      "Description": "External Auth Provider Name",
+      "Type": "String",
+    },
+    "AuthProvider3Secret29364F33": Object {
+      "Default": "",
+      "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
+      "NoEcho": true,
+      "Type": "String",
     },
     "AuthTaskSize9895C206": Object {
       "AllowedValues": Array [
@@ -839,26 +869,6 @@ Object {
       ],
       "Default": "medium",
       "Description": "Fargare task size",
-      "Type": "String",
-    },
-    "AuthTwitterClientIdA90B5F1F": Object {
-      "Default": "",
-      "Description": "The OAuth2 Client ID registered with the external provider.",
-      "Type": "String",
-    },
-    "AuthTwitterEnabled870CD7DD": Object {
-      "AllowedValues": Array [
-        "true",
-        "false",
-      ],
-      "Default": "false",
-      "Description": "Whether this external provider is enabled or not",
-      "Type": "String",
-    },
-    "AuthTwitterSecret2B6750CB": Object {
-      "Default": "",
-      "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
-      "NoEcho": true,
       "Type": "String",
     },
     "BootstrapVersion": Object {
@@ -1226,62 +1236,6 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "AuthFacebookClientIdParameter5DDD2E0E": Object {
-      "Properties": Object {
-        "Description": "The OAuth2 Client ID registered with the external provider.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/Auth/External/Facebook/ClientId",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::If": Array [
-            "AuthFacebookEnabledCondition1AA6B686",
-            Object {
-              "Ref": "AuthFacebookClientIdA20D3AB2",
-            },
-            "null",
-          ],
-        },
-      },
-      "Type": "AWS::SSM::Parameter",
-    },
-    "AuthFacebookSecretParameter45F08B1D": Object {
-      "Properties": Object {
-        "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/Auth/External/Facebook/Secret",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::If": Array [
-            "AuthFacebookEnabledCondition1AA6B686",
-            Object {
-              "Ref": "AuthFacebookSecret831BBBC1",
-            },
-            "null",
-          ],
-        },
-      },
-      "Type": "AWS::SSM::Parameter",
-    },
     "AuthFargateCloudmapService77173080": Object {
       "Properties": Object {
         "DnsConfig": Object {
@@ -1488,118 +1442,6 @@ Object {
       },
       "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
     },
-    "AuthGitHubClientIdParameterE25226CE": Object {
-      "Properties": Object {
-        "Description": "The OAuth2 Client ID registered with the external provider.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/Auth/External/GitHub/ClientId",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::If": Array [
-            "AuthGitHubEnabledCondition65BA528D",
-            Object {
-              "Ref": "AuthGitHubClientIdC96CF4DC",
-            },
-            "null",
-          ],
-        },
-      },
-      "Type": "AWS::SSM::Parameter",
-    },
-    "AuthGitHubSecretParameterF1ECE139": Object {
-      "Properties": Object {
-        "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/Auth/External/GitHub/Secret",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::If": Array [
-            "AuthGitHubEnabledCondition65BA528D",
-            Object {
-              "Ref": "AuthGitHubSecretC2AF742F",
-            },
-            "null",
-          ],
-        },
-      },
-      "Type": "AWS::SSM::Parameter",
-    },
-    "AuthGoogleClientIdParameter6FFD0D0D": Object {
-      "Properties": Object {
-        "Description": "The OAuth2 Client ID registered with the external provider.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/Auth/External/Google/ClientId",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::If": Array [
-            "AuthGoogleEnabledCondition72A3AE49",
-            Object {
-              "Ref": "AuthGoogleClientId9C9AF727",
-            },
-            "null",
-          ],
-        },
-      },
-      "Type": "AWS::SSM::Parameter",
-    },
-    "AuthGoogleSecretParameter8CC77EE2": Object {
-      "Properties": Object {
-        "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/Auth/External/Google/Secret",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::If": Array [
-            "AuthGoogleEnabledCondition72A3AE49",
-            Object {
-              "Ref": "AuthGoogleSecretD364B305",
-            },
-            "null",
-          ],
-        },
-      },
-      "Type": "AWS::SSM::Parameter",
-    },
     "AuthLogs940C0551": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
@@ -1672,6 +1514,234 @@ Object {
         ],
       },
       "Type": "AWS::Events::Rule",
+    },
+    "AuthProvider1ClientIdParameterA8CDD11D": Object {
+      "Properties": Object {
+        "Description": "The OAuth2 Client ID registered with the external provider.",
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "/Auth/External/",
+              Object {
+                "Fn::If": Array [
+                  "AuthProvider1Enabled983DA6B5",
+                  Object {
+                    "Ref": "AuthProvider1Name740DD3F6",
+                  },
+                  "Provider1",
+                ],
+              },
+              "/ClientId",
+            ],
+          ],
+        },
+        "Type": "String",
+        "Value": Object {
+          "Fn::If": Array [
+            "AuthProvider1Enabled983DA6B5",
+            Object {
+              "Ref": "AuthProvider1ClientId5614D178",
+            },
+            "null",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "AuthProvider1SecretParameter32101B7A": Object {
+      "Properties": Object {
+        "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "/Auth/External/",
+              Object {
+                "Fn::If": Array [
+                  "AuthProvider1Enabled983DA6B5",
+                  Object {
+                    "Ref": "AuthProvider1Name740DD3F6",
+                  },
+                  "Provider1",
+                ],
+              },
+              "/Secret",
+            ],
+          ],
+        },
+        "Type": "String",
+        "Value": Object {
+          "Fn::If": Array [
+            "AuthProvider1Enabled983DA6B5",
+            Object {
+              "Ref": "AuthProvider1SecretAE54364F",
+            },
+            "null",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "AuthProvider2ClientIdParameter30D2A6D6": Object {
+      "Properties": Object {
+        "Description": "The OAuth2 Client ID registered with the external provider.",
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "/Auth/External/",
+              Object {
+                "Fn::If": Array [
+                  "AuthProvider2Enabled05B8862B",
+                  Object {
+                    "Ref": "AuthProvider2Name573986E5",
+                  },
+                  "Provider2",
+                ],
+              },
+              "/ClientId",
+            ],
+          ],
+        },
+        "Type": "String",
+        "Value": Object {
+          "Fn::If": Array [
+            "AuthProvider2Enabled05B8862B",
+            Object {
+              "Ref": "AuthProvider2ClientIdF3685A2B",
+            },
+            "null",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "AuthProvider2SecretParameter4B28A4BE": Object {
+      "Properties": Object {
+        "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "/Auth/External/",
+              Object {
+                "Fn::If": Array [
+                  "AuthProvider2Enabled05B8862B",
+                  Object {
+                    "Ref": "AuthProvider2Name573986E5",
+                  },
+                  "Provider2",
+                ],
+              },
+              "/Secret",
+            ],
+          ],
+        },
+        "Type": "String",
+        "Value": Object {
+          "Fn::If": Array [
+            "AuthProvider2Enabled05B8862B",
+            Object {
+              "Ref": "AuthProvider2Secret2662F55E",
+            },
+            "null",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "AuthProvider3ClientIdParameter6DA38073": Object {
+      "Properties": Object {
+        "Description": "The OAuth2 Client ID registered with the external provider.",
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "/Auth/External/",
+              Object {
+                "Fn::If": Array [
+                  "AuthProvider3Enabled464D1673",
+                  Object {
+                    "Ref": "AuthProvider3NameA8A7785F",
+                  },
+                  "Provider3",
+                ],
+              },
+              "/ClientId",
+            ],
+          ],
+        },
+        "Type": "String",
+        "Value": Object {
+          "Fn::If": Array [
+            "AuthProvider3Enabled464D1673",
+            Object {
+              "Ref": "AuthProvider3ClientId8DF3C6F7",
+            },
+            "null",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "AuthProvider3SecretParameter7A77F7F4": Object {
+      "Properties": Object {
+        "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "/Auth/External/",
+              Object {
+                "Fn::If": Array [
+                  "AuthProvider3Enabled464D1673",
+                  Object {
+                    "Ref": "AuthProvider3NameA8A7785F",
+                  },
+                  "Provider3",
+                ],
+              },
+              "/Secret",
+            ],
+          ],
+        },
+        "Type": "String",
+        "Value": Object {
+          "Fn::If": Array [
+            "AuthProvider3Enabled464D1673",
+            Object {
+              "Ref": "AuthProvider3Secret29364F33",
+            },
+            "null",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
     },
     "AuthTaskDefinitionDBEE261E": Object {
       "Properties": Object {
@@ -1871,13 +1941,51 @@ Object {
                 "Value": "true",
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_GOOGLE_ENABLED",
+                "Name": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "GOTRUE_EXTERNAL_",
+                      Object {
+                        "Fn::If": Array [
+                          "AuthProvider1Enabled983DA6B5",
+                          Object {
+                            "Ref": "AuthProvider1Name740DD3F6",
+                          },
+                          "Provider1",
+                        ],
+                      },
+                      "_ENABLED",
+                    ],
+                  ],
+                },
                 "Value": Object {
-                  "Ref": "AuthGoogleEnabled673D587B",
+                  "Fn::If": Array [
+                    "AuthProvider1Enabled983DA6B5",
+                    "true",
+                    "false",
+                  ],
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI",
+                "Name": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "GOTRUE_EXTERNAL_",
+                      Object {
+                        "Fn::If": Array [
+                          "AuthProvider1Enabled983DA6B5",
+                          Object {
+                            "Ref": "AuthProvider1Name740DD3F6",
+                          },
+                          "Provider1",
+                        ],
+                      },
+                      "_REDIRECT_URI",
+                    ],
+                  ],
+                },
                 "Value": Object {
                   "Fn::Join": Array [
                     "",
@@ -1895,13 +2003,51 @@ Object {
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_FACEBOOK_ENABLED",
+                "Name": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "GOTRUE_EXTERNAL_",
+                      Object {
+                        "Fn::If": Array [
+                          "AuthProvider2Enabled05B8862B",
+                          Object {
+                            "Ref": "AuthProvider2Name573986E5",
+                          },
+                          "Provider2",
+                        ],
+                      },
+                      "_ENABLED",
+                    ],
+                  ],
+                },
                 "Value": Object {
-                  "Ref": "AuthFacebookEnabled84D700F0",
+                  "Fn::If": Array [
+                    "AuthProvider2Enabled05B8862B",
+                    "true",
+                    "false",
+                  ],
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_FACEBOOK_REDIRECT_URI",
+                "Name": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "GOTRUE_EXTERNAL_",
+                      Object {
+                        "Fn::If": Array [
+                          "AuthProvider2Enabled05B8862B",
+                          Object {
+                            "Ref": "AuthProvider2Name573986E5",
+                          },
+                          "Provider2",
+                        ],
+                      },
+                      "_REDIRECT_URI",
+                    ],
+                  ],
+                },
                 "Value": Object {
                   "Fn::Join": Array [
                     "",
@@ -1919,37 +2065,51 @@ Object {
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_TWITTER_ENABLED",
-                "Value": Object {
-                  "Ref": "AuthTwitterEnabled870CD7DD",
-                },
-              },
-              Object {
-                "Name": "GOTRUE_EXTERNAL_TWITTER_REDIRECT_URI",
-                "Value": Object {
+                "Name": Object {
                   "Fn::Join": Array [
                     "",
                     Array [
-                      "https://",
+                      "GOTRUE_EXTERNAL_",
                       Object {
-                        "Fn::GetAtt": Array [
-                          "CdnDistribution149FA6C8",
-                          "DomainName",
+                        "Fn::If": Array [
+                          "AuthProvider3Enabled464D1673",
+                          Object {
+                            "Ref": "AuthProvider3NameA8A7785F",
+                          },
+                          "Provider3",
                         ],
                       },
-                      "/auth/v1/callback",
+                      "_ENABLED",
                     ],
+                  ],
+                },
+                "Value": Object {
+                  "Fn::If": Array [
+                    "AuthProvider3Enabled464D1673",
+                    "true",
+                    "false",
                   ],
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_GITHUB_ENABLED",
-                "Value": Object {
-                  "Ref": "AuthGitHubEnabledFEC35C2E",
+                "Name": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "GOTRUE_EXTERNAL_",
+                      Object {
+                        "Fn::If": Array [
+                          "AuthProvider3Enabled464D1673",
+                          Object {
+                            "Ref": "AuthProvider3NameA8A7785F",
+                          },
+                          "Provider3",
+                        ],
+                      },
+                      "_REDIRECT_URI",
+                    ],
+                  ],
                 },
-              },
-              Object {
-                "Name": "GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI",
                 "Value": Object {
                   "Fn::Join": Array [
                     "",
@@ -2055,7 +2215,24 @@ Object {
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID",
+                "Name": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "GOTRUE_EXTERNAL_",
+                      Object {
+                        "Fn::If": Array [
+                          "AuthProvider1Enabled983DA6B5",
+                          Object {
+                            "Ref": "AuthProvider1Name740DD3F6",
+                          },
+                          "Provider1",
+                        ],
+                      },
+                      "_CLIENT_ID",
+                    ],
+                  ],
+                },
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
@@ -2074,14 +2251,31 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "AuthGoogleClientIdParameter6FFD0D0D",
+                        "Ref": "AuthProvider1ClientIdParameterA8CDD11D",
                       },
                     ],
                   ],
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_GOOGLE_SECRET",
+                "Name": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "GOTRUE_EXTERNAL_",
+                      Object {
+                        "Fn::If": Array [
+                          "AuthProvider1Enabled983DA6B5",
+                          Object {
+                            "Ref": "AuthProvider1Name740DD3F6",
+                          },
+                          "Provider1",
+                        ],
+                      },
+                      "_SECRET",
+                    ],
+                  ],
+                },
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
@@ -2100,14 +2294,31 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "AuthGoogleSecretParameter8CC77EE2",
+                        "Ref": "AuthProvider1SecretParameter32101B7A",
                       },
                     ],
                   ],
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_FACEBOOK_CLIENT_ID",
+                "Name": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "GOTRUE_EXTERNAL_",
+                      Object {
+                        "Fn::If": Array [
+                          "AuthProvider2Enabled05B8862B",
+                          Object {
+                            "Ref": "AuthProvider2Name573986E5",
+                          },
+                          "Provider2",
+                        ],
+                      },
+                      "_CLIENT_ID",
+                    ],
+                  ],
+                },
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
@@ -2126,14 +2337,31 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "AuthFacebookClientIdParameter5DDD2E0E",
+                        "Ref": "AuthProvider2ClientIdParameter30D2A6D6",
                       },
                     ],
                   ],
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_FACEBOOK_SECRET",
+                "Name": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "GOTRUE_EXTERNAL_",
+                      Object {
+                        "Fn::If": Array [
+                          "AuthProvider2Enabled05B8862B",
+                          Object {
+                            "Ref": "AuthProvider2Name573986E5",
+                          },
+                          "Provider2",
+                        ],
+                      },
+                      "_SECRET",
+                    ],
+                  ],
+                },
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
@@ -2152,14 +2380,31 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "AuthFacebookSecretParameter45F08B1D",
+                        "Ref": "AuthProvider2SecretParameter4B28A4BE",
                       },
                     ],
                   ],
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_TWITTER_CLIENT_ID",
+                "Name": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "GOTRUE_EXTERNAL_",
+                      Object {
+                        "Fn::If": Array [
+                          "AuthProvider3Enabled464D1673",
+                          Object {
+                            "Ref": "AuthProvider3NameA8A7785F",
+                          },
+                          "Provider3",
+                        ],
+                      },
+                      "_CLIENT_ID",
+                    ],
+                  ],
+                },
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
@@ -2178,40 +2423,31 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "AuthTwitterClientIdParameter5DDB79F5",
+                        "Ref": "AuthProvider3ClientIdParameter6DA38073",
                       },
                     ],
                   ],
                 },
               },
               Object {
-                "Name": "GOTRUE_EXTERNAL_TWITTER_SECRET",
-                "ValueFrom": Object {
+                "Name": Object {
                   "Fn::Join": Array [
                     "",
                     Array [
-                      "arn:",
+                      "GOTRUE_EXTERNAL_",
                       Object {
-                        "Ref": "AWS::Partition",
+                        "Fn::If": Array [
+                          "AuthProvider3Enabled464D1673",
+                          Object {
+                            "Ref": "AuthProvider3NameA8A7785F",
+                          },
+                          "Provider3",
+                        ],
                       },
-                      ":ssm:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":parameter",
-                      Object {
-                        "Ref": "AuthTwitterSecretParameter7DC8398A",
-                      },
+                      "_SECRET",
                     ],
                   ],
                 },
-              },
-              Object {
-                "Name": "GOTRUE_EXTERNAL_GITHUB_CLIENT_ID",
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
@@ -2230,33 +2466,7 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "AuthGitHubClientIdParameterE25226CE",
-                      },
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "GOTRUE_EXTERNAL_GITHUB_SECRET",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":ssm:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":parameter",
-                      Object {
-                        "Ref": "AuthGitHubSecretParameterF1ECE139",
+                        "Ref": "AuthProvider3SecretParameter7A77F7F4",
                       },
                     ],
                   ],
@@ -2426,7 +2636,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "AuthGoogleClientIdParameter6FFD0D0D",
+                      "Ref": "AuthProvider1ClientIdParameterA8CDD11D",
                     },
                   ],
                 ],
@@ -2458,7 +2668,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "AuthGoogleSecretParameter8CC77EE2",
+                      "Ref": "AuthProvider1SecretParameter32101B7A",
                     },
                   ],
                 ],
@@ -2490,7 +2700,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "AuthFacebookClientIdParameter5DDD2E0E",
+                      "Ref": "AuthProvider2ClientIdParameter30D2A6D6",
                     },
                   ],
                 ],
@@ -2522,7 +2732,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "AuthFacebookSecretParameter45F08B1D",
+                      "Ref": "AuthProvider2SecretParameter4B28A4BE",
                     },
                   ],
                 ],
@@ -2554,7 +2764,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "AuthTwitterClientIdParameter5DDB79F5",
+                      "Ref": "AuthProvider3ClientIdParameter6DA38073",
                     },
                   ],
                 ],
@@ -2586,71 +2796,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "AuthTwitterSecretParameter7DC8398A",
-                    },
-                  ],
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "ssm:DescribeParameters",
-                "ssm:GetParameters",
-                "ssm:GetParameter",
-                "ssm:GetParameterHistory",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":ssm:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":parameter",
-                    Object {
-                      "Ref": "AuthGitHubClientIdParameterE25226CE",
-                    },
-                  ],
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "ssm:DescribeParameters",
-                "ssm:GetParameters",
-                "ssm:GetParameter",
-                "ssm:GetParameterHistory",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":ssm:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":parameter",
-                    Object {
-                      "Ref": "AuthGitHubSecretParameterF1ECE139",
+                      "Ref": "AuthProvider3SecretParameter7A77F7F4",
                     },
                   ],
                 ],
@@ -2684,62 +2830,6 @@ Object {
         },
       },
       "Type": "AWS::IAM::Role",
-    },
-    "AuthTwitterClientIdParameter5DDB79F5": Object {
-      "Properties": Object {
-        "Description": "The OAuth2 Client ID registered with the external provider.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/Auth/External/Twitter/ClientId",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::If": Array [
-            "AuthTwitterEnabledCondition285AF0B5",
-            Object {
-              "Ref": "AuthTwitterClientIdA90B5F1F",
-            },
-            "null",
-          ],
-        },
-      },
-      "Type": "AWS::SSM::Parameter",
-    },
-    "AuthTwitterSecretParameter7DC8398A": Object {
-      "Properties": Object {
-        "Description": "The OAuth2 Client Secret provided by the external provider when you registered.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/Auth/External/Twitter/Secret",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::If": Array [
-            "AuthTwitterEnabledCondition285AF0B5",
-            Object {
-              "Ref": "AuthTwitterSecret2B6750CB",
-            },
-            "null",
-          ],
-        },
-      },
-      "Type": "AWS::SSM::Parameter",
     },
     "Bucket83908E77": Object {
       "DeletionPolicy": "Delete",
@@ -3072,7 +3162,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/336d61bd450b9add5050881c1469fe3e84465a0272376664c988df220c0446b9.json",
+              "/e86d58643feadc7c623422c526a98c34e4f9dd5fd4b6df037afcdcf29c985d32.json",
             ],
           ],
         },
@@ -9616,7 +9706,7 @@ Object {
     },
   },
   "Rules": Object {
-    "AuthFacebookCheckClientId4842E82D": Object {
+    "AuthProvider1CheckClientIdD806CC33": Object {
       "Assertions": Array [
         Object {
           "Assert": Object {
@@ -9624,26 +9714,30 @@ Object {
               Object {
                 "Fn::Equals": Array [
                   Object {
-                    "Ref": "AuthFacebookClientIdA20D3AB2",
+                    "Ref": "AuthProvider1ClientId5614D178",
                   },
                   "",
                 ],
               },
             ],
           },
-          "AssertDescription": "Facebook Client Id is must not null, if Facebook is enabled as external auth provider.",
+          "AssertDescription": "Provider1 Client Id is must not null, if Provider1 is enabled as external auth provider.",
         },
       ],
       "RuleCondition": Object {
-        "Fn::Equals": Array [
+        "Fn::Not": Array [
           Object {
-            "Ref": "AuthFacebookEnabled84D700F0",
+            "Fn::Equals": Array [
+              Object {
+                "Ref": "AuthProvider1Name740DD3F6",
+              },
+              "",
+            ],
           },
-          "true",
         ],
       },
     },
-    "AuthFacebookCheckSecretE103713C": Object {
+    "AuthProvider1CheckSecretB8DB1DF7": Object {
       "Assertions": Array [
         Object {
           "Assert": Object {
@@ -9651,26 +9745,30 @@ Object {
               Object {
                 "Fn::Equals": Array [
                   Object {
-                    "Ref": "AuthFacebookSecret831BBBC1",
+                    "Ref": "AuthProvider1SecretAE54364F",
                   },
                   "",
                 ],
               },
             ],
           },
-          "AssertDescription": "Facebook Client Secret is must not null, if Facebook is enabled as external auth provider.",
+          "AssertDescription": "Provider1 Client Secret is must not null, if Provider1 is enabled as external auth provider.",
         },
       ],
       "RuleCondition": Object {
-        "Fn::Equals": Array [
+        "Fn::Not": Array [
           Object {
-            "Ref": "AuthFacebookEnabled84D700F0",
+            "Fn::Equals": Array [
+              Object {
+                "Ref": "AuthProvider1Name740DD3F6",
+              },
+              "",
+            ],
           },
-          "true",
         ],
       },
     },
-    "AuthGitHubCheckClientId59673750": Object {
+    "AuthProvider2CheckClientId828196E0": Object {
       "Assertions": Array [
         Object {
           "Assert": Object {
@@ -9678,26 +9776,30 @@ Object {
               Object {
                 "Fn::Equals": Array [
                   Object {
-                    "Ref": "AuthGitHubClientIdC96CF4DC",
+                    "Ref": "AuthProvider2ClientIdF3685A2B",
                   },
                   "",
                 ],
               },
             ],
           },
-          "AssertDescription": "GitHub Client Id is must not null, if GitHub is enabled as external auth provider.",
+          "AssertDescription": "Provider2 Client Id is must not null, if Provider2 is enabled as external auth provider.",
         },
       ],
       "RuleCondition": Object {
-        "Fn::Equals": Array [
+        "Fn::Not": Array [
           Object {
-            "Ref": "AuthGitHubEnabledFEC35C2E",
+            "Fn::Equals": Array [
+              Object {
+                "Ref": "AuthProvider2Name573986E5",
+              },
+              "",
+            ],
           },
-          "true",
         ],
       },
     },
-    "AuthGitHubCheckSecretAAD06763": Object {
+    "AuthProvider2CheckSecret00A859BE": Object {
       "Assertions": Array [
         Object {
           "Assert": Object {
@@ -9705,26 +9807,30 @@ Object {
               Object {
                 "Fn::Equals": Array [
                   Object {
-                    "Ref": "AuthGitHubSecretC2AF742F",
+                    "Ref": "AuthProvider2Secret2662F55E",
                   },
                   "",
                 ],
               },
             ],
           },
-          "AssertDescription": "GitHub Client Secret is must not null, if GitHub is enabled as external auth provider.",
+          "AssertDescription": "Provider2 Client Secret is must not null, if Provider2 is enabled as external auth provider.",
         },
       ],
       "RuleCondition": Object {
-        "Fn::Equals": Array [
+        "Fn::Not": Array [
           Object {
-            "Ref": "AuthGitHubEnabledFEC35C2E",
+            "Fn::Equals": Array [
+              Object {
+                "Ref": "AuthProvider2Name573986E5",
+              },
+              "",
+            ],
           },
-          "true",
         ],
       },
     },
-    "AuthGoogleCheckClientId3D1E285F": Object {
+    "AuthProvider3CheckClientIdF7467574": Object {
       "Assertions": Array [
         Object {
           "Assert": Object {
@@ -9732,26 +9838,30 @@ Object {
               Object {
                 "Fn::Equals": Array [
                   Object {
-                    "Ref": "AuthGoogleClientId9C9AF727",
+                    "Ref": "AuthProvider3ClientId8DF3C6F7",
                   },
                   "",
                 ],
               },
             ],
           },
-          "AssertDescription": "Google Client Id is must not null, if Google is enabled as external auth provider.",
+          "AssertDescription": "Provider3 Client Id is must not null, if Provider3 is enabled as external auth provider.",
         },
       ],
       "RuleCondition": Object {
-        "Fn::Equals": Array [
+        "Fn::Not": Array [
           Object {
-            "Ref": "AuthGoogleEnabled673D587B",
+            "Fn::Equals": Array [
+              Object {
+                "Ref": "AuthProvider3NameA8A7785F",
+              },
+              "",
+            ],
           },
-          "true",
         ],
       },
     },
-    "AuthGoogleCheckSecret52F0B3A8": Object {
+    "AuthProvider3CheckSecret2A0B7A51": Object {
       "Assertions": Array [
         Object {
           "Assert": Object {
@@ -9759,76 +9869,26 @@ Object {
               Object {
                 "Fn::Equals": Array [
                   Object {
-                    "Ref": "AuthGoogleSecretD364B305",
+                    "Ref": "AuthProvider3Secret29364F33",
                   },
                   "",
                 ],
               },
             ],
           },
-          "AssertDescription": "Google Client Secret is must not null, if Google is enabled as external auth provider.",
+          "AssertDescription": "Provider3 Client Secret is must not null, if Provider3 is enabled as external auth provider.",
         },
       ],
       "RuleCondition": Object {
-        "Fn::Equals": Array [
+        "Fn::Not": Array [
           Object {
-            "Ref": "AuthGoogleEnabled673D587B",
-          },
-          "true",
-        ],
-      },
-    },
-    "AuthTwitterCheckClientId0838F7CF": Object {
-      "Assertions": Array [
-        Object {
-          "Assert": Object {
-            "Fn::Not": Array [
+            "Fn::Equals": Array [
               Object {
-                "Fn::Equals": Array [
-                  Object {
-                    "Ref": "AuthTwitterClientIdA90B5F1F",
-                  },
-                  "",
-                ],
+                "Ref": "AuthProvider3NameA8A7785F",
               },
+              "",
             ],
           },
-          "AssertDescription": "Twitter Client Id is must not null, if Twitter is enabled as external auth provider.",
-        },
-      ],
-      "RuleCondition": Object {
-        "Fn::Equals": Array [
-          Object {
-            "Ref": "AuthTwitterEnabled870CD7DD",
-          },
-          "true",
-        ],
-      },
-    },
-    "AuthTwitterCheckSecret7FAB3FAF": Object {
-      "Assertions": Array [
-        Object {
-          "Assert": Object {
-            "Fn::Not": Array [
-              Object {
-                "Fn::Equals": Array [
-                  Object {
-                    "Ref": "AuthTwitterSecret2B6750CB",
-                  },
-                  "",
-                ],
-              },
-            ],
-          },
-          "AssertDescription": "Twitter Client Secret is must not null, if Twitter is enabled as external auth provider.",
-        },
-      ],
-      "RuleCondition": Object {
-        "Fn::Equals": Array [
-          Object {
-            "Ref": "AuthTwitterEnabled870CD7DD",
-          },
-          "true",
         ],
       },
     },
