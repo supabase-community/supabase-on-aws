@@ -40,23 +40,11 @@ Object {
       ],
     },
     "AuthServiceDisabledB6209B31": Object {
-      "Fn::And": Array [
+      "Fn::Equals": Array [
         Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "AuthMinTaskCount998F20C4",
-            },
-            "0",
-          ],
+          "Ref": "AuthMinTaskCount998F20C4",
         },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "AuthMaxTaskCount9E585BDA",
-            },
-            "0",
-          ],
-        },
+        "0",
       ],
     },
     "CdnManagedWafEnabledD3A8F9B9": Object {
@@ -76,123 +64,51 @@ Object {
       ],
     },
     "GraphQLServiceDisabled2040BDFB": Object {
-      "Fn::And": Array [
+      "Fn::Equals": Array [
         Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "GraphQLMinTaskCount0807D92D",
-            },
-            "0",
-          ],
+          "Ref": "GraphQLMinTaskCount0807D92D",
         },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "GraphQLMaxTaskCount62412A02",
-            },
-            "0",
-          ],
-        },
+        "0",
       ],
     },
     "KongServiceDisabled5CB631B8": Object {
-      "Fn::And": Array [
+      "Fn::Equals": Array [
         Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "KongMinTaskCount4451EF4C",
-            },
-            "0",
-          ],
+          "Ref": "KongMinTaskCount4451EF4C",
         },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "KongMaxTaskCountA4145D65",
-            },
-            "0",
-          ],
-        },
+        "0",
       ],
     },
     "MetaServiceDisabled3B808F33": Object {
-      "Fn::And": Array [
+      "Fn::Equals": Array [
         Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "MetaMinTaskCountEA12F444",
-            },
-            "0",
-          ],
+          "Ref": "MetaMinTaskCountEA12F444",
         },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "MetaMaxTaskCount2749DE86",
-            },
-            "0",
-          ],
-        },
+        "0",
       ],
     },
     "RealtimeServiceDisabledD3DB8A99": Object {
-      "Fn::And": Array [
+      "Fn::Equals": Array [
         Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "RealtimeMinTaskCount306F67E8",
-            },
-            "0",
-          ],
+          "Ref": "RealtimeMinTaskCount306F67E8",
         },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "RealtimeMaxTaskCountE72E1120",
-            },
-            "0",
-          ],
-        },
+        "0",
       ],
     },
     "RestServiceDisabled280508EE": Object {
-      "Fn::And": Array [
+      "Fn::Equals": Array [
         Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "RestMinTaskCount073959EA",
-            },
-            "0",
-          ],
+          "Ref": "RestMinTaskCount073959EA",
         },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "RestMaxTaskCount1D2E84B9",
-            },
-            "0",
-          ],
-        },
+        "0",
       ],
     },
     "StorageServiceDisabled05C15E2C": Object {
-      "Fn::And": Array [
+      "Fn::Equals": Array [
         Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "StorageMinTaskCount07E65703",
-            },
-            "0",
-          ],
+          "Ref": "StorageMinTaskCount07E65703",
         },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "StorageMaxTaskCount372C6914",
-            },
-            "0",
-          ],
-        },
+        "0",
       ],
     },
     "StudioHttpsDisabledB5A4B82B": Object {

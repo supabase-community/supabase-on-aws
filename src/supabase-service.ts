@@ -62,7 +62,7 @@ export class SupabaseService extends Construct {
       minValue: 0,
     });
 
-    const serviceDisabled = new cdk.CfnCondition(this, 'ServiceDisabled', { expression: cdk.Fn.conditionAnd(cdk.Fn.conditionEquals(this.minTaskCount, '0'), cdk.Fn.conditionEquals(this.maxTaskCount, '0')) });
+    const serviceDisabled = new cdk.CfnCondition(this, 'ServiceDisabled', { expression: cdk.Fn.conditionEquals(this.minTaskCount, '0') });
 
     this.listenerPort = taskImageOptions.containerPort;
 
