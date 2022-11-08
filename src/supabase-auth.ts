@@ -5,28 +5,24 @@ import { Construct } from 'constructs';
 import { SupabaseService, SupabaseServiceProps } from './supabase-service';
 
 interface SupabaseAuthProps extends SupabaseServiceProps {
-  providerCount?: number;
+  authProviderCount: number;
 }
 
 export class SupabaseAuth extends SupabaseService {
+  apiExternalUrl: string;
   providers: AuthProvider[] = [];
 
   constructor(scope: Construct, id: string, props: SupabaseAuthProps) {
 
     super(scope, id, props);
 
-    const providerCount = props.providerCount || 3;
-    const apiExternalUrl = props.taskImageOptions.environment!.API_EXTERNAL_URL!;
+    this.apiExternalUrl = props.taskImageOptions.environment!.API_EXTERNAL_URL!;
 
-    for (let i = 0; i < providerCount; i++) {
-      const authProvider = new AuthProvider(this, `Provider${i+1}`, { redirectUri: `${apiExternalUrl}/auth/v1/callback` });
+    for (let i = 0; i < props.authProviderCount; i++) {
+      const authProvider = new AuthProvider(this, `Provider${i+1}`);
       this.providers.push(authProvider);
     }
   }
-}
-
-interface AuthProviderProps {
-  redirectUri: string;
 }
 
 class AuthProvider extends Construct {
@@ -34,10 +30,10 @@ class AuthProvider extends Construct {
   clientId: cdk.CfnParameter;
   secret: cdk.CfnParameter;
 
-  constructor(scope: SupabaseAuth, id: string, props: AuthProviderProps) {
+  constructor(scope: SupabaseAuth, id: string) {
     super(scope, id);
 
-    const redirectUri = props.redirectUri;
+    const redirectUri = `${scope.apiExternalUrl}/auth/v1/callback`;
 
     this.name = new cdk.CfnParameter(this, 'Name', {
       description: 'External Auth Provider Name',

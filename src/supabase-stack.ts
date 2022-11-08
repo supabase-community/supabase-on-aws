@@ -267,6 +267,7 @@ export class SupabaseStack extends cdk.Stack {
           retries: 3,
         },
       },
+      authProviderCount: 3,
       taskSizeMapping,
     });
 
