@@ -3,7 +3,7 @@ import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import { LoadBalancerV2Origin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Construct } from 'constructs';
-import { SupabaseManagedWaf } from './supabase-managed-waf';
+import { SupabaseStandardWaf } from './supabase-standard-waf';
 
 interface SupabaseCdnProps {
   origin: string|elb.ILoadBalancerV2;
@@ -35,7 +35,7 @@ export class SupabaseCdn extends Construct {
 
     const managedWafEnabled = new cdk.CfnCondition(this, 'ManagedWafEnabled', { expression: cdk.Fn.conditionEquals(this.webAclArn, '') });
 
-    const waf = new SupabaseManagedWaf(this, 'ManagedWaf', { description: 'Supabase Managed WAF' });
+    const waf = new SupabaseStandardWaf(this, 'ManagedWaf', { description: 'Supabase Standard WAF' });
     (waf.node.defaultChild as cdk.CfnStack).addOverride('Condition', managedWafEnabled.logicalId);
 
     const webAclId = cdk.Fn.conditionIf(managedWafEnabled.logicalId, waf.webAcl.getAttString('Arn'), this.webAclArn.valueAsString);

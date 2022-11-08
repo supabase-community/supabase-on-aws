@@ -5,7 +5,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
-export class SupabaseManagedWaf extends cdk.NestedStack {
+export class SupabaseStandardWaf extends cdk.NestedStack {
   webAcl: cdk.CustomResource;
 
   constructor(scope: Construct, id: string, props: cdk.NestedStackProps) {
@@ -47,7 +47,7 @@ export class SupabaseManagedWaf extends cdk.NestedStack {
       resourceType: 'Custom::WebACL',
       properties: {
         Name: `${this.node.path.split('/').join('-')}-${cdk.Aws.REGION}`,
-        Description: this.node.path,
+        Description: `${this.node.path}/WebAcl`,
       },
     });
 
