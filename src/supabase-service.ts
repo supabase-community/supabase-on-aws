@@ -52,13 +52,13 @@ export class SupabaseService extends Construct {
     this.minTaskCount = new cdk.CfnParameter(this, 'MinTaskCount', {
       description: 'Minimum fargate task count',
       type: 'Number',
-      default: minTaskCount || 1,
+      default: (typeof minTaskCount == 'undefined') ? 1 : minTaskCount,
       minValue: 0,
     });
     this.maxTaskCount = new cdk.CfnParameter(this, 'MaxTaskCount', {
       description: 'Maximum fargate task count',
       type: 'Number',
-      default: maxTaskCount || 20,
+      default: (typeof maxTaskCount == 'undefined') ? 20 : maxTaskCount,
       minValue: 0,
     });
 
