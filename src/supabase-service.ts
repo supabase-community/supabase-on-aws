@@ -42,7 +42,7 @@ export class SupabaseService extends Construct {
     this.taskSize = new cdk.CfnParameter(this, 'TaskSize', {
       description: 'Fargare task size',
       type: 'String',
-      default: 'medium',
+      default: 'nano',
       allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
     });
 
