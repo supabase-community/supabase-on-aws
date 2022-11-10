@@ -91,14 +91,14 @@ export class SupabaseStack extends cdk.Stack {
     });
 
     const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
-      description: 'Use Amazon SES as SMTP server. If Amazon WorkMail is enabled, Please set us-east-1, us-west-2 or eu-west-1',
+      description: 'Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.',
       type: 'String',
       default: 'us-west-2',
       allowedValues: sesSmtpSupportedRegions,
     });
 
     const enableWorkMail = new cdk.CfnParameter(this, 'EnableWorkMail', {
-      description: 'Enable Amazon WorkMail. To use "xxx.awsapps.com" domain with Amazon SES.',
+      description: 'Enable Amazon WorkMail, to use "xxx.awsapps.com" e-mail domain.',
       type: 'String',
       default: 'false',
       allowedValues: ['true', 'false'],
@@ -652,7 +652,7 @@ export class SupabaseStack extends cdk.Stack {
         [meta.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
         [studioVersion.logicalId]: { default: 'Supabase Studio Version' },
-        [studio.acmCertArn.logicalId]: { default: 'ACM Certificate ARN' },
+        [studio.acmCertArn.logicalId]: { default: 'ACM Certificate ARN - Supabase Studio' },
       },
     };
 

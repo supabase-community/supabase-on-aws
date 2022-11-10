@@ -24,7 +24,7 @@ export class CognitoAuthenticatedFargateService extends ApplicationLoadBalancedF
 
     // for HTTPS
     this.acmCertArn = new cdk.CfnParameter(this, 'AcmCertArn', {
-      description: 'ACM Certificate ARN for Supabase studio',
+      description: `ACM Certificate ARN for ${id} ALB with Cognito`,
       type: 'String',
       default: '',
       allowedPattern: '^arn:aws:acm:[\\w-]+:[0-9]{12}:certificate/[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$|',

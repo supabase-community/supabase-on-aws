@@ -791,7 +791,7 @@ Object {
           "default": "Fargate Task Size",
         },
         "StudioAcmCertArn2D10C4B8": Object {
-          "default": "ACM Certificate ARN",
+          "default": "ACM Certificate ARN - Supabase Studio",
         },
         "StudioVersion": Object {
           "default": "Supabase Studio Version",
@@ -1078,7 +1078,7 @@ Object {
         "false",
       ],
       "Default": "false",
-      "Description": "Enable Amazon WorkMail. To use \\"xxx.awsapps.com\\" domain with Amazon SES.",
+      "Description": "Enable Amazon WorkMail, to use \\"xxx.awsapps.com\\" e-mail domain.",
       "Type": "String",
     },
     "GraphQLMaxTaskCount62412A02": Object {
@@ -1285,7 +1285,7 @@ Object {
         "sa-east-1",
       ],
       "Default": "us-west-2",
-      "Description": "Use Amazon SES as SMTP server. If Amazon WorkMail is enabled, Please set us-east-1, us-west-2 or eu-west-1",
+      "Description": "Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.",
       "Type": "String",
     },
     "SiteUrl": Object {
@@ -1329,7 +1329,7 @@ Object {
     "StudioAcmCertArn2D10C4B8": Object {
       "AllowedPattern": "^arn:aws:acm:[\\\\w-]+:[0-9]{12}:certificate/[\\\\w]{8}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{12}$|",
       "Default": "",
-      "Description": "ACM Certificate ARN for Supabase studio",
+      "Description": "ACM Certificate ARN for Studio ALB with Cognito",
       "Type": "String",
     },
     "StudioVersion": Object {
