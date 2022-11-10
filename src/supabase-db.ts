@@ -26,18 +26,18 @@ export class SupabaseDatabase extends Construct {
   };
   minCapacity: cdk.CfnParameter;
   maxCapacity: cdk.CfnParameter;
-  multiAz: cdk.CfnParameter;
+  instanceCount: cdk.CfnParameter;
 
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
     super(scope, id);
 
     const { vpc } = props;
 
-    this.multiAz = new cdk.CfnParameter(this, 'MultiAz', {
-      description: 'Create a replica at another Availability Zone',
-      type: 'String',
-      default: 'false',
-      allowedValues: ['true', 'false'],
+    this.instanceCount = new cdk.CfnParameter(this, 'InstanceCount', {
+      type: 'Number',
+      default: 1,
+      minValue: 1,
+      maxValue: 16,
     });
 
     this.minCapacity = new cdk.CfnParameter(this, 'MinCapacity', {
@@ -55,8 +55,6 @@ export class SupabaseDatabase extends Construct {
       minValue: 0.5,
       maxValue: 128,
     });
-
-    const multiAzEnabled = new cdk.CfnCondition(this, 'MultiAzEnabled', { expression: cdk.Fn.conditionEquals(this.multiAz, 'true') });
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
       version: rds.AuroraPostgresEngineVersion.VER_14_4,
@@ -84,7 +82,7 @@ export class SupabaseDatabase extends Construct {
       engine,
       parameterGroup,
       storageEncrypted: true,
-      instances: 2,
+      instances: 16,
       instanceProps: {
         instanceType: new ec2.InstanceType('serverless'),
         enablePerformanceInsights: true,
@@ -99,7 +97,17 @@ export class SupabaseDatabase extends Construct {
       maxCapacity: this.maxCapacity.valueAsNumber,
     };
 
-    (this.cluster.node.findChild('Instance2') as rds.CfnDBInstance).addOverride('Condition', multiAzEnabled.logicalId);
+    const genCondition = (index: number, parentCondition?: cdk.CfnCondition) => {
+      const expression = (typeof parentCondition == 'undefined')
+        ? cdk.Fn.conditionEquals(this.instanceCount, index)
+        : cdk.Fn.conditionOr(parentCondition, cdk.Fn.conditionEquals(this.instanceCount, index));
+      const condition = new cdk.CfnCondition(this, `Instance${index}Enabled`, { expression });
+      (this.cluster.node.findChild(`Instance${index}`) as rds.CfnDBInstance).addOverride('Condition', condition.logicalId);
+      if (index >= 3) {
+        genCondition(index-1, condition);
+      }
+    };
+    genCondition(16);
 
     this.secret = this.cluster.secret!;
 

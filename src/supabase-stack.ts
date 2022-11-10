@@ -520,7 +520,7 @@ export class SupabaseStack extends cdk.Stack {
         {
           Label: { default: 'Infrastructure - Database' },
           Parameters: [
-            db.multiAz.logicalId,
+            db.instanceCount.logicalId,
             db.minCapacity.logicalId,
             db.maxCapacity.logicalId,
           ],
@@ -612,7 +612,7 @@ export class SupabaseStack extends cdk.Stack {
         [enableWorkMail.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
         [cdn.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
-        [db.multiAz.logicalId]: { default: 'Database Multi-AZ' },
+        [db.instanceCount.logicalId]: { default: 'Instance Count' },
         [db.minCapacity.logicalId]: { default: 'Minimum ACUs' },
         [db.maxCapacity.logicalId]: { default: 'Maximum ACUs' },
 
