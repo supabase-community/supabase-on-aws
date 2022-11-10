@@ -26,12 +26,19 @@ export class SupabaseDatabase extends Construct {
   };
   minCapacity: cdk.CfnParameter;
   maxCapacity: cdk.CfnParameter;
+  instanceType: cdk.CfnParameter;
   instanceCount: cdk.CfnParameter;
 
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
     super(scope, id);
 
     const { vpc } = props;
+
+    this.instanceType = new cdk.CfnParameter(this, 'InstanceType', {
+      type: 'String',
+      default: 'db.serverless',
+      allowedValues: ['db.serverless', 'db.t4g.medium', 'db.t4g.large', 'db.t6g.large', 'db.t6g.xlarge', 'db.t6g.2xlarge', 'db.t6g.4xlarge', 'db.t6g.8xlarge', 'db.t6g.12xlarge', 'db.t6g.16xlarge'],
+    });
 
     this.instanceCount = new cdk.CfnParameter(this, 'InstanceCount', {
       type: 'Number',
@@ -97,17 +104,19 @@ export class SupabaseDatabase extends Construct {
       maxCapacity: this.maxCapacity.valueAsNumber,
     };
 
-    const genCondition = (index: number, parentCondition?: cdk.CfnCondition) => {
+    const updateDBInstance = (index: number, parentCondition?: cdk.CfnCondition) => {
       const expression = (typeof parentCondition == 'undefined')
         ? cdk.Fn.conditionEquals(this.instanceCount, index)
         : cdk.Fn.conditionOr(parentCondition, cdk.Fn.conditionEquals(this.instanceCount, index));
       const condition = new cdk.CfnCondition(this, `Instance${index}Enabled`, { expression });
-      (this.cluster.node.findChild(`Instance${index}`) as rds.CfnDBInstance).addOverride('Condition', condition.logicalId);
+      const dbInstance = this.cluster.node.findChild(`Instance${index}`) as rds.CfnDBInstance;
+      dbInstance.addOverride('Condition', condition.logicalId);
+      dbInstance.addPropertyOverride('DBInstanceClass', this.instanceType.valueAsString);
       if (index >= 3) {
-        genCondition(index-1, condition);
+        updateDBInstance(index-1, condition);
       }
     };
-    genCondition(16);
+    updateDBInstance(16);
 
     this.secret = this.cluster.secret!;
 
