@@ -37,7 +37,7 @@ export class SupabaseDatabase extends Construct {
     this.instanceClass = new cdk.CfnParameter(this, 'InstanceClass', {
       type: 'String',
       default: 'db.serverless',
-      allowedValues: ['db.serverless', 'db.t4g.medium', 'db.t4g.large', 'db.t6g.large', 'db.t6g.xlarge', 'db.t6g.2xlarge', 'db.t6g.4xlarge', 'db.t6g.8xlarge', 'db.t6g.12xlarge', 'db.t6g.16xlarge'],
+      allowedValues: ['db.serverless', 'db.t4g.medium', 'db.t4g.large', 'db.r6g.large', 'db.r6g.xlarge', 'db.r6g.2xlarge', 'db.r6g.4xlarge', 'db.r6g.8xlarge', 'db.r6g.12xlarge', 'db.r6g.16xlarge'],
     });
 
     this.instanceCount = new cdk.CfnParameter(this, 'InstanceCount', {
