@@ -518,29 +518,34 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
-          Label: { default: 'Infrastructure - Database' },
+          Label: { default: 'Supabase - API Versions' },
           Parameters: [
-            db.instanceType.logicalId,
+            authApiVersion.logicalId,
+            restApiVersion.logicalId,
+            studioVersion.logicalId,
+            realtimeApiVersion.logicalId,
+            storageApiVersion.logicalId,
+            postgresMetaApiVersion.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Infrastructure Settings - Database' },
+          Parameters: [
+            db.instanceClass.logicalId,
             db.instanceCount.logicalId,
             db.minCapacity.logicalId,
             db.maxCapacity.logicalId,
           ],
         },
         {
-          Label: { default: 'Infrastructure - Security' },
+          Label: { default: 'Infrastructure Settings - Security' },
           Parameters: [
             cdn.webAclArn.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure - Supabase Studio' },
-          Parameters: [
-            studioVersion.logicalId,
             studio.acmCertArn.logicalId,
           ],
         },
         {
-          Label: { default: 'Infrastructure - API Gateway (Kong Gateway)' },
+          Label: { default: 'Infrastructure Settings - Kong (API Gateway)' },
           Parameters: [
             kong.taskSize.logicalId,
             kong.minTaskCount.logicalId,
@@ -548,25 +553,23 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
-          Label: { default: 'Infrastructure - Auth API (GoTrue)' },
+          Label: { default: 'Infrastructure Settings - Auth API (GoTrue)' },
           Parameters: [
-            authApiVersion.logicalId,
             auth.taskSize.logicalId,
             auth.minTaskCount.logicalId,
             auth.maxTaskCount.logicalId,
           ],
         },
         {
-          Label: { default: 'Infrastructure - Rest API (PostgREST)' },
+          Label: { default: 'Infrastructure Settings - RESTful API (PostgREST)' },
           Parameters: [
-            restApiVersion.logicalId,
             rest.taskSize.logicalId,
             rest.minTaskCount.logicalId,
             rest.maxTaskCount.logicalId,
           ],
         },
         {
-          Label: { default: 'Infrastructure - GraphQL API (PostGraphile)' },
+          Label: { default: 'Infrastructure Settings - GraphQL API (PostGraphile)' },
           Parameters: [
             gql.taskSize.logicalId,
             gql.minTaskCount.logicalId,
@@ -574,27 +577,24 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
-          Label: { default: 'Infrastructure - Realtime API' },
+          Label: { default: 'Infrastructure Settings - Realtime API' },
           Parameters: [
-            realtimeApiVersion.logicalId,
             realtime.taskSize.logicalId,
             realtime.minTaskCount.logicalId,
             realtime.maxTaskCount.logicalId,
           ],
         },
         {
-          Label: { default: 'Infrastructure - Storage API' },
+          Label: { default: 'Infrastructure Settings - Storage API' },
           Parameters: [
-            storageApiVersion.logicalId,
             storage.taskSize.logicalId,
             storage.minTaskCount.logicalId,
             storage.maxTaskCount.logicalId,
           ],
         },
         {
-          Label: { default: 'Infrastructure - Postgres Meta API' },
+          Label: { default: 'Infrastructure Settings - Postgres Meta API' },
           Parameters: [
-            postgresMetaApiVersion.logicalId,
             meta.taskSize.logicalId,
             meta.minTaskCount.logicalId,
             meta.maxTaskCount.logicalId,
@@ -613,7 +613,7 @@ export class SupabaseStack extends cdk.Stack {
         [enableWorkMail.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
         [cdn.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
-        [db.instanceType.logicalId]: { default: 'DB Instance Type' },
+        [db.instanceClass.logicalId]: { default: 'DB Instance Class' },
         [db.instanceCount.logicalId]: { default: 'DB Instance Count' },
         [db.minCapacity.logicalId]: { default: 'Minimum ACUs' },
         [db.maxCapacity.logicalId]: { default: 'Maximum ACUs' },
