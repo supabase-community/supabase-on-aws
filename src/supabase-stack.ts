@@ -522,10 +522,10 @@ export class SupabaseStack extends cdk.Stack {
           Parameters: [
             authApiVersion.logicalId,
             restApiVersion.logicalId,
-            studioVersion.logicalId,
             realtimeApiVersion.logicalId,
             storageApiVersion.logicalId,
             postgresMetaApiVersion.logicalId,
+            studioVersion.logicalId,
           ],
         },
         {
