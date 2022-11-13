@@ -11,7 +11,7 @@ This repo includes a blueprint of starting Supabase stack on AWS via CloudFormat
 | Region | View | Stable | Latest |
 |:--|:--|:--|:--|
 | US East (N. Virginia) | [View](https://supabase-on-aws-us-east-1.s3.amazonaws.com/stable/Supabase.template.json) | [![launch][launch]][stable-us-east-1] | [![launch][launch]][us-east-1] |
-| US West (Oregon) | [View](https://supabase-on-aws-us-west-2.s3.amazonaws.com/stable/Supabase.template.json) | [![launch][launch]][stable-us-west-2] | [![launch][launch]]][us-west-2] |
+| US West (Oregon) | [View](https://supabase-on-aws-us-west-2.s3.amazonaws.com/stable/Supabase.template.json) | [![launch][launch]][stable-us-west-2] | [![launch][launch]][us-west-2] |
 | Europe (Ireland) | [View](https://supabase-on-aws-eu-west-1.s3.amazonaws.com/stable/Supabase.template.json) | [![launch][launch]][stable-eu-west-1] | [![launch][launch]][eu-west-1] |
 | Asia Pacific (Tokyo) | [View](https://supabase-on-aws-ap-northeast-1.s3.amazonaws.com/stable/Supabase.template.json) | [![launch][launch]][stable-ap-northeast-1] | [![launch][launch]][ap-northeast-1] |
 | Asia Pacific (Osaka) | [View](https://supabase-on-aws-ap-northeast-3.s3.amazonaws.com/stable/Supabase.template.json) | [![launch][launch]][stable-ap-northeast-3] | [![launch][launch]][ap-northeast-3] |
