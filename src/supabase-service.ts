@@ -173,8 +173,8 @@ export class SupabaseService extends Construct {
 
   }
 
-  addNetworkLoadBalancer(props: { healthCheckPort: number}) {
-    const healthCheckPort = props.healthCheckPort;
+  addNetworkLoadBalancer(props: { healthCheckPort?: number}) {
+    const healthCheckPort = props.healthCheckPort || this.listenerPort;
 
     const vpc = this.service.cluster.vpc;
     this.service.connections.allowFrom(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.tcp(healthCheckPort), 'NLB healthcheck');
@@ -192,7 +192,7 @@ export class SupabaseService extends Construct {
       preserveClientIp: true,
       vpc,
     });
-    const loadBalancer = new elb.NetworkLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
+    const loadBalancer = new elb.NetworkLoadBalancer(this, 'LoadBalancer', { internetFacing: true, crossZoneEnabled: true, vpc });
     loadBalancer.addListener('Listener', {
       port: 80,
       defaultTargetGroups: [targetGroup],

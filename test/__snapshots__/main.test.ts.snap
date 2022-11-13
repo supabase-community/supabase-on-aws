@@ -5953,6 +5953,10 @@ Object {
             "Key": "deletion_protection.enabled",
             "Value": "false",
           },
+          Object {
+            "Key": "load_balancing.cross_zone.enabled",
+            "Value": "true",
+          },
         ],
         "Scheme": "internet-facing",
         "Subnets": Array [
