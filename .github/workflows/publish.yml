@@ -13,7 +13,7 @@ jobs:
       id-token: write # needed to interact with GitHub's OIDC Token endpoint.
       contents: read
     env:
-      ECR_PUBLIC_REGISTRY: public.ecr.aws/u3p7q2r8
+      ECR_PUBLIC_ALIAS: u3p7q2r8
       IMAGE_NAME: kong
     steps:
       - name: Checkout
@@ -40,9 +40,12 @@ jobs:
           role-to-assume: ${{ secrets.ECR_PUBLIC_ROLE }}
           aws-region: us-east-1
 
-      - name: Login to ECR Public
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
         if: env.GIT_DIFF
-        run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ env.ECR_PUBLIC_REGISTRY }}
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
 
       #- name: Extract metadata (tags, labels) for Docker
       #  id: meta
@@ -62,7 +65,7 @@ jobs:
           file: ./containers/kong/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.ECR_PUBLIC_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ steps.login-ecr-public.outputs.registry }}/${{ env.ECR_PUBLIC_ALIAS }}/${{ env.IMAGE_NAME }}:latest
 
   postgraphile:
     name: PostGraphile Docker Image
@@ -71,7 +74,7 @@ jobs:
       id-token: write # needed to interact with GitHub's OIDC Token endpoint.
       contents: read
     env:
-      ECR_PUBLIC_REGISTRY: public.ecr.aws/u3p7q2r8
+      ECR_PUBLIC_ALIAS: u3p7q2r8
       IMAGE_NAME: postgraphile
     steps:
       - name: Checkout
@@ -98,9 +101,12 @@ jobs:
           role-to-assume: ${{ secrets.ECR_PUBLIC_ROLE }}
           aws-region: us-east-1
 
-      - name: Login to ECR Public
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
         if: env.GIT_DIFF
-        run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ env.ECR_PUBLIC_REGISTRY }}
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
 
       - name: Build and push
         if: env.GIT_DIFF
@@ -111,8 +117,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ${{ env.ECR_PUBLIC_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.ECR_PUBLIC_REGISTRY }}/${{ env.IMAGE_NAME }}:4
+            ${{ steps.login-ecr-public.outputs.registry }}/${{ env.ECR_PUBLIC_ALIAS }}/${{ env.IMAGE_NAME }}:latest
+            ${{ steps.login-ecr-public.outputs.registry }}/${{ env.ECR_PUBLIC_ALIAS }}/${{ env.IMAGE_NAME }}:4
 
   cloudformation:
     name: CloudFormation Templates
