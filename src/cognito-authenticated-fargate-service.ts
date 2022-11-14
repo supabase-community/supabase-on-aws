@@ -29,7 +29,7 @@ export class CognitoAuthenticatedFargateService extends ApplicationLoadBalancedF
       default: '',
       allowedPattern: '^arn:aws:acm:[\\w-]+:[0-9]{12}:certificate/[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$|',
     });
-    const httpsEnabled = new cdk.CfnCondition(this, 'HttpsDisabled', { expression: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(this.acmCertArn, '')) });
+    const httpsEnabled = new cdk.CfnCondition(this, 'HttpsEnabled', { expression: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(this.acmCertArn, '')) });
 
     this.loadBalancer.connections.allowFrom(Peer.anyIpv4(), Port.tcp(443), 'Allow from anyone on port 443');
 

@@ -359,11 +359,12 @@ export class SupabaseStack extends cdk.Stack {
         image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/storage-api:${storageApiVersion.valueAsString}`),
         containerPort: 5000,
         environment: {
-          POSTGREST_URL: 'http://rest.supabase.local:3000',
+          POSTGREST_URL: `http://${rest.dnsName}:${rest.listenerPort}`,
           PGOPTIONS: '-c search_path=storage,public',
           FILE_SIZE_LIMIT: '52428800',
-          STORAGE_BACKEND: 's3', // default: file
-          TENANT_ID: 'default',
+          TENANT_ID: 'stub',
+          IS_MULTITENANT: 'false',
+          STORAGE_BACKEND: 's3',
           REGION: bucket.env.region,
           GLOBAL_S3_BUCKET: bucket.bucketName,
         },

@@ -336,12 +336,16 @@ Object {
         "0",
       ],
     },
-    "StudioHttpsDisabledB5A4B82B": Object {
-      "Fn::Equals": Array [
+    "StudioHttpsEnabledFB7951B2": Object {
+      "Fn::Not": Array [
         Object {
-          "Ref": "StudioAcmCertArn2D10C4B8",
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "StudioAcmCertArn2D10C4B8",
+            },
+            "",
+          ],
         },
-        "",
       ],
     },
     "WorkMailEnabled": Object {
@@ -879,7 +883,7 @@ Object {
   },
   "Parameters": Object {
     "AuthApiVersion": Object {
-      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
+      "AllowedPattern": "^v[0-9]+.[0-9]+.[0-9]+[\\\\w\\\\.-]*$|latest",
       "Default": "v2.23.0",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
@@ -1177,13 +1181,13 @@ Object {
       "Type": "Number",
     },
     "PostgresMetaApiVersion": Object {
-      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
+      "AllowedPattern": "^v[0-9]+.[0-9]+.[0-9]+[\\\\w\\\\.-]*$|latest",
       "Default": "v0.50.2",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/postgres-meta",
       "Type": "String",
     },
     "RealtimeApiVersion": Object {
-      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
+      "AllowedPattern": "^v[0-9]+.[0-9]+.[0-9]+[\\\\w\\\\.-]*$|latest",
       "Default": "v0.25.1",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/realtime",
       "Type": "String",
@@ -1294,7 +1298,7 @@ Object {
       "Type": "String",
     },
     "StorageApiVersion": Object {
-      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
+      "AllowedPattern": "^v[0-9]+.[0-9]+.[0-9]+[\\\\w\\\\.-]*$|latest",
       "Default": "v0.24.3",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
@@ -1333,7 +1337,7 @@ Object {
       "Type": "String",
     },
     "StudioVersion": Object {
-      "AllowedPattern": "^(v[0-9]+.[0-9]+.[0-9]+(.w)*)$|latest",
+      "AllowedPattern": "^v[0-9]+.[0-9]+.[0-9]+[\\\\w\\\\.-]*$|latest",
       "Default": "latest",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/studio",
       "Type": "String",
@@ -4356,7 +4360,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "8596f13703aa5f15379180c66371178ebc06977f4f9242bc89ea139bb3b6ae5e.zip",
+          "S3Key": "7f5f2f1f395730a561730f32c08ffc71deb7a027af48ec05e7031507005413d2.zip",
         },
         "Description": "Supabase - Database init function",
         "Environment": Object {
@@ -8080,7 +8084,21 @@ Object {
             "Environment": Array [
               Object {
                 "Name": "POSTGREST_URL",
-                "Value": "http://rest.supabase.local:3000",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "http://",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "RestFargateCloudmapServiceEC842507",
+                          "Name",
+                        ],
+                      },
+                      ".supabase.local:3000",
+                    ],
+                  ],
+                },
               },
               Object {
                 "Name": "PGOPTIONS",
@@ -8091,12 +8109,16 @@ Object {
                 "Value": "52428800",
               },
               Object {
-                "Name": "STORAGE_BACKEND",
-                "Value": "s3",
+                "Name": "TENANT_ID",
+                "Value": "stub",
               },
               Object {
-                "Name": "TENANT_ID",
-                "Value": "default",
+                "Name": "IS_MULTITENANT",
+                "Value": "false",
+              },
+              Object {
+                "Name": "STORAGE_BACKEND",
+                "Value": "s3",
               },
               Object {
                 "Name": "REGION",
@@ -8511,6 +8533,7 @@ Object {
       "Type": "AWS::IAM::Policy",
     },
     "StudioClient100BA227": Object {
+      "Condition": "StudioHttpsEnabledFB7951B2",
       "Properties": Object {
         "AllowedOAuthFlows": Array [
           "code",
@@ -8610,10 +8633,7 @@ Object {
       "Properties": Object {
         "Certificates": Object {
           "Fn::If": Array [
-            "StudioHttpsDisabledB5A4B82B",
-            Object {
-              "Ref": "AWS::NoValue",
-            },
+            "StudioHttpsEnabledFB7951B2",
             Array [
               Object {
                 "CertificateArn": Object {
@@ -8621,15 +8641,18 @@ Object {
                 },
               },
             ],
+            Object {
+              "Ref": "AWS::NoValue",
+            },
           ],
         },
         "DefaultActions": Array [
           Object {
             "Order": Object {
               "Fn::If": Array [
-                "StudioHttpsDisabledB5A4B82B",
-                1,
+                "StudioHttpsEnabledFB7951B2",
                 2,
+                1,
               ],
             },
             "TargetGroupArn": Object {
@@ -8639,10 +8662,7 @@ Object {
           },
           Object {
             "Fn::If": Array [
-              "StudioHttpsDisabledB5A4B82B",
-              Object {
-                "Ref": "AWS::NoValue",
-              },
+              "StudioHttpsEnabledFB7951B2",
               Object {
                 "AuthenticateCognitoConfig": Object {
                   "UserPoolArn": Object {
@@ -8671,6 +8691,9 @@ Object {
                 "Order": 1,
                 "Type": "authenticate-cognito",
               },
+              Object {
+                "Ref": "AWS::NoValue",
+              },
             ],
           },
         ],
@@ -8679,16 +8702,16 @@ Object {
         },
         "Port": Object {
           "Fn::If": Array [
-            "StudioHttpsDisabledB5A4B82B",
-            80,
+            "StudioHttpsEnabledFB7951B2",
             443,
+            80,
           ],
         },
         "Protocol": Object {
           "Fn::If": Array [
-            "StudioHttpsDisabledB5A4B82B",
-            "HTTP",
+            "StudioHttpsEnabledFB7951B2",
             "HTTPS",
+            "HTTP",
           ],
         },
       },
@@ -9215,6 +9238,7 @@ Object {
       "UpdateReplacePolicy": "Retain",
     },
     "StudioUserPool94F50620": Object {
+      "Condition": "StudioHttpsEnabledFB7951B2",
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "AccountRecoverySetting": Object {
@@ -9253,6 +9277,7 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "StudioUserPoolDomain83E076DB": Object {
+      "Condition": "StudioHttpsEnabledFB7951B2",
       "Properties": Object {
         "Domain": Object {
           "Fn::Select": Array [
