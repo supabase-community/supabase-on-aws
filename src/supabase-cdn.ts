@@ -36,7 +36,7 @@ export class SupabaseCdn extends Construct {
     const managedWafEnabled = new cdk.CfnCondition(this, 'ManagedWafEnabled', { expression: cdk.Fn.conditionEquals(this.webAclArn, '') });
 
     const waf = new SupabaseStandardWaf(this, 'ManagedWaf', { description: 'Supabase Standard WAF' });
-    (waf.node.defaultChild as cdk.CfnStack).addOverride('Condition', managedWafEnabled.logicalId);
+    (waf.node.defaultChild as cdk.CfnStack).cfnOptions.condition = managedWafEnabled;
 
     const webAclId = cdk.Fn.conditionIf(managedWafEnabled.logicalId, waf.webAcl.getAttString('Arn'), this.webAclArn.valueAsString);
 

@@ -165,7 +165,7 @@ export class SupabaseStack extends cdk.Stack {
       },
     });
     const workMailUser = workMail.organization.addUser('Supabase', mail.secret);
-    (workMail.node.defaultChild as cdk.CfnStack).addOverride('Condition', workMailEnabled.logicalId);
+    (workMail.node.defaultChild as cdk.CfnStack).cfnOptions.condition = workMailEnabled;
 
     const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.getAtt('Email'), senderEmail.valueAsString);
     const smtpHost = cdk.Fn.conditionIf(workMailEnabled.logicalId, `smtp.mail.${sesRegion.valueAsString}.awsapps.com`, `email-smtp.${sesRegion.valueAsString}.amazonaws.com`);
