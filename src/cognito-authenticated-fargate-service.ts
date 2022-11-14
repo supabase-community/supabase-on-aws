@@ -29,7 +29,7 @@ export class CognitoAuthenticatedFargateService extends ApplicationLoadBalancedF
       default: '',
       allowedPattern: '^arn:aws:acm:[\\w-]+:[0-9]{12}:certificate/[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$|',
     });
-    const httpsDisabled = new cdk.CfnCondition(this, 'HttpsDisabled', { expression: cdk.Fn.conditionEquals(this.acmCertArn, '') });
+    const httpsEnabled = new cdk.CfnCondition(this, 'HttpsDisabled', { expression: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(this.acmCertArn, '')) });
 
     this.loadBalancer.connections.allowFrom(Peer.anyIpv4(), Port.tcp(443), 'Allow from anyone on port 443');
 
@@ -40,7 +40,7 @@ export class CognitoAuthenticatedFargateService extends ApplicationLoadBalancedF
     });
 
     const domainPrefix = cdk.Fn.select(2, cdk.Fn.split('/', cdk.Aws.STACK_ID));
-    this.userPool.addDomain('Domain', {
+    const userPoolDomain = this.userPool.addDomain('Domain', {
       cognitoDomain: { domainPrefix },
     });
 
@@ -58,12 +58,17 @@ export class CognitoAuthenticatedFargateService extends ApplicationLoadBalancedF
         scopes: [cognito.OAuthScope.OPENID],
       },
     });
+
+    (this.userPool.node.defaultChild as cognito.CfnUserPool).cfnOptions.condition = httpsEnabled;
+    (userPoolDomain.node.defaultChild as cognito.CfnUserPoolDomain).cfnOptions.condition = httpsEnabled;
+    (userPoolClient.node.defaultChild as cognito.CfnUserPoolClient).cfnOptions.condition = httpsEnabled;
+
     const cfnListener = this.listener.node.defaultChild as elb.CfnListener;
-    cfnListener.addPropertyOverride('Protocol', cdk.Fn.conditionIf(httpsDisabled.logicalId, 'HTTP', 'HTTPS'));
-    cfnListener.addPropertyOverride('Port', cdk.Fn.conditionIf(httpsDisabled.logicalId, 80, 443));
-    cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(httpsDisabled.logicalId, cdk.Aws.NO_VALUE, [{ CertificateArn: this.acmCertArn.valueAsString }]));
-    cfnListener.addPropertyOverride('DefaultActions.0.Order', cdk.Fn.conditionIf(httpsDisabled.logicalId, 1, 2));
-    cfnListener.addPropertyOverride('DefaultActions.1', cdk.Fn.conditionIf(httpsDisabled.logicalId, cdk.Aws.NO_VALUE, {
+    cfnListener.addPropertyOverride('Protocol', cdk.Fn.conditionIf(httpsEnabled.logicalId, 'HTTPS', 'HTTP'));
+    cfnListener.addPropertyOverride('Port', cdk.Fn.conditionIf(httpsEnabled.logicalId, 443, 80));
+    cfnListener.addPropertyOverride('Certificates', cdk.Fn.conditionIf(httpsEnabled.logicalId, [{ CertificateArn: this.acmCertArn.valueAsString }], cdk.Aws.NO_VALUE));
+    cfnListener.addPropertyOverride('DefaultActions.0.Order', cdk.Fn.conditionIf(httpsEnabled.logicalId, 2, 1));
+    cfnListener.addPropertyOverride('DefaultActions.1', cdk.Fn.conditionIf(httpsEnabled.logicalId, {
       Order: 1,
       Type: 'authenticate-cognito',
       AuthenticateCognitoConfig: {
@@ -71,7 +76,7 @@ export class CognitoAuthenticatedFargateService extends ApplicationLoadBalancedF
         UserPoolClientId: userPoolClient.userPoolClientId,
         UserPoolDomain: domainPrefix,
       },
-    }));
+    }, cdk.Aws.NO_VALUE));
 
   }
 }
