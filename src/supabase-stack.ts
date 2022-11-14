@@ -20,7 +20,7 @@ import { sesSmtpSupportedRegions } from './utils';
 const ecrAlias = 'supabase';
 const ecrRegistry = `public.ecr.aws/${ecrAlias}`;
 const ecrGalleryUrl = `https://gallery.ecr.aws/${ecrAlias}`;
-const imageTagPattern = '^(v[0-9]+.[0-9]+.[0-9]+(.\w)*)$|latest'; // for docker image tags
+const imageTagPattern = '^v[0-9]+.[0-9]+.[0-9]+[\\w\\.-]*$|latest'; // for docker image tags
 
 export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
