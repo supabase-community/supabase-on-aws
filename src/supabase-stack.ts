@@ -20,7 +20,6 @@ import { sesSmtpSupportedRegions } from './utils';
 const ecrAlias = 'supabase';
 const ecrRegistry = `public.ecr.aws/${ecrAlias}`;
 const ecrGalleryUrl = `https://gallery.ecr.aws/${ecrAlias}`;
-const imageTagPattern = '^v[0-9]+.[0-9]+.[0-9]+[\\w\\.-]*$|latest'; // for docker image tags
 
 export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
@@ -107,7 +106,6 @@ export class SupabaseStack extends cdk.Stack {
     const authApiVersion = new cdk.CfnParameter(this, 'AuthApiVersion', {
       type: 'String',
       default: 'v2.23.0',
-      allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/gotrue`,
     });
     const restApiVersion = new cdk.CfnParameter(this, 'RestApiVersion', {
@@ -118,19 +116,16 @@ export class SupabaseStack extends cdk.Stack {
     const realtimeApiVersion = new cdk.CfnParameter(this, 'RealtimeApiVersion', {
       type: 'String',
       default: 'v0.25.1',
-      allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/realtime`,
     });
     const storageApiVersion = new cdk.CfnParameter(this, 'StorageApiVersion', {
       type: 'String',
       default: 'v0.24.3',
-      allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/storage-api`,
     });
     const postgresMetaApiVersion = new cdk.CfnParameter(this, 'PostgresMetaApiVersion', {
       type: 'String',
       default: 'v0.50.2',
-      allowedPattern: imageTagPattern,
       description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta`,
     });
 
@@ -433,8 +428,7 @@ export class SupabaseStack extends cdk.Stack {
     // Supabase Studio
     const studioVersion = new cdk.CfnParameter(this, 'StudioVersion', {
       type: 'String',
-      default: 'latest',
-      allowedPattern: imageTagPattern,
+      default: '0.22.08',
       description: `Docker image tag - ${ecrGalleryUrl}/studio`,
     });
 
@@ -447,6 +441,8 @@ export class SupabaseStack extends cdk.Stack {
           STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
           SUPABASE_URL: `${apiExternalUrl}`, // used at API Docs
           SUPABASE_REST_URL: `${apiExternalUrl}/rest/v1/`,
+          //DEFAULT_ORGANIZATION_NAME: 'My Organization',
+          //DEFAULT_PROJECT_NAME: 'My Project',
         },
         secrets: {
           POSTGRES_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
