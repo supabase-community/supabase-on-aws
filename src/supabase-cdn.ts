@@ -105,10 +105,10 @@ export class SupabaseCdn extends Construct {
     });
   }
 
-  addBehavior(props: BehaviorProps) {
-    const origin = (typeof props.origin == 'string')
-      ? new HttpOrigin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY })
-      : new LoadBalancerV2Origin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY });
-    this.distribution.addBehavior(props.pathPattern, origin, this.defaultBehaviorOptions);
-  }
+  //addBehavior(props: BehaviorProps) {
+  //  const origin = (typeof props.origin == 'string')
+  //    ? new HttpOrigin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY })
+  //    : new LoadBalancerV2Origin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY });
+  //  this.distribution.addBehavior(props.pathPattern, origin, this.defaultBehaviorOptions);
+  //}
 };

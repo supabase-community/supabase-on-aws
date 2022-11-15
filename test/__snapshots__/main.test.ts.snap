@@ -883,7 +883,6 @@ Object {
   },
   "Parameters": Object {
     "AuthApiVersion": Object {
-      "AllowedPattern": "^v[0-9]+.[0-9]+.[0-9]+[\\\\w\\\\.-]*$|latest",
       "Default": "v2.23.0",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
@@ -1181,13 +1180,11 @@ Object {
       "Type": "Number",
     },
     "PostgresMetaApiVersion": Object {
-      "AllowedPattern": "^v[0-9]+.[0-9]+.[0-9]+[\\\\w\\\\.-]*$|latest",
       "Default": "v0.50.2",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/postgres-meta",
       "Type": "String",
     },
     "RealtimeApiVersion": Object {
-      "AllowedPattern": "^v[0-9]+.[0-9]+.[0-9]+[\\\\w\\\\.-]*$|latest",
       "Default": "v0.25.1",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/realtime",
       "Type": "String",
@@ -1298,7 +1295,6 @@ Object {
       "Type": "String",
     },
     "StorageApiVersion": Object {
-      "AllowedPattern": "^v[0-9]+.[0-9]+.[0-9]+[\\\\w\\\\.-]*$|latest",
       "Default": "v0.24.3",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
@@ -1337,8 +1333,7 @@ Object {
       "Type": "String",
     },
     "StudioVersion": Object {
-      "AllowedPattern": "^v[0-9]+.[0-9]+.[0-9]+[\\\\w\\\\.-]*$|latest",
-      "Default": "latest",
+      "Default": "0.22.08",
       "Description": "Docker image tag - https://gallery.ecr.aws/supabase/studio",
       "Type": "String",
     },
