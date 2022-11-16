@@ -17,10 +17,6 @@ import { SupabaseMail } from './supabase-mail';
 import { SupabaseService } from './supabase-service';
 import { sesSmtpSupportedRegions } from './utils';
 
-const ecrAlias = 'supabase';
-const ecrRegistry = `public.ecr.aws/${ecrAlias}`;
-const ecrGalleryUrl = `https://gallery.ecr.aws/${ecrAlias}`;
-
 export class SupabaseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
     super(scope, id, props);
@@ -103,30 +99,30 @@ export class SupabaseStack extends cdk.Stack {
       allowedValues: ['true', 'false'],
     });
 
-    const authApiVersion = new cdk.CfnParameter(this, 'AuthApiVersion', {
+    const authImageUri = new cdk.CfnParameter(this, 'AuthImageUri', {
       type: 'String',
-      default: 'v2.23.0',
-      description: `Docker image tag - ${ecrGalleryUrl}/gotrue`,
+      default: 'public.ecr.aws/supabase/gotrue:v2.23.0',
+      description: 'https://gallery.ecr.aws/supabase/gotrue',
     });
-    const restApiVersion = new cdk.CfnParameter(this, 'RestApiVersion', {
+    const restImageUri = new cdk.CfnParameter(this, 'RestImageUri', {
       type: 'String',
-      default: 'v9.0.1.20220802',
-      description: `Docker image tag - ${ecrGalleryUrl}/postgrest`,
+      default: 'public.ecr.aws/supabase/postgrest:v9.0.1.20220802',
+      description: 'https://gallery.ecr.aws/supabase/postgrest',
     });
-    const realtimeApiVersion = new cdk.CfnParameter(this, 'RealtimeApiVersion', {
+    const realtimeImageUri = new cdk.CfnParameter(this, 'RealtimeImageUri', {
       type: 'String',
-      default: 'v0.25.1',
-      description: `Docker image tag - ${ecrGalleryUrl}/realtime`,
+      default: 'public.ecr.aws/supabase/realtime:v0.25.1',
+      description: 'https://gallery.ecr.aws/supabase/realtime',
     });
-    const storageApiVersion = new cdk.CfnParameter(this, 'StorageApiVersion', {
+    const storageImageUri = new cdk.CfnParameter(this, 'StorageImageUri', {
       type: 'String',
-      default: 'v0.24.3',
-      description: `Docker image tag - ${ecrGalleryUrl}/storage-api`,
+      default: 'public.ecr.aws/supabase/storage-api:v0.24.3',
+      description: 'https://gallery.ecr.aws/supabase/storage-api',
     });
-    const postgresMetaApiVersion = new cdk.CfnParameter(this, 'PostgresMetaApiVersion', {
+    const postgresMetaImageUri = new cdk.CfnParameter(this, 'PostgresMetaImageUri', {
       type: 'String',
-      default: 'v0.50.2',
-      description: `Docker image tag - ${ecrGalleryUrl}/postgres-meta`,
+      default: 'public.ecr.aws/supabase/postgres-meta:v0.50.2',
+      description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
     // Condition
@@ -209,7 +205,7 @@ export class SupabaseStack extends cdk.Stack {
     const auth = new SupabaseAuth(this, 'Auth', {
       cluster,
       taskImageOptions: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/gotrue:${authApiVersion.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(authImageUri.valueAsString),
         containerPort: 9999,
         environment: {
           // Top-Level - https://github.com/supabase/gotrue#top-level
@@ -269,7 +265,7 @@ export class SupabaseStack extends cdk.Stack {
     const rest = new SupabaseService(this, 'Rest', {
       cluster,
       taskImageOptions: {
-        image: ecs.ContainerImage.fromRegistry(`postgrest/postgrest:${restApiVersion.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(restImageUri.valueAsString),
         containerPort: 3000,
         environment: {
           PGRST_DB_SCHEMAS: 'public,storage,graphql_public',
@@ -314,7 +310,7 @@ export class SupabaseStack extends cdk.Stack {
     const realtime = new SupabaseService(this, 'Realtime', {
       cluster,
       taskImageOptions: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/realtime:${realtimeApiVersion.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(realtimeImageUri.valueAsString),
         containerPort: 4000,
         environment: {
           DB_SSL: 'false',
@@ -351,7 +347,7 @@ export class SupabaseStack extends cdk.Stack {
     const storage = new SupabaseService(this, 'Storage', {
       cluster,
       taskImageOptions: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/storage-api:${storageApiVersion.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(storageImageUri.valueAsString),
         containerPort: 5000,
         environment: {
           POSTGREST_URL: `http://${rest.dnsName}:${rest.listenerPort}`,
@@ -384,7 +380,7 @@ export class SupabaseStack extends cdk.Stack {
     const meta = new SupabaseService(this, 'Meta', {
       cluster,
       taskImageOptions: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/postgres-meta:${postgresMetaApiVersion.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(postgresMetaImageUri.valueAsString),
         containerPort: 8080,
         environment: {
           PG_META_PORT: '8080',
@@ -426,23 +422,23 @@ export class SupabaseStack extends cdk.Stack {
     meta.addDatabaseBackend(db);
 
     // Supabase Studio
-    const studioVersion = new cdk.CfnParameter(this, 'StudioVersion', {
+    const studioImageUri = new cdk.CfnParameter(this, 'StudioImageUri', {
       type: 'String',
-      default: '0.22.08',
-      description: `Docker image tag - ${ecrGalleryUrl}/studio`,
+      default: 'public.ecr.aws/supabase/studio:0.22.08',
+      description: 'https://gallery.ecr.aws/supabase/studio',
     });
 
     const studio = new CognitoAuthenticatedFargateService(this, 'Studio', {
       cluster,
       taskImageOptions: {
-        image: ecs.ContainerImage.fromRegistry(`${ecrRegistry}/studio:${studioVersion.valueAsString}`),
+        image: ecs.ContainerImage.fromRegistry(studioImageUri.valueAsString),
         containerPort: 3000,
         environment: {
           STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
           SUPABASE_URL: `${apiExternalUrl}`, // used at API Docs
           SUPABASE_REST_URL: `${apiExternalUrl}/rest/v1/`,
-          //DEFAULT_ORGANIZATION_NAME: 'My Organization',
-          //DEFAULT_PROJECT_NAME: 'My Project',
+          DEFAULT_ORGANIZATION_NAME: 'My Organization',
+          DEFAULT_PROJECT_NAME: 'My Project',
         },
         secrets: {
           POSTGRES_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
@@ -515,14 +511,14 @@ export class SupabaseStack extends cdk.Stack {
           ],
         },
         {
-          Label: { default: 'Supabase - API Versions' },
+          Label: { default: 'Supabase - Container Image URIs' },
           Parameters: [
-            authApiVersion.logicalId,
-            restApiVersion.logicalId,
-            realtimeApiVersion.logicalId,
-            storageApiVersion.logicalId,
-            postgresMetaApiVersion.logicalId,
-            studioVersion.logicalId,
+            authImageUri.logicalId,
+            restImageUri.logicalId,
+            realtimeImageUri.logicalId,
+            storageImageUri.logicalId,
+            postgresMetaImageUri.logicalId,
+            studioImageUri.logicalId,
           ],
         },
         {
@@ -619,12 +615,12 @@ export class SupabaseStack extends cdk.Stack {
         [kong.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
         [kong.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
-        [authApiVersion.logicalId]: { default: 'Auth API Version - GoTrue' },
+        [authImageUri.logicalId]: { default: 'Auth API Image URI - GoTrue' },
         [auth.taskSize.logicalId]: { default: 'Fargate Task Size' },
         [auth.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
         [auth.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
-        [restApiVersion.logicalId]: { default: 'Rest API Version - PostgREST' },
+        [restImageUri.logicalId]: { default: 'Rest API Image URI - PostgREST' },
         [rest.taskSize.logicalId]: { default: 'Fargate Task Size' },
         [rest.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
         [rest.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
@@ -633,22 +629,22 @@ export class SupabaseStack extends cdk.Stack {
         [gql.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
         [gql.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
-        [realtimeApiVersion.logicalId]: { default: 'Realtime API Version' },
+        [realtimeImageUri.logicalId]: { default: 'Realtime API Image URI' },
         [realtime.taskSize.logicalId]: { default: 'Fargate Task Size' },
         [realtime.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
         [realtime.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
-        [storageApiVersion.logicalId]: { default: 'Storage API Version' },
+        [storageImageUri.logicalId]: { default: 'Storage API Image URI' },
         [storage.taskSize.logicalId]: { default: 'Fargate Task Size' },
         [storage.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
         [storage.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
-        [postgresMetaApiVersion.logicalId]: { default: 'Postgres Meta API Version' },
+        [postgresMetaImageUri.logicalId]: { default: 'Postgres Meta API Image URI' },
         [meta.taskSize.logicalId]: { default: 'Fargate Task Size' },
         [meta.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
         [meta.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
-        [studioVersion.logicalId]: { default: 'Supabase Studio Version' },
+        [studioImageUri.logicalId]: { default: 'Supabase Studio Image URI' },
         [studio.acmCertArn.logicalId]: { default: 'ACM Certificate ARN - Supabase Studio' },
       },
     };

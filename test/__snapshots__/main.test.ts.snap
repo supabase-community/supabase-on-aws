@@ -514,15 +514,15 @@ Object {
         },
         Object {
           "Label": Object {
-            "default": "Supabase - API Versions",
+            "default": "Supabase - Container Image URIs",
           },
           "Parameters": Array [
-            "AuthApiVersion",
-            "RestApiVersion",
-            "RealtimeApiVersion",
-            "StorageApiVersion",
-            "PostgresMetaApiVersion",
-            "StudioVersion",
+            "AuthImageUri",
+            "RestImageUri",
+            "RealtimeImageUri",
+            "StorageImageUri",
+            "PostgresMetaImageUri",
+            "StudioImageUri",
           ],
         },
         Object {
@@ -647,8 +647,8 @@ Object {
         },
       ],
       "ParameterLabels": Object {
-        "AuthApiVersion": Object {
-          "default": "Auth API Version - GoTrue",
+        "AuthImageUri": Object {
+          "default": "Auth API Image URI - GoTrue",
         },
         "AuthMaxTaskCount9E585BDA": Object {
           "default": "Maximum Fargate Task Count",
@@ -740,11 +740,11 @@ Object {
         "PasswordMinLength": Object {
           "default": "Min password length",
         },
-        "PostgresMetaApiVersion": Object {
-          "default": "Postgres Meta API Version",
+        "PostgresMetaImageUri": Object {
+          "default": "Postgres Meta API Image URI",
         },
-        "RealtimeApiVersion": Object {
-          "default": "Realtime API Version",
+        "RealtimeImageUri": Object {
+          "default": "Realtime API Image URI",
         },
         "RealtimeMaxTaskCountE72E1120": Object {
           "default": "Maximum Fargate Task Count",
@@ -758,8 +758,8 @@ Object {
         "RedirectUrls": Object {
           "default": "Redirect URLs",
         },
-        "RestApiVersion": Object {
-          "default": "Rest API Version - PostgREST",
+        "RestImageUri": Object {
+          "default": "Rest API Image URI - PostgREST",
         },
         "RestMaxTaskCount1D2E84B9": Object {
           "default": "Maximum Fargate Task Count",
@@ -782,8 +782,8 @@ Object {
         "SiteUrl": Object {
           "default": "Site URL",
         },
-        "StorageApiVersion": Object {
-          "default": "Storage API Version",
+        "StorageImageUri": Object {
+          "default": "Storage API Image URI",
         },
         "StorageMaxTaskCount372C6914": Object {
           "default": "Maximum Fargate Task Count",
@@ -797,8 +797,8 @@ Object {
         "StudioAcmCertArn2D10C4B8": Object {
           "default": "ACM Certificate ARN - Supabase Studio",
         },
-        "StudioVersion": Object {
-          "default": "Supabase Studio Version",
+        "StudioImageUri": Object {
+          "default": "Supabase Studio Image URI",
         },
       },
     },
@@ -882,9 +882,9 @@ Object {
     },
   },
   "Parameters": Object {
-    "AuthApiVersion": Object {
-      "Default": "v2.23.0",
-      "Description": "Docker image tag - https://gallery.ecr.aws/supabase/gotrue",
+    "AuthImageUri": Object {
+      "Default": "public.ecr.aws/supabase/gotrue:v2.23.0",
+      "Description": "https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
     },
     "AuthMaxTaskCount9E585BDA": Object {
@@ -1179,14 +1179,14 @@ Object {
       "MinValue": 8,
       "Type": "Number",
     },
-    "PostgresMetaApiVersion": Object {
-      "Default": "v0.50.2",
-      "Description": "Docker image tag - https://gallery.ecr.aws/supabase/postgres-meta",
+    "PostgresMetaImageUri": Object {
+      "Default": "public.ecr.aws/supabase/postgres-meta:v0.50.2",
+      "Description": "https://gallery.ecr.aws/supabase/postgres-meta",
       "Type": "String",
     },
-    "RealtimeApiVersion": Object {
-      "Default": "v0.25.1",
-      "Description": "Docker image tag - https://gallery.ecr.aws/supabase/realtime",
+    "RealtimeImageUri": Object {
+      "Default": "public.ecr.aws/supabase/realtime:v0.25.1",
+      "Description": "https://gallery.ecr.aws/supabase/realtime",
       "Type": "String",
     },
     "RealtimeMaxTaskCountE72E1120": Object {
@@ -1221,9 +1221,9 @@ Object {
       "Description": "URLs that auth providers are permitted to redirect to post authentication",
       "Type": "String",
     },
-    "RestApiVersion": Object {
-      "Default": "v9.0.1.20220802",
-      "Description": "Docker image tag - https://gallery.ecr.aws/supabase/postgrest",
+    "RestImageUri": Object {
+      "Default": "public.ecr.aws/supabase/postgrest:v9.0.1.20220802",
+      "Description": "https://gallery.ecr.aws/supabase/postgrest",
       "Type": "String",
     },
     "RestMaxTaskCount1D2E84B9": Object {
@@ -1294,9 +1294,9 @@ Object {
       "Description": "The base URL your site is located at. Currently used in combination with other settings to construct URLs used in emails.",
       "Type": "String",
     },
-    "StorageApiVersion": Object {
-      "Default": "v0.24.3",
-      "Description": "Docker image tag - https://gallery.ecr.aws/supabase/storage-api",
+    "StorageImageUri": Object {
+      "Default": "public.ecr.aws/supabase/storage-api:v0.24.3",
+      "Description": "https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
     },
     "StorageMaxTaskCount372C6914": Object {
@@ -1332,9 +1332,9 @@ Object {
       "Description": "ACM Certificate ARN for Studio ALB with Cognito",
       "Type": "String",
     },
-    "StudioVersion": Object {
-      "Default": "0.22.08",
-      "Description": "Docker image tag - https://gallery.ecr.aws/supabase/studio",
+    "StudioImageUri": Object {
+      "Default": "public.ecr.aws/supabase/studio:0.22.08",
+      "Description": "https://gallery.ecr.aws/supabase/studio",
       "Type": "String",
     },
   },
@@ -2295,15 +2295,7 @@ Object {
               "Timeout": 10,
             },
             "Image": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "public.ecr.aws/supabase/gotrue:",
-                  Object {
-                    "Ref": "AuthApiVersion",
-                  },
-                ],
-              ],
+              "Ref": "AuthImageUri",
             },
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -6634,15 +6626,7 @@ Object {
             ],
             "Essential": true,
             "Image": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "public.ecr.aws/supabase/postgres-meta:",
-                  Object {
-                    "Ref": "PostgresMetaApiVersion",
-                  },
-                ],
-              ],
+              "Ref": "PostgresMetaImageUri",
             },
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -7122,15 +7106,7 @@ Object {
             ],
             "Essential": true,
             "Image": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "public.ecr.aws/supabase/realtime:",
-                  Object {
-                    "Ref": "RealtimeApiVersion",
-                  },
-                ],
-              ],
+              "Ref": "RealtimeImageUri",
             },
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -7639,15 +7615,7 @@ Object {
             ],
             "Essential": true,
             "Image": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "postgrest/postgrest:",
-                  Object {
-                    "Ref": "RestApiVersion",
-                  },
-                ],
-              ],
+              "Ref": "RestImageUri",
             },
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -8139,15 +8107,7 @@ Object {
               "Timeout": 10,
             },
             "Image": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "public.ecr.aws/supabase/storage-api:",
-                  Object {
-                    "Ref": "StorageApiVersion",
-                  },
-                ],
-              ],
+              "Ref": "StorageImageUri",
             },
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -8966,18 +8926,18 @@ Object {
                   ],
                 },
               },
+              Object {
+                "Name": "DEFAULT_ORGANIZATION_NAME",
+                "Value": "My Organization",
+              },
+              Object {
+                "Name": "DEFAULT_PROJECT_NAME",
+                "Value": "My Project",
+              },
             ],
             "Essential": true,
             "Image": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "public.ecr.aws/supabase/studio:",
-                  Object {
-                    "Ref": "StudioVersion",
-                  },
-                ],
-              ],
+              "Ref": "StudioImageUri",
             },
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
