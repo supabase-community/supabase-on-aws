@@ -29,7 +29,7 @@
     },
     {
       "name": "aws-cdk",
-      "version": "^2.50.0",
+      "version": "^2.51.1",
       "type": "build"
     },
     {
@@ -88,6 +88,10 @@
       "type": "build"
     },
     {
+      "name": "@aws-cdk/aws-amplify-alpha",
+      "type": "runtime"
+    },
+    {
       "name": "@aws-cdk/aws-apigatewayv2-alpha",
       "type": "runtime"
     },
@@ -133,7 +137,7 @@
     },
     {
       "name": "aws-cdk-lib",
-      "version": "^2.50.0",
+      "version": "^2.51.1",
       "type": "runtime"
     },
     {

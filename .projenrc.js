@@ -1,10 +1,11 @@
 const { awscdk } = require('projen');
 const project = new awscdk.AwsCdkTypeScriptApp({
-  cdkVersion: '2.50.0',
+  cdkVersion: '2.51.1',
   defaultReleaseBranch: 'main',
   name: 'supabase-on-aws',
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
   deps: [
+    '@aws-cdk/aws-amplify-alpha',
     '@aws-cdk/aws-apigatewayv2-alpha',
     '@aws-cdk/aws-apigatewayv2-integrations-alpha',
     '@aws-sdk/client-ecs',
