@@ -42,7 +42,7 @@ export class CloudMapFargateService extends Construct {
 
     this.listenerPort = taskImageOptions.containerPort;
 
-    const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDefinition', {
+    const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
       runtimePlatform: {
         operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
         cpuArchitecture,
