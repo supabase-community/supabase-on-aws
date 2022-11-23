@@ -7,22 +7,21 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { PrefixList } from './aws-prefix-list';
 import { WorkMailStack } from './aws-workmail';
-import { CognitoAuthenticatedFargateService } from './cognito-authenticated-fargate-service';
 import { ForceDeployJob } from './ecs-force-deploy-job';
-import { SupabaseAuth } from './supabase-auth';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwt } from './supabase-jwt';
 import { SupabaseMail } from './supabase-mail';
-import { SupabaseService } from './supabase-service';
+import { AutoScalingFargateService } from './supabase-service';
 import { sesSmtpSupportedRegions } from './utils';
 
-export class SupabaseStack extends cdk.Stack {
+export class FargateStack extends cdk.Stack {
+  readonly taskSizeMapping: cdk.CfnMapping;
+
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
     super(scope, id, props);
 
-    // Mappings
-    const taskSizeMapping = new cdk.CfnMapping(this, 'TaskSize', {
+    this.taskSizeMapping = new cdk.CfnMapping(this, 'TaskSize', {
       mapping: {
         'nano': { cpu: 256, memory: 512 },
         'micro': { cpu: 256, memory: 1024 },
@@ -34,6 +33,12 @@ export class SupabaseStack extends cdk.Stack {
         '4xlarge': { cpu: 16384, memory: 32768 },
       },
     });
+  }
+}
+
+export class SupabaseStack extends FargateStack {
+  constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
+    super(scope, id, props);
 
     // Parameters
     const disableSignup = new cdk.CfnParameter(this, 'DisableSignup', {
@@ -166,7 +171,7 @@ export class SupabaseStack extends cdk.Stack {
 
     const jwt = new SupabaseJwt(this, 'SupabaseJwt', { issuer: 'supabase', expiresIn: '10y' });
 
-    const kong = new SupabaseService(this, 'Kong', {
+    const kong = new AutoScalingFargateService(this, 'Kong', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/kong:latest'),
@@ -179,7 +184,6 @@ export class SupabaseStack extends cdk.Stack {
           //KONG_OPENTELEMETRY_ENABLED: 'true',
           //KONG_OPENTELEMETRY_TRACING: 'all',
           //KONG_OPENTELEMETRY_TRACING_SAMPLING_RATE: '1.0',
-          //OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: `http://${jaeger.dnsName}:4318/v1/traces`,
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
@@ -192,9 +196,8 @@ export class SupabaseStack extends cdk.Stack {
           retries: 3,
         },
       },
-      taskSizeMapping,
     });
-    const kongLoadBalancer = kong.addNetworkLoadBalancer({ healthCheckPort: 8100 });
+    const kongLoadBalancer = kong.addNetworkLoadBalancer({ healthCheck: { port: '8100' } });
 
     const cfPrefixList = new PrefixList(this, 'CloudFrontPrefixList', { prefixListName: 'com.amazonaws.global.cloudfront.origin-facing' });
     kong.service.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(kong.listenerPort), 'CloudFront');
@@ -202,7 +205,7 @@ export class SupabaseStack extends cdk.Stack {
     const cdn = new SupabaseCdn(this, 'Cdn', { origin: kongLoadBalancer });
     const apiExternalUrl = `https://${cdn.distribution.domainName}`;
 
-    const auth = new SupabaseAuth(this, 'Auth', {
+    const auth = new AutoScalingFargateService(this, 'Auth', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(authImageUri.valueAsString),
@@ -258,11 +261,10 @@ export class SupabaseStack extends cdk.Stack {
           retries: 3,
         },
       },
-      authProviderCount: 3,
-      taskSizeMapping,
     });
+    const authProviders = auth.addExternalAuthProviders(`${apiExternalUrl}/auth/v1/callback`, 3);
 
-    const rest = new SupabaseService(this, 'Rest', {
+    const rest = new AutoScalingFargateService(this, 'Rest', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(restImageUri.valueAsString),
@@ -277,10 +279,9 @@ export class SupabaseStack extends cdk.Stack {
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
         },
       },
-      taskSizeMapping,
     });
 
-    const gql = new SupabaseService(this, 'GraphQL', {
+    const gql = new AutoScalingFargateService(this, 'GraphQL', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/postgraphile:latest'),
@@ -302,12 +303,11 @@ export class SupabaseStack extends cdk.Stack {
           JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
         },
       },
-      taskSizeMapping,
       minTaskCount: 0,
       maxTaskCount: 0,
     });
 
-    const realtime = new SupabaseService(this, 'Realtime', {
+    const realtime = new AutoScalingFargateService(this, 'Realtime', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(realtimeImageUri.valueAsString),
@@ -333,7 +333,6 @@ export class SupabaseStack extends cdk.Stack {
         },
         command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
       },
-      taskSizeMapping,
       minTaskCount: 1,
       maxTaskCount: 1,
     });
@@ -344,7 +343,7 @@ export class SupabaseStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
-    const storage = new SupabaseService(this, 'Storage', {
+    const storage = new AutoScalingFargateService(this, 'Storage', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(storageImageUri.valueAsString),
@@ -372,12 +371,11 @@ export class SupabaseStack extends cdk.Stack {
           retries: 3,
         },
       },
-      taskSizeMapping,
       cpuArchitecture: 'x86_64', // storage-api does not work on ARM64
     });
     bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
 
-    const meta = new SupabaseService(this, 'Meta', {
+    const meta = new AutoScalingFargateService(this, 'Meta', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(postgresMetaImageUri.valueAsString),
@@ -393,7 +391,6 @@ export class SupabaseStack extends cdk.Stack {
           PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
         },
       },
-      taskSizeMapping,
     });
     meta.taskSize.default = 'nano';
 
@@ -649,8 +646,8 @@ export class SupabaseStack extends cdk.Stack {
       },
     };
 
-    for (let i = 0; i < auth.providers.length; i++) {
-      const provider = auth.providers[i];
+    for (let i = 0; i < authProviders.length; i++) {
+      const provider = authProviders[i];
       cfnInterface.ParameterGroups.push({
         Label: { default: `External Auth Provider ${i+1}` },
         Parameters: [

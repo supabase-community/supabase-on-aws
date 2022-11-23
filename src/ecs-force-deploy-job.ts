@@ -6,7 +6,7 @@ import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import { CallAwsService } from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import { Construct } from 'constructs';
-import { SupabaseService } from './supabase-service';
+import { CloudMapFargateService } from './supabase-service';
 
 interface ForceDeployJobProps {
   cluster: ecs.Cluster;
@@ -48,7 +48,7 @@ export class ForceDeployJob extends Construct {
 
   }
 
-  addTrigger(props: { rule: events.Rule; services: (SupabaseService|ApplicationLoadBalancedFargateService)[] }) {
+  addTrigger(props: { rule: events.Rule; services: (CloudMapFargateService|ApplicationLoadBalancedFargateService)[] }) {
     const { rule, services } = props;
     const target = new targets.SfnStateMachine(this.stateMachine, {
       input: events.RuleTargetInput.fromObject({
