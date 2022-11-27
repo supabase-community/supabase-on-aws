@@ -224,6 +224,7 @@ export class SupabaseDatabase extends Construct {
       properties: {
         SecretId: this.secret.secretArn,
         Hostname: this.cluster.clusterEndpoint.hostname,
+        Fingerprint: cdk.FileSystem.fingerprint('./src/functions/db-init'),
       },
     });
     init.node.addDependency(this.cluster.node.findChild('Instance1'));
