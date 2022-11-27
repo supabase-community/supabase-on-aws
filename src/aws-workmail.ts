@@ -130,20 +130,17 @@ export class Organization extends Construct {
     });
   }
 
-  addUser(displayName: string, secret: Secret) {
-    secret.grantRead(this.createUserProvider.onEventHandler);
-
-    const user = new cdk.CfnResource(this, `User${displayName}`, {
+  addUser(username: string, password: string) {
+    const user = new cdk.CfnResource(this, username, {
       type: 'Custom::WorkMailUser',
       properties: {
         ServiceToken: this.createUserProvider.serviceToken,
         Region: this.region,
         OrganizationId: this.organizationId,
-        SecretId: secret.secretArn,
-        DisplayName: displayName,
+        Username: username,
+        Password: password,
       },
     });
-
     return user;
   }
 }

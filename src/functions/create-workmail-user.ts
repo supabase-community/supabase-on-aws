@@ -73,16 +73,15 @@ const deregisterFromWorkMail = async (region: string, organizationId: string, en
   }
 };
 
-const createUser = async (region: string, organizationId: string, secretId: string, displayName: string) => {
+const createUser = async (region: string, organizationId: string, username: string, password: string) => {
   const mailDomain = await describeMailDomain(region, organizationId);
-  const email = `${displayName.toLowerCase()}@${mailDomain}`;
-  const { username, password } = await getSecretValue(secretId);
+  const email = `${username.toLowerCase()}@${mailDomain}`;
   const client = new WorkMailClient({ region });
   const cmd = new CreateUserCommand({
     OrganizationId: organizationId,
     Name: username,
     Password: password,
-    DisplayName: displayName,
+    DisplayName: username,
   });
   let userId: string;
   try {
@@ -118,18 +117,18 @@ const deleteUser = async (region: string, organizationId: string, userId: string
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
   const region: string = event.ResourceProperties.Region;
   const organizationId: string = event.ResourceProperties.OrganizationId;
-  const secretId: string = event.ResourceProperties.SecretId;
-  const displayName: string = event.ResourceProperties.DisplayName;
+  const username: string = event.ResourceProperties.Username;
+  const password: string = event.ResourceProperties.Password;
 
   switch (event.RequestType) {
     case 'Create': {
-      const user = await createUser(region, organizationId, secretId, displayName);
+      const user = await createUser(region, organizationId, username, password);
       return { PhysicalResourceId: user.userId, Data: { UserId: user.userId, Email: user.email } };
     }
     case 'Update': {
       const oldUserId = event.PhysicalResourceId;
       await deleteUser(region, organizationId, oldUserId);
-      const user = await createUser(region, organizationId, secretId, displayName);
+      const user = await createUser(region, organizationId, username, password);
       return { PhysicalResourceId: user.userId, Data: { UserId: user.userId, Email: user.email } };
     }
     case 'Delete': {

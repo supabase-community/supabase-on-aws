@@ -11,7 +11,7 @@ import { ForceDeployJob } from './ecs-force-deploy-job';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwt } from './supabase-jwt';
-import { SupabaseMail } from './supabase-mail';
+import { Smtp } from './amazon-ses-smtp';
 import { AutoScalingFargateService } from './supabase-service';
 import { sesSmtpSupportedRegions } from './utils';
 
@@ -76,32 +76,10 @@ export class SupabaseStack extends FargateStack {
       maxValue: 128,
     });
 
-    const senderEmail = new cdk.CfnParameter(this, 'SenderEmail', {
-      description: 'This is the email address the emails are sent from. If Amazon WorkMail is enabled, it set "noreply@supabase-<account_id>.awsapps.com"',
-      type: 'String',
-      default: 'noreply@example.com',
-      allowedPattern: '^[\\x20-\\x45]?[\\w-\\+]+(\\.[\\w]+)*@[\\w-]+(\\.[\\w]+)*(\\.[a-z]{2,})$',
-      constraintDescription: 'must be a valid email address',
-    });
-
     const senderName = new cdk.CfnParameter(this, 'SenderName', {
       description: 'The From email sender name for all emails sent.',
       type: 'String',
       default: 'Supabase',
-    });
-
-    const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
-      description: 'Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.',
-      type: 'String',
-      default: 'us-west-2',
-      allowedValues: sesSmtpSupportedRegions,
-    });
-
-    const enableWorkMail = new cdk.CfnParameter(this, 'EnableWorkMail', {
-      description: 'Enable Amazon WorkMail, to use "xxx.awsapps.com" e-mail domain.',
-      type: 'String',
-      default: 'false',
-      allowedValues: ['true', 'false'],
     });
 
     const authImageUri = new cdk.CfnParameter(this, 'AuthImageUri', {
@@ -130,9 +108,6 @@ export class SupabaseStack extends FargateStack {
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
-    // Condition
-    const workMailEnabled = new cdk.CfnCondition(this, 'WorkMailEnabled', { expression: cdk.Fn.conditionEquals(enableWorkMail, 'true') });
-
     // Resources
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
@@ -143,29 +118,7 @@ export class SupabaseStack extends FargateStack {
       vpc,
     });
 
-    new cdk.CfnRule(this, 'CheckWorkMailRegion', {
-      ruleCondition: workMailEnabled.expression,
-      assertions: [{
-        assert: cdk.Fn.conditionContains(['us-east-1', 'us-west-2', 'eu-west-1'], sesRegion.valueAsString),
-        assertDescription: 'Amazon WorkMail is supported only in us-east-1, us-west-2 or eu-west-1. Please change Amazon SES Region.',
-      }],
-    });
-
-    const mail = new SupabaseMail(this, 'SupabaseMail', { region: sesRegion.valueAsString });
-
-    const workMail = new WorkMailStack(this, 'WorkMail', {
-      description: 'Amazon WorkMail for Test Domain',
-      organization: {
-        region: sesRegion.valueAsString,
-        alias: cdk.Fn.select(2, cdk.Fn.split('/', cdk.Aws.STACK_ID)),
-      },
-    });
-    const workMailUser = workMail.organization.addUser('Supabase', mail.secret);
-    (workMail.node.defaultChild as cdk.CfnStack).cfnOptions.condition = workMailEnabled;
-
-    const smtpAdminEmail = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.getAtt('Email'), senderEmail.valueAsString);
-    const smtpHost = cdk.Fn.conditionIf(workMailEnabled.logicalId, `smtp.mail.${sesRegion.valueAsString}.awsapps.com`, `email-smtp.${sesRegion.valueAsString}.amazonaws.com`);
-    const smtpUser = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.getAtt('Email'), mail.secret.secretValueFromJson('username').unsafeUnwrap());
+    const smtp = new Smtp(this, 'Smtp');
 
     const db = new SupabaseDatabase(this, 'Database', { vpc });
 
@@ -236,10 +189,9 @@ export class SupabaseStack extends FargateStack {
           GOTRUE_JWT_ADMIN_ROLES: 'service_role',
           GOTRUE_JWT_DEFAULT_GROUP_NAME: 'authenticated',
           // E-Mail - https://github.com/supabase/gotrue#e-mail
-          GOTRUE_SMTP_ADMIN_EMAIL: smtpAdminEmail.toString(),
-          GOTRUE_SMTP_HOST: smtpHost.toString(),
-          GOTRUE_SMTP_PORT: '465',
-          GOTRUE_SMTP_USER: smtpUser.toString(),
+          GOTRUE_SMTP_ADMIN_EMAIL: smtp.email,
+          GOTRUE_SMTP_HOST: smtp.host,
+          GOTRUE_SMTP_PORT: smtp.port.toString(),
           GOTRUE_SMTP_SENDER_NAME: senderName.valueAsString,
           GOTRUE_MAILER_AUTOCONFIRM: 'false',
           GOTRUE_MAILER_URLPATHS_INVITE: '/auth/v1/verify',
@@ -252,7 +204,8 @@ export class SupabaseStack extends FargateStack {
         secrets: {
           GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writerSearchPathAuth),
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
-          GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(mail.secret, 'password'),
+          GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(smtp.secret, 'username'),
+          GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(smtp.secret, 'password'),
         },
         healthCheck: {
           command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:9999/health || exit 1'],
@@ -501,10 +454,10 @@ export class SupabaseStack extends FargateStack {
         {
           Label: { default: 'Supabase - Auth E-mail Settings' },
           Parameters: [
-            senderEmail.logicalId,
+            smtp.params.email.logicalId,
             senderName.logicalId,
-            sesRegion.logicalId,
-            enableWorkMail.logicalId,
+            smtp.params.region.logicalId,
+            smtp.params.enableTestDomain.logicalId,
           ],
         },
         {
@@ -597,10 +550,10 @@ export class SupabaseStack extends FargateStack {
         [redirectUrls.logicalId]: { default: 'Redirect URLs' },
         [jwtExpiryLimit.logicalId]: { default: 'JWT expiry limit' },
         [passwordMinLength.logicalId]: { default: 'Min password length' },
-        [senderEmail.logicalId]: { default: 'Sender Email Address' },
+        [smtp.params.email.logicalId]: { default: 'Sender Email Address' },
         [senderName.logicalId]: { default: 'Sender Name' },
-        [sesRegion.logicalId]: { default: 'Amazon SES Region' },
-        [enableWorkMail.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
+        [smtp.params.region.logicalId]: { default: 'Amazon SES Region' },
+        [smtp.params.enableTestDomain.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
         [cdn.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
         [db.instanceClass.logicalId]: { default: 'DB Instance Class' },
