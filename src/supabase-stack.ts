@@ -553,7 +553,7 @@ export class SupabaseStack extends FargateStack {
         [smtp.params.email.logicalId]: { default: 'Sender Email Address' },
         [senderName.logicalId]: { default: 'Sender Name' },
         [smtp.params.region.logicalId]: { default: 'Amazon SES Region' },
-        [smtp.params.enableTestDomain.logicalId]: { default: 'Enable Amazon WorkMail (Test E-mail Domain)' },
+        [smtp.params.enableTestDomain.logicalId]: { default: 'Enable Test E-mail Domain (via Amazon WorkMail)' },
         [cdn.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
         [db.instanceClass.logicalId]: { default: 'DB Instance Class' },
