@@ -18,6 +18,7 @@ interface SupabaseTaskImageOptions extends NetworkLoadBalancedTaskImageOptions {
 }
 
 export interface CloudMapFargateServiceProps {
+  serviceName?: string;
   cluster: ecs.ICluster;
   taskImageOptions: SupabaseTaskImageOptions;
   cpuArchitecture?: 'x86_64'|'arm64';
@@ -36,7 +37,7 @@ export class CloudMapFargateService extends Construct {
   constructor(scope: Construct, id: string, props: CloudMapFargateServiceProps) {
     super(scope, id);
 
-    const serviceName = id.toLowerCase();
+    const serviceName = props.serviceName || id.toLowerCase();
     const { cluster, taskImageOptions } = props;
     const cpuArchitecture = (props.cpuArchitecture == 'x86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
 
