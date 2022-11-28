@@ -8,7 +8,7 @@ import { Construct } from 'constructs';
 import { WorkMailStack } from './aws-workmail';
 
 export class Smtp extends Construct {
-  params: {
+  cfnParameters: {
     region: cdk.CfnParameter;
     email: cdk.CfnParameter;
     enableTestDomain: cdk.CfnParameter;
@@ -21,7 +21,7 @@ export class Smtp extends Construct {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    this.params = {
+    this.cfnParameters = {
       region: new cdk.CfnParameter(this, 'Region', {
         description: 'Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.',
         type: 'String',
@@ -43,8 +43,8 @@ export class Smtp extends Construct {
       }),
     };
 
-    const region = this.params.region.valueAsString;
-    const workMailEnabled = new cdk.CfnCondition(this, 'WorkMailEnabled', { expression: cdk.Fn.conditionEquals(this.params.enableTestDomain, 'true') });
+    const region = this.cfnParameters.region.valueAsString;
+    const workMailEnabled = new cdk.CfnCondition(this, 'WorkMailEnabled', { expression: cdk.Fn.conditionEquals(this.cfnParameters.enableTestDomain, 'true') });
 
     new cdk.CfnRule(this, 'CheckWorkMailRegion', {
       ruleCondition: workMailEnabled.expression,
@@ -96,7 +96,7 @@ export class Smtp extends Construct {
 
     this.host = cdk.Fn.conditionIf(workMailEnabled.logicalId, `smtp.mail.${region}.awsapps.com`, `email-smtp.${region}.amazonaws.com`).toString();
     this.port = 465;
-    this.email = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.getAtt('Email'), this.params.email.valueAsString).toString();
+    this.email = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.getAtt('Email'), this.cfnParameters.email.valueAsString).toString();
     const username = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.getAtt('Email'), accessKey.ref).toString();
 
     this.secret = new Secret(this, 'Secret', {

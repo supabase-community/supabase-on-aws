@@ -17,24 +17,24 @@ interface SupabaseTaskImageOptions extends NetworkLoadBalancedTaskImageOptions {
   command?: string[];
 }
 
-export interface CloudMapFargateServiceProps {
+export interface BaseFargateServiceProps {
   serviceName?: string;
   cluster: ecs.ICluster;
   taskImageOptions: SupabaseTaskImageOptions;
   cpuArchitecture?: 'x86_64'|'arm64';
 }
 
-export interface AutoScalingFargateServiceProps extends CloudMapFargateServiceProps {
+export interface AutoScalingFargateServiceProps extends BaseFargateServiceProps {
   minTaskCount?: number;
   maxTaskCount?: number;
 }
 
-export class CloudMapFargateService extends Construct {
+export class BaseFargateService extends Construct {
   readonly listenerPort: number;
   readonly dnsName: string;
   readonly service: ecs.FargateService;
 
-  constructor(scope: Construct, id: string, props: CloudMapFargateServiceProps) {
+  constructor(scope: Construct, id: string, props: BaseFargateServiceProps) {
     super(scope, id);
 
     const serviceName = props.serviceName || id.toLowerCase();
@@ -139,7 +139,7 @@ export class CloudMapFargateService extends Construct {
     return loadBalancer;
   }
 
-  addBackend(backend: CloudMapFargateService) {
+  addBackend(backend: BaseFargateService) {
     this.service.connections.allowTo(backend.service, ec2.Port.tcp(backend.listenerPort));
   }
 
@@ -165,48 +165,50 @@ export class CloudMapFargateService extends Construct {
 
 }
 
-export class AutoScalingFargateService extends CloudMapFargateService {
-  readonly taskSize: cdk.CfnParameter;
-  readonly minTaskCount: cdk.CfnParameter;
-  readonly maxTaskCount: cdk.CfnParameter;
-
+export class AutoScalingFargateService extends BaseFargateService {
+  readonly cfnParameters: {
+    taskSize: cdk.CfnParameter;
+    minTaskCount: cdk.CfnParameter;
+    maxTaskCount: cdk.CfnParameter;
+  }
   constructor(scope: FargateStack, id: string, props: AutoScalingFargateServiceProps) {
     super(scope, id, props);
 
     const { minTaskCount, maxTaskCount } = props;
 
-    this.taskSize = new cdk.CfnParameter(this, 'TaskSize', {
-      description: 'Fargare task size',
-      type: 'String',
-      default: 'nano',
-      allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
-    });
+    this.cfnParameters = {
+      taskSize: new cdk.CfnParameter(this, 'TaskSize', {
+        description: 'Fargare task size',
+        type: 'String',
+        default: 'nano',
+        allowedValues: ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '4xlarge'],
+      }),
+      minTaskCount: new cdk.CfnParameter(this, 'MinTaskCount', {
+        description: 'Minimum fargate task count',
+        type: 'Number',
+        default: (typeof minTaskCount == 'undefined') ? 1 : minTaskCount,
+        minValue: 0,
+      }),
+      maxTaskCount: new cdk.CfnParameter(this, 'MaxTaskCount', {
+        description: 'Maximum fargate task count',
+        type: 'Number',
+        default: (typeof maxTaskCount == 'undefined') ? 20 : maxTaskCount,
+        minValue: 0,
+      }),
+    }
 
-    const cpu = scope.taskSizeMapping.findInMap(this.taskSize.valueAsString, 'cpu');
-    const memory = scope.taskSizeMapping.findInMap(this.taskSize.valueAsString, 'memory');
+    const cpu = scope.taskSizeMapping.findInMap(this.cfnParameters.taskSize.valueAsString, 'cpu');
+    const memory = scope.taskSizeMapping.findInMap(this.cfnParameters.taskSize.valueAsString, 'memory');
 
     (this.service.taskDefinition.node.defaultChild as ecs.CfnTaskDefinition).addPropertyOverride('Cpu', cpu);
     (this.service.taskDefinition.node.defaultChild as ecs.CfnTaskDefinition).addPropertyOverride('Memory', memory);
 
-    this.minTaskCount = new cdk.CfnParameter(this, 'MinTaskCount', {
-      description: 'Minimum fargate task count',
-      type: 'Number',
-      default: (typeof minTaskCount == 'undefined') ? 1 : minTaskCount,
-      minValue: 0,
-    });
-    this.maxTaskCount = new cdk.CfnParameter(this, 'MaxTaskCount', {
-      description: 'Maximum fargate task count',
-      type: 'Number',
-      default: (typeof maxTaskCount == 'undefined') ? 20 : maxTaskCount,
-      minValue: 0,
-    });
-
-    const serviceDisabled = new cdk.CfnCondition(this, 'ServiceDisabled', { expression: cdk.Fn.conditionEquals(this.minTaskCount, '0') });
+    const serviceDisabled = new cdk.CfnCondition(this, 'ServiceDisabled', { expression: cdk.Fn.conditionEquals(this.cfnParameters.minTaskCount, '0') });
     (this.service.node.defaultChild as ecs.CfnService).addPropertyOverride('DesiredCount', cdk.Fn.conditionIf(serviceDisabled.logicalId, 0, cdk.Aws.NO_VALUE));
 
     const autoScaling = this.service.autoScaleTaskCount({
-      minCapacity: this.minTaskCount.valueAsNumber,
-      maxCapacity: this.maxTaskCount.valueAsNumber,
+      minCapacity: this.cfnParameters.minTaskCount.valueAsNumber,
+      maxCapacity: this.cfnParameters.maxTaskCount.valueAsNumber,
     });
     autoScaling.scaleOnCpuUtilization('ScaleOnCpu', {
       targetUtilizationPercent: 50,
