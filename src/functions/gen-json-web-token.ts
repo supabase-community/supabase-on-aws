@@ -34,16 +34,16 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
     case 'Create': {
       const token = await generateToken(payload, jwtSecretArn, issuer, expiresIn);
       const response: CdkCustomResourceResponse = {
-        PhysicalResourceId: `Supabase/API/Role/${role}`,
-        Data: { Token: token, Role: role, Issuer: issuer },
+        PhysicalResourceId: `${jwtSecretArn}:${role}`,
+        Data: { Value: token, Role: role, Issuer: issuer },
       };
       return response;
     }
     case 'Update': {
       const token = await generateToken(payload, jwtSecretArn, issuer, expiresIn);
       const response: CdkCustomResourceResponse = {
-        PhysicalResourceId: `Supabase/API/Role/${role}`,
-        Data: { Token: token, Role: role, Issuer: issuer },
+        PhysicalResourceId: `${jwtSecretArn}:${role}`,
+        Data: { Value: token, Role: role, Issuer: issuer },
       };
       return response;
     }

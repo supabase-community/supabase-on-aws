@@ -10,9 +10,9 @@ import { AmplifyHosting } from './aws-amplify-hosting';
 import { PrefixList } from './aws-prefix-list';
 import { ForceDeployJob } from './ecs-force-deploy-job';
 import { AutoScalingFargateService } from './ecs-patterns';
+import { JwtSecret } from './json-web-token';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
-import { SupabaseJwt } from './supabase-jwt';
 
 export class FargateStack extends cdk.Stack {
   readonly taskSizeMapping: cdk.CfnMapping;
@@ -121,7 +121,9 @@ export class SupabaseStack extends FargateStack {
 
     const db = new SupabaseDatabase(this, 'Database', { vpc });
 
-    const jwt = new SupabaseJwt(this, 'SupabaseJwt', { issuer: 'supabase', expiresIn: '10y' });
+    const jwtSecret = new JwtSecret(this, 'JwtSecret');
+    const anonKey = jwtSecret.genApiKey('AnonKey', { roleName: 'anon', issuer: 'supabase', expiresIn: '10y' });
+    const serviceRoleKey = jwtSecret.genApiKey('ServiceRoleKey', { roleName: 'service_role', issuer: 'supabase', expiresIn: '10y' });
 
     const kong = new AutoScalingFargateService(this, 'Kong', {
       cluster,
@@ -138,8 +140,8 @@ export class SupabaseStack extends FargateStack {
           //KONG_OPENTELEMETRY_TRACING_SAMPLING_RATE: '1.0',
         },
         secrets: {
-          ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
-          SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
+          ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
+          SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
         },
         healthCheck: {
           command: ['CMD', 'kong', 'health'],
@@ -202,7 +204,7 @@ export class SupabaseStack extends FargateStack {
         },
         secrets: {
           GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writerSearchPathAuth),
-          GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
+          GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(smtp.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(smtp.secret, 'password'),
         },
@@ -228,7 +230,7 @@ export class SupabaseStack extends FargateStack {
         },
         secrets: {
           PGRST_DB_URI: ecs.Secret.fromSsmParameter(db.url.writer),
-          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
+          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
         },
       },
     });
@@ -252,7 +254,7 @@ export class SupabaseStack extends FargateStack {
         },
         secrets: {
           DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writer),
-          JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
+          JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
         },
       },
       minTaskCount: 0,
@@ -276,7 +278,7 @@ export class SupabaseStack extends FargateStack {
           MAX_REPLICATION_LAG_MB: '1000',
         },
         secrets: {
-          JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
+          JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           DB_HOST: ecs.Secret.fromSecretsManager(db.secret, 'host'),
           DB_PORT: ecs.Secret.fromSecretsManager(db.secret, 'port'),
           DB_NAME: ecs.Secret.fromSecretsManager(db.secret, 'dbname'),
@@ -311,9 +313,9 @@ export class SupabaseStack extends FargateStack {
           GLOBAL_S3_BUCKET: bucket.bucketName,
         },
         secrets: {
-          ANON_KEY: ecs.Secret.fromSsmParameter(jwt.anonKey),
-          SERVICE_KEY: ecs.Secret.fromSsmParameter(jwt.serviceRoleKey),
-          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwt.secret),
+          ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
+          SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
+          PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writer),
         },
         healthCheck: {
@@ -430,7 +432,7 @@ export class SupabaseStack extends FargateStack {
       exportName: `${cdk.Aws.STACK_NAME}Url`,
     });
     new cdk.CfnOutput(this, 'SupabasAnonKey', {
-      value: jwt.anonToken,
+      value: anonKey.value,
       description: 'This key is safe to use in a browser if you have enabled Row Level Security for your tables and configured policies.',
       exportName: `${cdk.Aws.STACK_NAME}AnonKey`,
     });

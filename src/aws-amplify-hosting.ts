@@ -19,6 +19,8 @@ interface AmplifyHostingProps {
 
 export class AmplifyHosting extends Construct {
   readonly app: amplify.App;
+  readonly prodBranch: amplify.Branch;
+  readonly prodBranchUrl: string;
 
   constructor(scope: Construct, id: string, props: AmplifyHostingProps) {
     super(scope, id);
@@ -137,7 +139,7 @@ export class AmplifyHosting extends Construct {
 
     this.app.addCustomRule({ source: '/<*>', target: '/index.html', status: amplify.RedirectStatus.NOT_FOUND_REWRITE });
 
-    const prodBranch = this.app.addBranch('ProdBranch', {
+    this.prodBranch = this.app.addBranch('ProdBranch', {
       branchName: 'main',
       stage: 'PRODUCTION',
       autoBuild: true,
@@ -145,9 +147,9 @@ export class AmplifyHosting extends Construct {
         NEXT_PUBLIC_SITE_URL: `https://main.${this.app.appId}.amplifyapp.com`,
       },
     });
-    (prodBranch.node.defaultChild as cdk.CfnResource).addPropertyOverride('Framework', 'Next.js - SSR');
+    (this.prodBranch.node.defaultChild as cdk.CfnResource).addPropertyOverride('Framework', 'Next.js - SSR');
 
-    copyGitRepoJob.node.addDependency(prodBranch.node.defaultChild!);
+    copyGitRepoJob.node.addDependency(this.prodBranch.node.defaultChild!);
 
     const amplifySSRLoggingPolicy = new iam.Policy(this, 'AmplifySSRLoggingPolicy', {
       policyName: `AmplifySSRLoggingPolicy-${this.app.appId}`,
@@ -171,10 +173,9 @@ export class AmplifyHosting extends Construct {
     });
     amplifySSRLoggingPolicy.attachToRole(amplifySSRLoggingRole);
 
-    new cdk.CfnOutput(this, 'Url', {
-      value: `https://${prodBranch.branchName}.${this.app.defaultDomain}`,
-    });
+    this.prodBranchUrl = `https://${this.prodBranch.branchName}.${this.app.defaultDomain}`;
 
+    new cdk.CfnOutput(this, 'Url', { value: this.prodBranchUrl });
   }
 
 }
