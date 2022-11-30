@@ -60,7 +60,7 @@ export class AmplifyHosting extends Construct {
 
     const copyGitRepoProvider = new cr.Provider(this, 'CopyGitRepoProvider', { onEventHandler: copyGitRepoFunction });
 
-    new cdk.CustomResource(this, 'CopyGitRepoJob', {
+    const copyGitRepoJob = new cdk.CustomResource(this, 'CopyGitRepoJob', {
       resourceType: 'Custom::CopyGitRepoJob',
       serviceToken: copyGitRepoProvider.serviceToken,
       properties: {
@@ -146,6 +146,8 @@ export class AmplifyHosting extends Construct {
       },
     });
     (prodBranch.node.defaultChild as cdk.CfnResource).addPropertyOverride('Framework', 'Next.js - SSR');
+
+    copyGitRepoJob.node.addDependency(prodBranch.node.defaultChild!);
 
     const amplifySSRLoggingPolicy = new iam.Policy(this, 'AmplifySSRLoggingPolicy', {
       policyName: `AmplifySSRLoggingPolicy-${this.app.appId}`,
