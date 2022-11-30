@@ -52,6 +52,7 @@ def handler(event: dict, context: Any) -> dict:
     exec(['rm', '-rf', CLONE_DIR])
     exec(['git', 'clone', '--depth', '1', '-b', source_branch, source_repo, CLONE_DIR])
     exec(['git', 'fetch', '--unshallow'], CLONE_DIR)
+    exec(['git', 'checkout', '-b', 'local_tmp'], CLONE_DIR)
     exec(['git', 'remote', 'add', 'dest', target_repo], CLONE_DIR)
-    exec(['git', 'push', '--force', 'dest', f'{source_branch}:{target_branch}'], CLONE_DIR)
+    exec(['git', 'push', '--force', 'dest', f'local_tmp:{target_branch}'], CLONE_DIR)
   return {}
