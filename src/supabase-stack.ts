@@ -83,7 +83,7 @@ export class SupabaseStack extends FargateStack {
 
     const authImageUri = new cdk.CfnParameter(this, 'AuthImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/gotrue:v2.23.0',
+      default: 'public.ecr.aws/supabase/gotrue:v2.27.0',
       description: 'https://gallery.ecr.aws/supabase/gotrue',
     });
     const restImageUri = new cdk.CfnParameter(this, 'RestImageUri', {
@@ -98,12 +98,12 @@ export class SupabaseStack extends FargateStack {
     });
     const storageImageUri = new cdk.CfnParameter(this, 'StorageImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/storage-api:v0.24.3',
+      default: 'public.ecr.aws/supabase/storage-api:v0.24.10',
       description: 'https://gallery.ecr.aws/supabase/storage-api',
     });
     const postgresMetaImageUri = new cdk.CfnParameter(this, 'PostgresMetaImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/postgres-meta:v0.50.2',
+      default: 'public.ecr.aws/supabase/postgres-meta:v0.52.1',
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 

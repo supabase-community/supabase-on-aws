@@ -869,7 +869,7 @@ Object {
   },
   "Parameters": Object {
     "AuthImageUri": Object {
-      "Default": "public.ecr.aws/supabase/gotrue:v2.23.0",
+      "Default": "public.ecr.aws/supabase/gotrue:v2.27.0",
       "Description": "https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
     },
@@ -1157,7 +1157,7 @@ Object {
       "Type": "Number",
     },
     "PostgresMetaImageUri": Object {
-      "Default": "public.ecr.aws/supabase/postgres-meta:v0.50.2",
+      "Default": "public.ecr.aws/supabase/postgres-meta:v0.52.1",
       "Description": "https://gallery.ecr.aws/supabase/postgres-meta",
       "Type": "String",
     },
@@ -1281,7 +1281,7 @@ Object {
       "Type": "String",
     },
     "StorageImageUri": Object {
-      "Default": "public.ecr.aws/supabase/storage-api:v0.24.3",
+      "Default": "public.ecr.aws/supabase/storage-api:v0.24.10",
       "Description": "https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
     },
