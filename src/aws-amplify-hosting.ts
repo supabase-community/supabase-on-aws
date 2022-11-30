@@ -102,6 +102,7 @@ export class AmplifyHosting extends Construct {
                 `cp -r public .next/standalone/${appRoot}/public`,
                 `cp -r .next/static .next/standalone/${appRoot}/.next/static`,
                 `cp .env .env.production .next/standalone/${appRoot}`,
+                `ln -s /tmp .next/standalone/${appRoot}/.next/cache`,
               ],
             },
           },
