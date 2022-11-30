@@ -344,7 +344,6 @@ export class SupabaseStack extends FargateStack {
         },
       },
     });
-    meta.cfnParameters.taskSize.default = 'nano';
 
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_AUTH_URL', `http://${auth.dnsName}:${auth.listenerPort}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REST_URL', `http://${rest.dnsName}:${rest.listenerPort}/`);
