@@ -831,8 +831,8 @@ Object {
       },
       "Value": Object {
         "Fn::GetAtt": Array [
-          "SupabaseJwtAnonRole874E82F9",
-          "Token",
+          "JwtSecretAnonKeyTokenE92DEEB0",
+          "Value",
         ],
       },
     },
@@ -2300,7 +2300,7 @@ Object {
               Object {
                 "Name": "GOTRUE_JWT_SECRET",
                 "ValueFrom": Object {
-                  "Ref": "SupabaseJwtSecretFA404A75",
+                  "Ref": "JwtSecretB8834B39",
                 },
               },
               Object {
@@ -2714,7 +2714,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "SupabaseJwtSecretFA404A75",
+                "Ref": "JwtSecretB8834B39",
               },
             },
             Object {
@@ -5503,7 +5503,7 @@ Object {
               Object {
                 "Name": "JWT_SECRET",
                 "ValueFrom": Object {
-                  "Ref": "SupabaseJwtSecretFA404A75",
+                  "Ref": "JwtSecretB8834B39",
                 },
               },
             ],
@@ -5614,7 +5614,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "SupabaseJwtSecretFA404A75",
+                "Ref": "JwtSecretB8834B39",
               },
             },
           ],
@@ -5662,6 +5662,341 @@ Object {
         },
       },
       "Type": "AWS::IAM::Role",
+    },
+    "JwtSecretAnonKeyParameter532DCC06": Object {
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              " - Json Web Token, role: anon",
+            ],
+          ],
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "/JwtSecret/AnonKey",
+            ],
+          ],
+        },
+        "Type": "String",
+        "Value": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretAnonKeyTokenE92DEEB0",
+            "Value",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "JwtSecretAnonKeyTokenE92DEEB0": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ExpiresIn": "10y",
+        "Issuer": "supabase",
+        "Payload": Object {
+          "role": "anon",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::JsonWebToken",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "JwtSecretB8834B39": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              " - Json Web Token Secret",
+            ],
+          ],
+        },
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+          "PasswordLength": 64,
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "JwtSecretGenerateTokenFunctionB37EE16F": Object {
+      "DependsOn": Array [
+        "JwtSecretGenerateTokenFunctionServiceRoleDefaultPolicy91E418F9",
+        "JwtSecretGenerateTokenFunctionServiceRole220DD241",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "8b9f9856277034e502ae7c42e713c617b43660546f718ea24ad4893df46eec17.zip",
+        },
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              " - Generate token via jwt secret",
+            ],
+          ],
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "JWT_SECRET_ARN": Object {
+              "Ref": "JwtSecretB8834B39",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretGenerateTokenFunctionServiceRole220DD241",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "JwtSecretGenerateTokenFunctionServiceRole220DD241": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "JwtSecretGenerateTokenFunctionServiceRoleDefaultPolicy91E418F9": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "JwtSecretB8834B39",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "JwtSecretGenerateTokenFunctionServiceRoleDefaultPolicy91E418F9",
+        "Roles": Array [
+          Object {
+            "Ref": "JwtSecretGenerateTokenFunctionServiceRole220DD241",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA": Object {
+      "DependsOn": Array [
+        "JwtSecretGenerateTokenProviderframeworkonEventServiceRoleDefaultPolicy14F466A4",
+        "JwtSecretGenerateTokenProviderframeworkonEventServiceRoleD6B5B68A",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (Supabase/JwtSecret/GenerateTokenProvider)",
+        "Environment": Object {
+          "Variables": Object {
+            "USER_ON_EVENT_FUNCTION_ARN": Object {
+              "Fn::GetAtt": Array [
+                "JwtSecretGenerateTokenFunctionB37EE16F",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "Handler": "framework.onEvent",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretGenerateTokenProviderframeworkonEventServiceRoleD6B5B68A",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "JwtSecretGenerateTokenProviderframeworkonEventServiceRoleD6B5B68A": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "JwtSecretGenerateTokenProviderframeworkonEventServiceRoleDefaultPolicy14F466A4": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "JwtSecretGenerateTokenFunctionB37EE16F",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "JwtSecretGenerateTokenFunctionB37EE16F",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "JwtSecretGenerateTokenProviderframeworkonEventServiceRoleDefaultPolicy14F466A4",
+        "Roles": Array [
+          Object {
+            "Ref": "JwtSecretGenerateTokenProviderframeworkonEventServiceRoleD6B5B68A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "JwtSecretServiceRoleKeyParameterB65536EB": Object {
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              " - Json Web Token, role: service_role",
+            ],
+          ],
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "/JwtSecret/ServiceRoleKey",
+            ],
+          ],
+        },
+        "Type": "String",
+        "Value": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretServiceRoleKeyToken50CB4154",
+            "Value",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "JwtSecretServiceRoleKeyToken50CB4154": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ExpiresIn": "10y",
+        "Issuer": "supabase",
+        "Payload": Object {
+          "role": "service_role",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::JsonWebToken",
+      "UpdateReplacePolicy": "Delete",
     },
     "KongFargateCloudmapService5994A750": Object {
       "Properties": Object {
@@ -6151,7 +6486,7 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "SupabaseJwtAnonKey90E80F90",
+                        "Ref": "JwtSecretAnonKeyParameter532DCC06",
                       },
                     ],
                   ],
@@ -6177,7 +6512,7 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "SupabaseJwtServiceRoleKey94675B64",
+                        "Ref": "JwtSecretServiceRoleKeyParameterB65536EB",
                       },
                     ],
                   ],
@@ -6295,7 +6630,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "SupabaseJwtAnonKey90E80F90",
+                      "Ref": "JwtSecretAnonKeyParameter532DCC06",
                     },
                   ],
                 ],
@@ -6327,7 +6662,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "SupabaseJwtServiceRoleKey94675B64",
+                      "Ref": "JwtSecretServiceRoleKeyParameterB65536EB",
                     },
                   ],
                 ],
@@ -7093,7 +7428,7 @@ Object {
               Object {
                 "Name": "JWT_SECRET",
                 "ValueFrom": Object {
-                  "Ref": "SupabaseJwtSecretFA404A75",
+                  "Ref": "JwtSecretB8834B39",
                 },
               },
               Object {
@@ -7259,7 +7594,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "SupabaseJwtSecretFA404A75",
+                "Ref": "JwtSecretB8834B39",
               },
             },
             Object {
@@ -7628,7 +7963,7 @@ Object {
               Object {
                 "Name": "PGRST_JWT_SECRET",
                 "ValueFrom": Object {
-                  "Ref": "SupabaseJwtSecretFA404A75",
+                  "Ref": "JwtSecretB8834B39",
                 },
               },
             ],
@@ -7756,7 +8091,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "SupabaseJwtSecretFA404A75",
+                "Ref": "JwtSecretB8834B39",
               },
             },
           ],
@@ -8450,7 +8785,7 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "SupabaseJwtAnonKey90E80F90",
+                        "Ref": "JwtSecretAnonKeyParameter532DCC06",
                       },
                     ],
                   ],
@@ -8476,7 +8811,7 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "SupabaseJwtServiceRoleKey94675B64",
+                        "Ref": "JwtSecretServiceRoleKeyParameterB65536EB",
                       },
                     ],
                   ],
@@ -8485,7 +8820,7 @@ Object {
               Object {
                 "Name": "PGRST_JWT_SECRET",
                 "ValueFrom": Object {
-                  "Ref": "SupabaseJwtSecretFA404A75",
+                  "Ref": "JwtSecretB8834B39",
                 },
               },
               Object {
@@ -8626,7 +8961,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "SupabaseJwtAnonKey90E80F90",
+                      "Ref": "JwtSecretAnonKeyParameter532DCC06",
                     },
                   ],
                 ],
@@ -8658,7 +8993,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "SupabaseJwtServiceRoleKey94675B64",
+                      "Ref": "JwtSecretServiceRoleKeyParameterB65536EB",
                     },
                   ],
                 ],
@@ -8671,7 +9006,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "SupabaseJwtSecretFA404A75",
+                "Ref": "JwtSecretB8834B39",
               },
             },
             Object {
@@ -8916,6 +9251,8 @@ Object {
           ],
           "Version": "2012-10-17",
         },
+        "Description": "The service role that will be used by AWS Amplify for SSR app logging.",
+        "Path": "/service-role/",
       },
       "Type": "AWS::IAM::Role",
     },
@@ -8970,6 +9307,7 @@ applications:
             - cp -r public .next/standalone/studio/public
             - cp -r .next/static .next/standalone/studio/.next/static
             - cp .env .env.production .next/standalone/studio
+            - ln -s /tmp .next/standalone/studio/.next/cache
       artifacts:
         baseDirectory: .next
         files:
@@ -9058,7 +9396,7 @@ applications:
             "Name": "SUPABASE_ANON_KEY",
             "Value": Object {
               "Fn::GetAtt": Array [
-                "SupabaseJwtAnonKey90E80F90",
+                "JwtSecretAnonKeyTokenE92DEEB0",
                 "Value",
               ],
             },
@@ -9067,7 +9405,7 @@ applications:
             "Name": "SUPABASE_SERVICE_KEY",
             "Value": Object {
               "Fn::GetAtt": Array [
-                "SupabaseJwtServiceRoleKey94675B64",
+                "JwtSecretServiceRoleKeyToken50CB4154",
                 "Value",
               ],
             },
@@ -9142,17 +9480,23 @@ applications:
       },
       "Type": "AWS::Amplify::Branch",
     },
-    "StudioCopyGitRepoFunctionAF34C665": Object {
+    "StudioRepo63377C05": Object {
+      "Properties": Object {
+        "RepositoryName": "SupabaseStudio",
+      },
+      "Type": "AWS::CodeCommit::Repository",
+    },
+    "StudioRepoImportFunctionDEF0C9F1": Object {
       "DependsOn": Array [
-        "StudioCopyGitRepoFunctionServiceRoleDefaultPolicy13551F82",
-        "StudioCopyGitRepoFunctionServiceRoleCDC1398A",
+        "StudioRepoImportFunctionServiceRoleDefaultPolicyA96D13C0",
+        "StudioRepoImportFunctionServiceRoleEFEC8085",
       ],
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "00ee2ec83f114e49651582d4f2e01e582b08220156340fd47ae6e64aa059b880.zip",
+          "S3Key": "fa874bccc5369eeb5b893ad201a129a5f4df7548191b3f2c9159cd3b340138b4.zip",
         },
         "Description": "Copy Git Repository",
         "EphemeralStorage": Object {
@@ -9162,7 +9506,7 @@ applications:
         "MemorySize": 2048,
         "Role": Object {
           "Fn::GetAtt": Array [
-            "StudioCopyGitRepoFunctionServiceRoleCDC1398A",
+            "StudioRepoImportFunctionServiceRoleEFEC8085",
             "Arn",
           ],
         },
@@ -9171,38 +9515,7 @@ applications:
       },
       "Type": "AWS::Lambda::Function",
     },
-    "StudioCopyGitRepoFunctionServiceRoleCDC1398A": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "StudioCopyGitRepoFunctionServiceRoleDefaultPolicy13551F82": Object {
+    "StudioRepoImportFunctionServiceRoleDefaultPolicyA96D13C0": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -9229,21 +9542,163 @@ applications:
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "StudioCopyGitRepoFunctionServiceRoleDefaultPolicy13551F82",
+        "PolicyName": "StudioRepoImportFunctionServiceRoleDefaultPolicyA96D13C0",
         "Roles": Array [
           Object {
-            "Ref": "StudioCopyGitRepoFunctionServiceRoleCDC1398A",
+            "Ref": "StudioRepoImportFunctionServiceRoleEFEC8085",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "StudioCopyGitRepoJobEFC84104": Object {
+    "StudioRepoImportFunctionServiceRoleEFEC8085": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "StudioRepoImportProviderframeworkonEventB72B655D": Object {
+      "DependsOn": Array [
+        "StudioRepoImportProviderframeworkonEventServiceRoleDefaultPolicy623B206F",
+        "StudioRepoImportProviderframeworkonEventServiceRole3B88B48B",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Studio/Repo/ImportProvider)",
+        "Environment": Object {
+          "Variables": Object {
+            "USER_ON_EVENT_FUNCTION_ARN": Object {
+              "Fn::GetAtt": Array [
+                "StudioRepoImportFunctionDEF0C9F1",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "Handler": "framework.onEvent",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "StudioRepoImportProviderframeworkonEventServiceRole3B88B48B",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "StudioRepoImportProviderframeworkonEventServiceRole3B88B48B": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "StudioRepoImportProviderframeworkonEventServiceRoleDefaultPolicy623B206F": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "StudioRepoImportFunctionDEF0C9F1",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "StudioRepoImportFunctionDEF0C9F1",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "StudioRepoImportProviderframeworkonEventServiceRoleDefaultPolicy623B206F",
+        "Roles": Array [
+          Object {
+            "Ref": "StudioRepoImportProviderframeworkonEventServiceRole3B88B48B",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "StudioRepomain124B0D8A": Object {
       "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "StudioAppProdBranchED7568CB",
+      ],
       "Properties": Object {
         "ServiceToken": Object {
           "Fn::GetAtt": Array [
-            "StudioCopyGitRepoProviderframeworkonEvent1EB3BA2E",
+            "StudioRepoImportProviderframeworkonEventB72B655D",
             "Arn",
           ],
         },
@@ -9270,124 +9725,9 @@ applications:
             ],
           ],
         },
-        "Version": 4,
       },
-      "Type": "Custom::CopyGitRepoJob",
+      "Type": "Custom::RepoImportJob",
       "UpdateReplacePolicy": "Delete",
-    },
-    "StudioCopyGitRepoProviderframeworkonEvent1EB3BA2E": Object {
-      "DependsOn": Array [
-        "StudioCopyGitRepoProviderframeworkonEventServiceRoleDefaultPolicyC7422947",
-        "StudioCopyGitRepoProviderframeworkonEventServiceRole91FB85A2",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
-        },
-        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Studio/CopyGitRepoProvider)",
-        "Environment": Object {
-          "Variables": Object {
-            "USER_ON_EVENT_FUNCTION_ARN": Object {
-              "Fn::GetAtt": Array [
-                "StudioCopyGitRepoFunctionAF34C665",
-                "Arn",
-              ],
-            },
-          },
-        },
-        "Handler": "framework.onEvent",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "StudioCopyGitRepoProviderframeworkonEventServiceRole91FB85A2",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs14.x",
-        "Timeout": 900,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "StudioCopyGitRepoProviderframeworkonEventServiceRole91FB85A2": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "StudioCopyGitRepoProviderframeworkonEventServiceRoleDefaultPolicyC7422947": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "lambda:InvokeFunction",
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "StudioCopyGitRepoFunctionAF34C665",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "StudioCopyGitRepoFunctionAF34C665",
-                          "Arn",
-                        ],
-                      },
-                      ":*",
-                    ],
-                  ],
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "StudioCopyGitRepoProviderframeworkonEventServiceRoleDefaultPolicyC7422947",
-        "Roles": Array [
-          Object {
-            "Ref": "StudioCopyGitRepoProviderframeworkonEventServiceRole91FB85A2",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "StudioRepo63377C05": Object {
-      "Properties": Object {
-        "RepositoryName": "SupabaseStudio",
-      },
-      "Type": "AWS::CodeCommit::Repository",
     },
     "SupabaseDatabaseClusterSecret2AA4A5CD6b2eb8af71bef5c6813259b78dc271d3": Object {
       "DeletionPolicy": "Delete",
@@ -9412,301 +9752,6 @@ applications:
       },
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
-    },
-    "SupabaseJwtAnonKey90E80F90": Object {
-      "Properties": Object {
-        "Description": "This key is safe to use in a browser if you have enabled Row Level Security for your tables and configured policies.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/JWT/anon",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::GetAtt": Array [
-            "SupabaseJwtAnonRole874E82F9",
-            "Token",
-          ],
-        },
-      },
-      "Type": "AWS::SSM::Parameter",
-    },
-    "SupabaseJwtAnonRole874E82F9": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "ExpiresIn": "10y",
-        "Issuer": "supabase",
-        "Payload": Object {
-          "role": "anon",
-        },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "SupabaseJwtProviderframeworkonEventABA31464",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "Custom::SupabaseApiRole",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "SupabaseJwtCreateApiRoleFunction40C9BEBC": Object {
-      "DependsOn": Array [
-        "SupabaseJwtCreateApiRoleFunctionServiceRoleDefaultPolicyF86CBBD8",
-        "SupabaseJwtCreateApiRoleFunctionServiceRoleBB9B11C4",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "68890b0512a1e2f6d392e08c8f16c635fd7aae8d469f117add5847bdb35fb0ca.zip",
-        },
-        "Description": "Supabase - Create API role & API key",
-        "Environment": Object {
-          "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "JWT_SECRET_ARN": Object {
-              "Ref": "SupabaseJwtSecretFA404A75",
-            },
-          },
-        },
-        "Handler": "index.handler",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "SupabaseJwtCreateApiRoleFunctionServiceRoleBB9B11C4",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs16.x",
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "SupabaseJwtCreateApiRoleFunctionServiceRoleBB9B11C4": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "SupabaseJwtCreateApiRoleFunctionServiceRoleDefaultPolicyF86CBBD8": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:DescribeSecret",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Ref": "SupabaseJwtSecretFA404A75",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "SupabaseJwtCreateApiRoleFunctionServiceRoleDefaultPolicyF86CBBD8",
-        "Roles": Array [
-          Object {
-            "Ref": "SupabaseJwtCreateApiRoleFunctionServiceRoleBB9B11C4",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "SupabaseJwtProviderframeworkonEventABA31464": Object {
-      "DependsOn": Array [
-        "SupabaseJwtProviderframeworkonEventServiceRoleDefaultPolicyBFD1DEC9",
-        "SupabaseJwtProviderframeworkonEventServiceRole62754416",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
-        },
-        "Description": "AWS CDK resource provider framework - onEvent (Supabase/SupabaseJwt/Provider)",
-        "Environment": Object {
-          "Variables": Object {
-            "USER_ON_EVENT_FUNCTION_ARN": Object {
-              "Fn::GetAtt": Array [
-                "SupabaseJwtCreateApiRoleFunction40C9BEBC",
-                "Arn",
-              ],
-            },
-          },
-        },
-        "Handler": "framework.onEvent",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "SupabaseJwtProviderframeworkonEventServiceRole62754416",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs14.x",
-        "Timeout": 900,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "SupabaseJwtProviderframeworkonEventServiceRole62754416": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "SupabaseJwtProviderframeworkonEventServiceRoleDefaultPolicyBFD1DEC9": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "lambda:InvokeFunction",
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "SupabaseJwtCreateApiRoleFunction40C9BEBC",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "SupabaseJwtCreateApiRoleFunction40C9BEBC",
-                          "Arn",
-                        ],
-                      },
-                      ":*",
-                    ],
-                  ],
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "SupabaseJwtProviderframeworkonEventServiceRoleDefaultPolicyBFD1DEC9",
-        "Roles": Array [
-          Object {
-            "Ref": "SupabaseJwtProviderframeworkonEventServiceRole62754416",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "SupabaseJwtSecretFA404A75": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "Description": "Supabase - Json Web Token Secret",
-        "GenerateSecretString": Object {
-          "ExcludePunctuation": true,
-          "PasswordLength": 64,
-        },
-      },
-      "Type": "AWS::SecretsManager::Secret",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "SupabaseJwtServiceRole36CFC81F": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "ExpiresIn": "10y",
-        "Issuer": "supabase",
-        "Payload": Object {
-          "role": "service_role",
-        },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "SupabaseJwtProviderframeworkonEventABA31464",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "Custom::SupabaseApiRole",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "SupabaseJwtServiceRoleKey94675B64": Object {
-      "Properties": Object {
-        "Description": "This key has the ability to bypass Row Level Security. Never share it publicly.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/JWT/service_role",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::GetAtt": Array [
-            "SupabaseJwtServiceRole36CFC81F",
-            "Token",
-          ],
-        },
-      },
-      "Type": "AWS::SSM::Parameter",
     },
     "VPCB9E5F0B4": Object {
       "Properties": Object {

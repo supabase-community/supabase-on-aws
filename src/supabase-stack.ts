@@ -371,31 +371,6 @@ export class SupabaseStack extends FargateStack {
     storage.addDatabaseBackend(db);
     meta.addDatabaseBackend(db);
 
-    // Supabase Studio
-    const studioBranch = new cdk.CfnParameter(this, 'StudioBranch', {
-      type: 'String',
-      default: '0.22.08',
-      description: 'https://github.com/supabase/supabase/tags',
-    });
-
-    new AmplifyHosting(this, 'Studio', {
-      sourceRepo: 'https://github.com/supabase/supabase.git',
-      sourceBranch: studioBranch.valueAsString,
-      appRoot: 'studio',
-      environmentVariables: {
-        STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
-        POSTGRES_PASSWORD: db.secret.secretValueFromJson('password').toString(),
-        SUPABASE_URL: `${apiExternalUrl}`,
-        SUPABASE_REST_URL: `${apiExternalUrl}/rest/v1/`,
-        SUPABASE_ANON_KEY: anonKey.value,
-        SUPABASE_SERVICE_KEY: serviceRoleKey.value,
-      },
-      liveUpdates: [
-        { pkg: 'node', type: 'npm', version: '16' },
-        { pkg: 'next-version', type: 'internal', version: '12' },
-      ],
-    });
-
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
 
     const dbSecretRotatedRule = new events.Rule(this, 'DatabaseSecretRotated', {
@@ -425,6 +400,31 @@ export class SupabaseStack extends FargateStack {
 
     forceDeployJob.addTrigger({ rule: dbSecretRotatedRule, services: [auth, rest, realtime, storage, meta] });
     forceDeployJob.addTrigger({ rule: authParameterChangedRule, services: [auth] });
+
+    // Supabase Studio
+    const studioBranch = new cdk.CfnParameter(this, 'StudioBranch', {
+      type: 'String',
+      default: '0.22.08',
+      description: 'https://github.com/supabase/supabase/tags',
+    });
+
+    new AmplifyHosting(this, 'Studio', {
+      sourceRepo: 'https://github.com/supabase/supabase.git',
+      sourceBranch: studioBranch.valueAsString,
+      appRoot: 'studio',
+      environmentVariables: {
+        STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
+        POSTGRES_PASSWORD: db.secret.secretValueFromJson('password').toString(),
+        SUPABASE_URL: `${apiExternalUrl}`,
+        SUPABASE_REST_URL: `${apiExternalUrl}/rest/v1/`,
+        SUPABASE_ANON_KEY: anonKey.value,
+        SUPABASE_SERVICE_KEY: serviceRoleKey.value,
+      },
+      liveUpdates: [
+        { pkg: 'node', type: 'npm', version: '16' },
+        { pkg: 'next-version', type: 'internal', version: '12' },
+      ],
+    });
 
     new cdk.CfnOutput(this, 'SupabaseUrl', {
       value: apiExternalUrl,

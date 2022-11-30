@@ -27,54 +27,15 @@ export class AmplifyHosting extends Construct {
 
     const { sourceRepo, sourceBranch, appRoot, environmentVariables = {}, liveUpdates } = props;
 
-    const repository = new codecommit.Repository(this, 'Repo', {
+    const repository = new Repository(this, 'Repo', {
       repositoryName: this.node.path.replace(/\//g, ''),
     });
 
-    const copyGitRepoFunction = new lambda.Function(this, 'CopyGitRepoFunction', {
-      description: 'Copy Git Repository',
-      runtime: lambda.Runtime.PYTHON_3_9,
-      code: lambda.Code.fromAsset('./src/functions/copy-git-repo', {
-        bundling: {
-          image: lambda.Runtime.PYTHON_3_9.bundlingImage,
-          command: [
-            '/bin/bash', '-c', [
-              'mkdir -p /var/task/local/{bin,lib}',
-              'yum install -y git',
-              'cp /usr/bin/git /usr/libexec/git-core/git-remote-https /usr/libexec/git-core/git-remote-http /var/task/local/bin',
-              'ldd /usr/bin/git | awk \'NF == 4 { system("cp " $3 " /var/task/local/lib/") }\'',
-              'ldd /usr/libexec/git-core/git-remote-https | awk \'NF == 4 { system("cp " $3 " /var/task/local/lib/") }\'',
-              'ldd /usr/libexec/git-core/git-remote-http | awk \'NF == 4 { system("cp " $3 " /var/task/local/lib/") }\'',
-              'pip install -r requirements.txt -t /var/task',
-              'cp -au /asset-input/index.py /var/task',
-              'cp -aur /var/task/* /asset-output',
-            ].join('&&'),
-          ],
-          user: 'root',
-        },
-      }),
-      handler: 'index.handler',
-      memorySize: 2048,
-      ephemeralStorageSize: cdk.Size.gibibytes(2),
-      timeout: cdk.Duration.minutes(3),
-    });
-    repository.grantPullPush(copyGitRepoFunction);
-
-    const copyGitRepoProvider = new cr.Provider(this, 'CopyGitRepoProvider', { onEventHandler: copyGitRepoFunction });
-
-    const copyGitRepoJob = new cdk.CustomResource(this, 'CopyGitRepoJob', {
-      resourceType: 'Custom::CopyGitRepoJob',
-      serviceToken: copyGitRepoProvider.serviceToken,
-      properties: {
-        SourceRepo: sourceRepo,
-        SourceBranch: sourceBranch,
-        TargetRepo: repository.repositoryCloneUrlGrc,
-        TargetBranch: 'main',
-        Version: 4,
-      },
-    });
+    const repoImportJob = repository.importFromUrl('main', sourceRepo, sourceBranch);
 
     const amplifySSRLoggingRole = new iam.Role(this, 'AmplifySSRLoggingRole', {
+      description: 'The service role that will be used by AWS Amplify for SSR app logging.',
+      path: '/service-role/',
       assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
     });
 
@@ -149,7 +110,7 @@ export class AmplifyHosting extends Construct {
     });
     (this.prodBranch.node.defaultChild as cdk.CfnResource).addPropertyOverride('Framework', 'Next.js - SSR');
 
-    copyGitRepoJob.node.addDependency(this.prodBranch.node.defaultChild!);
+    repoImportJob.node.addDependency(this.prodBranch.node.defaultChild!);
 
     const amplifySSRLoggingPolicy = new iam.Policy(this, 'AmplifySSRLoggingPolicy', {
       policyName: `AmplifySSRLoggingPolicy-${this.app.appId}`,
@@ -178,4 +139,56 @@ export class AmplifyHosting extends Construct {
     new cdk.CfnOutput(this, 'Url', { value: this.prodBranchUrl });
   }
 
+}
+
+export class Repository extends codecommit.Repository {
+  readonly importProvider: cr.Provider;
+
+  constructor(scope: Construct, id: string, props: codecommit.RepositoryProps) {
+    super(scope, id, props);
+
+    const importFunction = new lambda.Function(this, 'ImportFunction', {
+      description: 'Copy Git Repository',
+      runtime: lambda.Runtime.PYTHON_3_9,
+      code: lambda.Code.fromAsset('./src/functions/copy-git-repo', {
+        bundling: {
+          image: lambda.Runtime.PYTHON_3_9.bundlingImage,
+          command: [
+            '/bin/bash', '-c', [
+              'mkdir -p /var/task/local/{bin,lib}',
+              'yum install -y git',
+              'cp /usr/bin/git /usr/libexec/git-core/git-remote-https /usr/libexec/git-core/git-remote-http /var/task/local/bin',
+              'ldd /usr/bin/git | awk \'NF == 4 { system("cp " $3 " /var/task/local/lib/") }\'',
+              'ldd /usr/libexec/git-core/git-remote-https | awk \'NF == 4 { system("cp " $3 " /var/task/local/lib/") }\'',
+              'ldd /usr/libexec/git-core/git-remote-http | awk \'NF == 4 { system("cp " $3 " /var/task/local/lib/") }\'',
+              'pip install -r requirements.txt -t /var/task',
+              'cp -au /asset-input/index.py /var/task',
+              'cp -aur /var/task/* /asset-output',
+            ].join('&&'),
+          ],
+          user: 'root',
+        },
+      }),
+      handler: 'index.handler',
+      memorySize: 2048,
+      ephemeralStorageSize: cdk.Size.gibibytes(2),
+      timeout: cdk.Duration.minutes(3),
+    });
+    this.grantPullPush(importFunction);
+
+    this.importProvider = new cr.Provider(this, 'ImportProvider', { onEventHandler: importFunction });
+  }
+
+  importFromUrl(targetBranch: string, sourceRepoUrlHttp: string, sourceBranch: string) {
+    return new cdk.CustomResource(this, targetBranch, {
+      resourceType: 'Custom::RepoImportJob',
+      serviceToken: this.importProvider.serviceToken,
+      properties: {
+        SourceRepo: sourceRepoUrlHttp,
+        SourceBranch: sourceBranch,
+        TargetRepo: this.repositoryCloneUrlGrc,
+        TargetBranch: targetBranch,
+      },
+    });
+  }
 }
