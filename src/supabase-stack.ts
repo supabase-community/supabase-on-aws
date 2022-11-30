@@ -387,8 +387,8 @@ export class SupabaseStack extends FargateStack {
         POSTGRES_PASSWORD: db.secret.secretValueFromJson('password').toString(),
         SUPABASE_URL: `${apiExternalUrl}`,
         SUPABASE_REST_URL: `${apiExternalUrl}/rest/v1/`,
-        SUPABASE_ANON_KEY: jwt.anonKey.stringValue,
-        SUPABASE_SERVICE_KEY: jwt.serviceRoleKey.stringValue,
+        SUPABASE_ANON_KEY: anonKey.value,
+        SUPABASE_SERVICE_KEY: serviceRoleKey.value,
       },
       liveUpdates: [
         { pkg: 'node', type: 'npm', version: '16' },
