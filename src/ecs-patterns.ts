@@ -170,7 +170,7 @@ export class AutoScalingFargateService extends BaseFargateService {
     taskSize: cdk.CfnParameter;
     minTaskCount: cdk.CfnParameter;
     maxTaskCount: cdk.CfnParameter;
-  }
+  };
   constructor(scope: FargateStack, id: string, props: AutoScalingFargateServiceProps) {
     super(scope, id, props);
 
@@ -195,7 +195,7 @@ export class AutoScalingFargateService extends BaseFargateService {
         default: (typeof maxTaskCount == 'undefined') ? 20 : maxTaskCount,
         minValue: 0,
       }),
-    }
+    };
 
     const cpu = scope.taskSizeMapping.findInMap(this.cfnParameters.taskSize.valueAsString, 'cpu');
     const memory = scope.taskSizeMapping.findInMap(this.cfnParameters.taskSize.valueAsString, 'memory');

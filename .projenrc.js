@@ -1,6 +1,6 @@
 const { awscdk } = require('projen');
 const project = new awscdk.AwsCdkTypeScriptApp({
-  cdkVersion: '2.51.1',
+  cdkVersion: '2.53.0',
   defaultReleaseBranch: 'main',
   name: 'supabase-on-aws',
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */

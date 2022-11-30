@@ -5,14 +5,14 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
+import { Smtp } from './amazon-ses-smtp';
+import { AmplifyHosting } from './aws-amplify-hosting';
 import { PrefixList } from './aws-prefix-list';
 import { ForceDeployJob } from './ecs-force-deploy-job';
+import { AutoScalingFargateService } from './ecs-patterns';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 import { SupabaseJwt } from './supabase-jwt';
-import { Smtp } from './amazon-ses-smtp';
-import { AutoScalingFargateService } from './ecs-patterns';
-import { AmplifyHosting } from './aws-amplify-hosting';
 
 export class FargateStack extends cdk.Stack {
   readonly taskSizeMapping: cdk.CfnMapping;
@@ -371,14 +371,15 @@ export class SupabaseStack extends FargateStack {
     meta.addDatabaseBackend(db);
 
     // Supabase Studio
-    const studioAssetUrl = new cdk.CfnParameter(this, 'StudioAssetUrl', {
+    const studioBranch = new cdk.CfnParameter(this, 'StudioBranch', {
       type: 'String',
-      default: 'https://github.com/supabase/supabase/archive/refs/tags/0.22.08.tar.gz',
+      default: '0.22.08',
       description: 'https://github.com/supabase/supabase/tags',
     });
 
     new AmplifyHosting(this, 'Studio', {
-      sourceUrl: studioAssetUrl.valueAsString,
+      sourceRepo: 'https://github.com/supabase/supabase.git',
+      sourceBranch: studioBranch.valueAsString,
       appRoot: 'studio',
       environmentVariables: {
         STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
@@ -392,7 +393,7 @@ export class SupabaseStack extends FargateStack {
         { pkg: 'node', type: 'npm', version: '16' },
         { pkg: 'next-version', type: 'internal', version: '12' },
       ],
-    })
+    });
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
 
@@ -464,7 +465,7 @@ export class SupabaseStack extends FargateStack {
             realtimeImageUri.logicalId,
             storageImageUri.logicalId,
             postgresMetaImageUri.logicalId,
-            studioAssetUrl.logicalId,
+            studioBranch.logicalId,
           ],
         },
         {
@@ -585,13 +586,13 @@ export class SupabaseStack extends FargateStack {
 
         [storage.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
         [storage.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [storage.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' }, 
+        [storage.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
         [meta.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
         [meta.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
         [meta.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
-        [studioAssetUrl.logicalId]: { default: 'Supabase Studio Asset URL' },
+        [studioBranch.logicalId]: { default: 'Supabase Studio Branch' },
       },
     };
 

@@ -12,7 +12,7 @@ export class Smtp extends Construct {
     region: cdk.CfnParameter;
     email: cdk.CfnParameter;
     enableTestDomain: cdk.CfnParameter;
-  }
+  };
   secret: Secret;
   host: string;
   port: number;

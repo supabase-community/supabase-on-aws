@@ -7,8 +7,8 @@ export class AuthProvider extends Construct {
   readonly name: cdk.CfnParameter;
   readonly clientId: cdk.CfnParameter;
   readonly secret: cdk.CfnParameter;
-  readonly clientIdParameter: StringParameter
-  readonly secretParameter: StringParameter
+  readonly clientIdParameter: StringParameter;
+  readonly secretParameter: StringParameter;
   readonly enabled: string;
 
   constructor(scope: Construct, id: string) {
@@ -35,7 +35,7 @@ export class AuthProvider extends Construct {
     });
 
     const enabled = new cdk.CfnCondition(this, 'Enabled', { expression: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(this.name, '')) });
-    this.enabled = cdk.Fn.conditionIf(enabled.logicalId, 'true', 'false').toString()
+    this.enabled = cdk.Fn.conditionIf(enabled.logicalId, 'true', 'false').toString();
 
     // If provider name is not specified, dummy provider name is configured such as PROVIDER1.
     const dummyProviderName = id.toUpperCase();

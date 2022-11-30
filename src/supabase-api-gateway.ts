@@ -6,7 +6,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
-import { SupabaseService } from './supabase-service';
+import { BaseFargateService } from './ecs-patterns';
 
 interface ApiGatewayProps {
   vpc: ec2.IVpc;
@@ -44,12 +44,15 @@ export class ApiGateway extends Construct {
     this.domainName = cdk.Fn.select(2, cdk.Fn.split('/', this.api.apiEndpoint));
   }
 
-  addRoute(path: string, service: SupabaseService) {
+  addRoute(path: string, service: BaseFargateService) {
     const parameterMapping = new apigw.ParameterMapping();
     parameterMapping.overwritePath(apigw.MappingValue.custom('/${request.path.proxy}'));
-    const integration = new HttpServiceDiscoveryIntegration(service.node.id, service.cloudMapService, { vpcLink: this.vpcLink, parameterMapping });
+    const integration = new HttpServiceDiscoveryIntegration(service.node.id, service.service.cloudMapService!, {
+      vpcLink: this.vpcLink,
+      parameterMapping,
+    });
     this.api.addRoutes({ path, integration });
-    this.securityGroup.connections.allowTo(service.ecsService, ec2.Port.tcp(service.listenerPort));
+    this.securityGroup.connections.allowTo(service.service, ec2.Port.tcp(service.listenerPort));
   }
 }
 

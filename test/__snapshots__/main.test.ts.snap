@@ -328,32 +328,20 @@ Object {
         "0",
       ],
     },
+    "SmtpWorkMailEnabled0A4066BB": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Ref": "SmtpEnableTestDomain9DFEAF4D",
+        },
+        "true",
+      ],
+    },
     "StorageServiceDisabled05C15E2C": Object {
       "Fn::Equals": Array [
         Object {
           "Ref": "StorageMinTaskCount07E65703",
         },
         "0",
-      ],
-    },
-    "StudioHttpsEnabledFB7951B2": Object {
-      "Fn::Not": Array [
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "StudioAcmCertArn2D10C4B8",
-            },
-            "",
-          ],
-        },
-      ],
-    },
-    "WorkMailEnabled": Object {
-      "Fn::Equals": Array [
-        Object {
-          "Ref": "EnableWorkMail",
-        },
-        "true",
       ],
     },
   },
@@ -416,6 +404,9 @@ Object {
       },
       "eu-west-3": Object {
         "states": "states.eu-west-3.amazonaws.com",
+      },
+      "me-central-1": Object {
+        "states": "states.me-central-1.amazonaws.com",
       },
       "me-south-1": Object {
         "states": "states.me-south-1.amazonaws.com",
@@ -506,10 +497,10 @@ Object {
             "default": "Supabase - Auth E-mail Settings",
           },
           "Parameters": Array [
-            "SenderEmail",
+            "SmtpEmailC79E1B85",
             "SenderName",
-            "SesRegion",
-            "EnableWorkMail",
+            "SmtpRegionC7E863E7",
+            "SmtpEnableTestDomain9DFEAF4D",
           ],
         },
         Object {
@@ -522,7 +513,7 @@ Object {
             "RealtimeImageUri",
             "StorageImageUri",
             "PostgresMetaImageUri",
-            "StudioImageUri",
+            "StudioBranch",
           ],
         },
         Object {
@@ -542,7 +533,6 @@ Object {
           },
           "Parameters": Array [
             "CdnWebAclArn5923748A",
-            "StudioAcmCertArn2D10C4B8",
           ],
         },
         Object {
@@ -704,9 +694,6 @@ Object {
         "DisableSignup": Object {
           "default": "Disable User Signups",
         },
-        "EnableWorkMail": Object {
-          "default": "Enable Amazon WorkMail (Test E-mail Domain)",
-        },
         "GraphQLMaxTaskCount62412A02": Object {
           "default": "Maximum Fargate Task Count",
         },
@@ -770,17 +757,20 @@ Object {
         "RestTaskSize14E11A14": Object {
           "default": "Fargate Task Size",
         },
-        "SenderEmail": Object {
-          "default": "Sender Email Address",
-        },
         "SenderName": Object {
           "default": "Sender Name",
         },
-        "SesRegion": Object {
-          "default": "Amazon SES Region",
-        },
         "SiteUrl": Object {
           "default": "Site URL",
+        },
+        "SmtpEmailC79E1B85": Object {
+          "default": "Sender Email Address",
+        },
+        "SmtpEnableTestDomain9DFEAF4D": Object {
+          "default": "Enable Test E-mail Domain (via Amazon WorkMail)",
+        },
+        "SmtpRegionC7E863E7": Object {
+          "default": "Amazon SES Region",
         },
         "StorageImageUri": Object {
           "default": "Storage API Image URI",
@@ -794,34 +784,30 @@ Object {
         "StorageTaskSizeB82D9CFB": Object {
           "default": "Fargate Task Size",
         },
-        "StudioAcmCertArn2D10C4B8": Object {
-          "default": "ACM Certificate ARN - Supabase Studio",
-        },
-        "StudioImageUri": Object {
-          "default": "Supabase Studio Image URI",
+        "StudioBranch": Object {
+          "default": "Supabase Studio Branch",
         },
       },
     },
   },
   "Outputs": Object {
-    "StudioLoadBalancerDNS804F8A6B": Object {
-      "Value": Object {
-        "Fn::GetAtt": Array [
-          "StudioLB850A0917",
-          "DNSName",
-        ],
-      },
-    },
-    "StudioServiceURL4F6A7441": Object {
+    "StudioUrlAE70A83E": Object {
       "Value": Object {
         "Fn::Join": Array [
           "",
           Array [
-            "http://",
+            "https://",
             Object {
               "Fn::GetAtt": Array [
-                "StudioLB850A0917",
-                "DNSName",
+                "StudioAppProdBranchED7568CB",
+                "BranchName",
+              ],
+            },
+            ".",
+            Object {
+              "Fn::GetAtt": Array [
+                "StudioAppE10A3450",
+                "DefaultDomain",
               ],
             },
           ],
@@ -1075,15 +1061,6 @@ Object {
       "Description": "When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.",
       "Type": "String",
     },
-    "EnableWorkMail": Object {
-      "AllowedValues": Array [
-        "true",
-        "false",
-      ],
-      "Default": "false",
-      "Description": "Enable Amazon WorkMail, to use \\"xxx.awsapps.com\\" e-mail domain.",
-      "Type": "String",
-    },
     "GraphQLMaxTaskCount62412A02": Object {
       "Default": 0,
       "Description": "Maximum fargate task count",
@@ -1253,19 +1230,33 @@ Object {
       "Description": "Fargare task size",
       "Type": "String",
     },
-    "SenderEmail": Object {
+    "SenderName": Object {
+      "Default": "Supabase",
+      "Description": "The From email sender name for all emails sent.",
+      "Type": "String",
+    },
+    "SiteUrl": Object {
+      "Default": "http://localhost:3000",
+      "Description": "The base URL your site is located at. Currently used in combination with other settings to construct URLs used in emails.",
+      "Type": "String",
+    },
+    "SmtpEmailC79E1B85": Object {
       "AllowedPattern": "^[\\\\x20-\\\\x45]?[\\\\w-\\\\+]+(\\\\.[\\\\w]+)*@[\\\\w-]+(\\\\.[\\\\w]+)*(\\\\.[a-z]{2,})$",
       "ConstraintDescription": "must be a valid email address",
       "Default": "noreply@example.com",
       "Description": "This is the email address the emails are sent from. If Amazon WorkMail is enabled, it set \\"noreply@supabase-<account_id>.awsapps.com\\"",
       "Type": "String",
     },
-    "SenderName": Object {
-      "Default": "Supabase",
-      "Description": "The From email sender name for all emails sent.",
+    "SmtpEnableTestDomain9DFEAF4D": Object {
+      "AllowedValues": Array [
+        "true",
+        "false",
+      ],
+      "Default": "false",
+      "Description": "Enable test e-mail domain \\"xxx.awsapps.com\\" with Amazon WorkMail.",
       "Type": "String",
     },
-    "SesRegion": Object {
+    "SmtpRegionC7E863E7": Object {
       "AllowedValues": Array [
         "us-east-1",
         "us-east-2",
@@ -1287,11 +1278,6 @@ Object {
       ],
       "Default": "us-west-2",
       "Description": "Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.",
-      "Type": "String",
-    },
-    "SiteUrl": Object {
-      "Default": "http://localhost:3000",
-      "Description": "The base URL your site is located at. Currently used in combination with other settings to construct URLs used in emails.",
       "Type": "String",
     },
     "StorageImageUri": Object {
@@ -1326,15 +1312,9 @@ Object {
       "Description": "Fargare task size",
       "Type": "String",
     },
-    "StudioAcmCertArn2D10C4B8": Object {
-      "AllowedPattern": "^arn:aws:acm:[\\\\w-]+:[0-9]{12}:certificate/[\\\\w]{8}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{12}$|",
-      "Default": "",
-      "Description": "ACM Certificate ARN for Studio ALB with Cognito",
-      "Type": "String",
-    },
-    "StudioImageUri": Object {
-      "Default": "public.ecr.aws/supabase/studio:0.22.08",
-      "Description": "https://gallery.ecr.aws/supabase/studio",
+    "StudioBranch": Object {
+      "Default": "0.22.08",
+      "Description": "https://github.com/supabase/supabase/tags",
       "Type": "String",
     },
   },
@@ -1529,7 +1509,7 @@ Object {
           },
         ],
         "TaskDefinition": Object {
-          "Ref": "AuthTaskDefinitionDBEE261E",
+          "Ref": "AuthTaskDef5FB652ED",
         },
       },
       "Type": "AWS::ECS::Service",
@@ -1900,7 +1880,7 @@ Object {
       },
       "Type": "AWS::SSM::Parameter",
     },
-    "AuthTaskDefinitionDBEE261E": Object {
+    "AuthTaskDef5FB652ED": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
           Object {
@@ -1992,15 +1972,15 @@ Object {
                 "Name": "GOTRUE_SMTP_ADMIN_EMAIL",
                 "Value": Object {
                   "Fn::If": Array [
-                    "WorkMailEnabled",
+                    "SmtpWorkMailEnabled0A4066BB",
                     Object {
                       "Fn::GetAtt": Array [
-                        "WorkMailNestedStackWorkMailNestedStackResource44BA1505",
-                        "Outputs.SupabaseWorkMailOrganizationUserSupabaseD0C6C408Email",
+                        "SmtpWorkMailNestedStackWorkMailNestedStackResource042ECB25",
+                        "Outputs.SupabaseSmtpWorkMailOrganizationSupabaseBD859A4AEmail",
                       ],
                     },
                     Object {
-                      "Ref": "SenderEmail",
+                      "Ref": "SmtpEmailC79E1B85",
                     },
                   ],
                 },
@@ -2009,14 +1989,14 @@ Object {
                 "Name": "GOTRUE_SMTP_HOST",
                 "Value": Object {
                   "Fn::If": Array [
-                    "WorkMailEnabled",
+                    "SmtpWorkMailEnabled0A4066BB",
                     Object {
                       "Fn::Join": Array [
                         "",
                         Array [
                           "smtp.mail.",
                           Object {
-                            "Ref": "SesRegion",
+                            "Ref": "SmtpRegionC7E863E7",
                           },
                           ".awsapps.com",
                         ],
@@ -2028,7 +2008,7 @@ Object {
                         Array [
                           "email-smtp.",
                           Object {
-                            "Ref": "SesRegion",
+                            "Ref": "SmtpRegionC7E863E7",
                           },
                           ".amazonaws.com",
                         ],
@@ -2040,32 +2020,6 @@ Object {
               Object {
                 "Name": "GOTRUE_SMTP_PORT",
                 "Value": "465",
-              },
-              Object {
-                "Name": "GOTRUE_SMTP_USER",
-                "Value": Object {
-                  "Fn::If": Array [
-                    "WorkMailEnabled",
-                    Object {
-                      "Fn::GetAtt": Array [
-                        "WorkMailNestedStackWorkMailNestedStackResource44BA1505",
-                        "Outputs.SupabaseWorkMailOrganizationUserSupabaseD0C6C408Email",
-                      ],
-                    },
-                    Object {
-                      "Fn::Join": Array [
-                        "",
-                        Array [
-                          "{{resolve:secretsmanager:",
-                          Object {
-                            "Ref": "SupabaseMailSecret777E0288",
-                          },
-                          ":SecretString:username::}}",
-                        ],
-                      ],
-                    },
-                  ],
-                },
               },
               Object {
                 "Name": "GOTRUE_SMTP_SENDER_NAME",
@@ -2109,7 +2063,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider1Name740DD3F6",
                           },
-                          "Provider1",
+                          "PROVIDER1",
                         ],
                       },
                       "_ENABLED",
@@ -2136,7 +2090,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider1Name740DD3F6",
                           },
-                          "Provider1",
+                          "PROVIDER1",
                         ],
                       },
                       "_REDIRECT_URI",
@@ -2171,7 +2125,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider2Name573986E5",
                           },
-                          "Provider2",
+                          "PROVIDER2",
                         ],
                       },
                       "_ENABLED",
@@ -2198,7 +2152,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider2Name573986E5",
                           },
-                          "Provider2",
+                          "PROVIDER2",
                         ],
                       },
                       "_REDIRECT_URI",
@@ -2233,7 +2187,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider3NameA8A7785F",
                           },
-                          "Provider3",
+                          "PROVIDER3",
                         ],
                       },
                       "_ENABLED",
@@ -2260,7 +2214,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider3NameA8A7785F",
                           },
-                          "Provider3",
+                          "PROVIDER3",
                         ],
                       },
                       "_REDIRECT_URI",
@@ -2350,13 +2304,27 @@ Object {
                 },
               },
               Object {
+                "Name": "GOTRUE_SMTP_USER",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Ref": "SmtpSecretF89CC16B",
+                      },
+                      ":username::",
+                    ],
+                  ],
+                },
+              },
+              Object {
                 "Name": "GOTRUE_SMTP_PASS",
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
                     Array [
                       Object {
-                        "Ref": "SupabaseMailSecret777E0288",
+                        "Ref": "SmtpSecretF89CC16B",
                       },
                       ":password::",
                     ],
@@ -2375,7 +2343,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider1Name740DD3F6",
                           },
-                          "Provider1",
+                          "PROVIDER1",
                         ],
                       },
                       "_CLIENT_ID",
@@ -2418,7 +2386,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider1Name740DD3F6",
                           },
-                          "Provider1",
+                          "PROVIDER1",
                         ],
                       },
                       "_SECRET",
@@ -2461,7 +2429,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider2Name573986E5",
                           },
-                          "Provider2",
+                          "PROVIDER2",
                         ],
                       },
                       "_CLIENT_ID",
@@ -2504,7 +2472,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider2Name573986E5",
                           },
-                          "Provider2",
+                          "PROVIDER2",
                         ],
                       },
                       "_SECRET",
@@ -2547,7 +2515,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider3NameA8A7785F",
                           },
-                          "Provider3",
+                          "PROVIDER3",
                         ],
                       },
                       "_CLIENT_ID",
@@ -2590,7 +2558,7 @@ Object {
                           Object {
                             "Ref": "AuthProvider3NameA8A7785F",
                           },
-                          "Provider3",
+                          "PROVIDER3",
                         ],
                       },
                       "_SECRET",
@@ -2642,11 +2610,11 @@ Object {
         },
         "ExecutionRoleArn": Object {
           "Fn::GetAtt": Array [
-            "AuthTaskDefinitionExecutionRole8B68B008",
+            "AuthTaskDefExecutionRole071231B5",
             "Arn",
           ],
         },
-        "Family": "SupabaseAuthTaskDefinition474F8608",
+        "Family": "SupabaseAuthTaskDef66536EFB",
         "Memory": Object {
           "Fn::FindInMap": Array [
             "TaskSize",
@@ -2666,14 +2634,14 @@ Object {
         },
         "TaskRoleArn": Object {
           "Fn::GetAtt": Array [
-            "AuthTaskDefinitionTaskRole0174181B",
+            "AuthTaskDefTaskRole8CE224AF",
             "Arn",
           ],
         },
       },
       "Type": "AWS::ECS::TaskDefinition",
     },
-    "AuthTaskDefinitionExecutionRole8B68B008": Object {
+    "AuthTaskDefExecutionRole071231B5": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -2690,7 +2658,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "AuthTaskDefinitionExecutionRoleDefaultPolicy2A4B4627": Object {
+    "AuthTaskDefExecutionRoleDefaultPolicyB7AFF08D": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -2756,7 +2724,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "SupabaseMailSecret777E0288",
+                "Ref": "SmtpSecretF89CC16B",
               },
             },
             Object {
@@ -2954,16 +2922,16 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "AuthTaskDefinitionExecutionRoleDefaultPolicy2A4B4627",
+        "PolicyName": "AuthTaskDefExecutionRoleDefaultPolicyB7AFF08D",
         "Roles": Array [
           Object {
-            "Ref": "AuthTaskDefinitionExecutionRole8B68B008",
+            "Ref": "AuthTaskDefExecutionRole071231B5",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "AuthTaskDefinitionTaskRole0174181B": Object {
+    "AuthTaskDefTaskRole8CE224AF": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -3311,7 +3279,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/e86d58643feadc7c623422c526a98c34e4f9dd5fd4b6df037afcdcf29c985d32.json",
+              "/954539b2b8cc52f995a5771b6ccbf43e7f1001cccabf69ec34e0cdf70f7e9fd4.json",
             ],
           ],
         },
@@ -4314,6 +4282,7 @@ Object {
         "DatabaseClusterInstance1078CC457",
       ],
       "Properties": Object {
+        "Fingerprint": "86e2fbccd17e98c9bf24e1c1dcf6f6c4d28943de21ff4f4a2fb19f09b2d8fbbd",
         "Hostname": Object {
           "Fn::GetAtt": Array [
             "DatabaseCluster5B53A178",
@@ -4347,7 +4316,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "7f5f2f1f395730a561730f32c08ffc71deb7a027af48ec05e7031507005413d2.zip",
+          "S3Key": "49811dc57ba2edf4fdbcf350531912d29efaf23c2258e66a1767b2bd4df87f42.zip",
         },
         "Description": "Supabase - Database init function",
         "Environment": Object {
@@ -4802,13 +4771,6 @@ Object {
                       "Name",
                     ],
                   },
-                  "\\",\\"",
-                  Object {
-                    "Fn::GetAtt": Array [
-                      "StudioService1995B017",
-                      "Name",
-                    ],
-                  },
                   "\\"]}",
                 ],
               ],
@@ -4837,7 +4799,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "3f278c7910ed9f5f9f902ace411efd06e21030cf5aacc5bf7a174647193ac5f7.zip",
+          "S3Key": "d51a9028c668308e58e2bb878bca164059367daa8993bbb4b7a981d32ccf9103.zip",
         },
         "Description": "Supabase - Sync DB secret to parameter store",
         "Environment": Object {
@@ -5385,7 +5347,7 @@ Object {
           },
         ],
         "TaskDefinition": Object {
-          "Ref": "GraphQLTaskDefinition38339BB3",
+          "Ref": "GraphQLTaskDefA9ADD420",
         },
       },
       "Type": "AWS::ECS::Service",
@@ -5463,7 +5425,7 @@ Object {
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Delete",
     },
-    "GraphQLTaskDefinition38339BB3": Object {
+    "GraphQLTaskDefA9ADD420": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
           Object {
@@ -5565,11 +5527,11 @@ Object {
         },
         "ExecutionRoleArn": Object {
           "Fn::GetAtt": Array [
-            "GraphQLTaskDefinitionExecutionRole5AE89FC5",
+            "GraphQLTaskDefExecutionRoleEE62EE99",
             "Arn",
           ],
         },
-        "Family": "SupabaseGraphQLTaskDefinitionD4D50D38",
+        "Family": "SupabaseGraphQLTaskDefC72C1187",
         "Memory": Object {
           "Fn::FindInMap": Array [
             "TaskSize",
@@ -5589,31 +5551,14 @@ Object {
         },
         "TaskRoleArn": Object {
           "Fn::GetAtt": Array [
-            "GraphQLTaskDefinitionTaskRole513F3843",
+            "GraphQLTaskDefTaskRoleD651EBE2",
             "Arn",
           ],
         },
       },
       "Type": "AWS::ECS::TaskDefinition",
     },
-    "GraphQLTaskDefinitionExecutionRole5AE89FC5": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "ecs-tasks.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "GraphQLTaskDefinitionExecutionRoleDefaultPolicyA11AB8A4": Object {
+    "GraphQLTaskDefExecutionRoleDefaultPolicy5B2AEBA2": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -5675,16 +5620,33 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "GraphQLTaskDefinitionExecutionRoleDefaultPolicyA11AB8A4",
+        "PolicyName": "GraphQLTaskDefExecutionRoleDefaultPolicy5B2AEBA2",
         "Roles": Array [
           Object {
-            "Ref": "GraphQLTaskDefinitionExecutionRole5AE89FC5",
+            "Ref": "GraphQLTaskDefExecutionRoleEE62EE99",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "GraphQLTaskDefinitionTaskRole513F3843": Object {
+    "GraphQLTaskDefExecutionRoleEE62EE99": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "ecs-tasks.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "GraphQLTaskDefTaskRoleD651EBE2": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -5861,7 +5823,7 @@ Object {
           },
         ],
         "TaskDefinition": Object {
-          "Ref": "KongTaskDefinitionAE44544D",
+          "Ref": "KongTaskDef115E456D",
         },
       },
       "Type": "AWS::ECS::Service",
@@ -6011,7 +5973,7 @@ Object {
       },
       "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
     },
-    "KongTaskDefinitionAE44544D": Object {
+    "KongTaskDef115E456D": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
           Object {
@@ -6242,11 +6204,11 @@ Object {
         },
         "ExecutionRoleArn": Object {
           "Fn::GetAtt": Array [
-            "KongTaskDefinitionExecutionRole2593435E",
+            "KongTaskDefExecutionRole349E43DD",
             "Arn",
           ],
         },
-        "Family": "SupabaseKongTaskDefinitionDEF6E72D",
+        "Family": "SupabaseKongTaskDef151136E7",
         "Memory": Object {
           "Fn::FindInMap": Array [
             "TaskSize",
@@ -6266,14 +6228,14 @@ Object {
         },
         "TaskRoleArn": Object {
           "Fn::GetAtt": Array [
-            "KongTaskDefinitionTaskRole59341FD6",
+            "KongTaskDefTaskRole62A71DDF",
             "Arn",
           ],
         },
       },
       "Type": "AWS::ECS::TaskDefinition",
     },
-    "KongTaskDefinitionExecutionRole2593435E": Object {
+    "KongTaskDefExecutionRole349E43DD": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -6290,7 +6252,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "KongTaskDefinitionExecutionRoleDefaultPolicyF6446340": Object {
+    "KongTaskDefExecutionRoleDefaultPolicy99546D68": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -6374,16 +6336,16 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "KongTaskDefinitionExecutionRoleDefaultPolicyF6446340",
+        "PolicyName": "KongTaskDefExecutionRoleDefaultPolicy99546D68",
         "Roles": Array [
           Object {
-            "Ref": "KongTaskDefinitionExecutionRole2593435E",
+            "Ref": "KongTaskDefExecutionRole349E43DD",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "KongTaskDefinitionTaskRole59341FD6": Object {
+    "KongTaskDefTaskRole62A71DDF": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -6536,7 +6498,7 @@ Object {
           },
         ],
         "TaskDefinition": Object {
-          "Ref": "MetaTaskDefinition286A1512",
+          "Ref": "MetaTaskDef2C490DD3",
         },
       },
       "Type": "AWS::ECS::Service",
@@ -6614,7 +6576,7 @@ Object {
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Delete",
     },
-    "MetaTaskDefinition286A1512": Object {
+    "MetaTaskDef2C490DD3": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
           Object {
@@ -6739,11 +6701,11 @@ Object {
         },
         "ExecutionRoleArn": Object {
           "Fn::GetAtt": Array [
-            "MetaTaskDefinitionExecutionRole93D83399",
+            "MetaTaskDefExecutionRole959286B6",
             "Arn",
           ],
         },
-        "Family": "SupabaseMetaTaskDefinition428DEBA5",
+        "Family": "SupabaseMetaTaskDef48FB78F0",
         "Memory": Object {
           "Fn::FindInMap": Array [
             "TaskSize",
@@ -6763,14 +6725,14 @@ Object {
         },
         "TaskRoleArn": Object {
           "Fn::GetAtt": Array [
-            "MetaTaskDefinitionTaskRole18CD498C",
+            "MetaTaskDefTaskRoleC662B431",
             "Arn",
           ],
         },
       },
       "Type": "AWS::ECS::TaskDefinition",
     },
-    "MetaTaskDefinitionExecutionRole93D83399": Object {
+    "MetaTaskDefExecutionRole959286B6": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -6787,7 +6749,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "MetaTaskDefinitionExecutionRoleDefaultPolicy5A6F1F9C": Object {
+    "MetaTaskDefExecutionRoleDefaultPolicy60F100A8": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -6817,16 +6779,16 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "MetaTaskDefinitionExecutionRoleDefaultPolicy5A6F1F9C",
+        "PolicyName": "MetaTaskDefExecutionRoleDefaultPolicy60F100A8",
         "Roles": Array [
           Object {
-            "Ref": "MetaTaskDefinitionExecutionRole93D83399",
+            "Ref": "MetaTaskDefExecutionRole959286B6",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "MetaTaskDefinitionTaskRole18CD498C": Object {
+    "MetaTaskDefTaskRoleC662B431": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -6979,7 +6941,7 @@ Object {
           },
         ],
         "TaskDefinition": Object {
-          "Ref": "RealtimeTaskDefinition52361C2C",
+          "Ref": "RealtimeTaskDef9E0DD838",
         },
       },
       "Type": "AWS::ECS::Service",
@@ -7057,7 +7019,7 @@ Object {
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Delete",
     },
-    "RealtimeTaskDefinition52361C2C": Object {
+    "RealtimeTaskDef9E0DD838": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
           Object {
@@ -7225,11 +7187,11 @@ Object {
         },
         "ExecutionRoleArn": Object {
           "Fn::GetAtt": Array [
-            "RealtimeTaskDefinitionExecutionRoleCD260B29",
+            "RealtimeTaskDefExecutionRole578AA7F5",
             "Arn",
           ],
         },
-        "Family": "SupabaseRealtimeTaskDefinition9B533F0B",
+        "Family": "SupabaseRealtimeTaskDef0EF41020",
         "Memory": Object {
           "Fn::FindInMap": Array [
             "TaskSize",
@@ -7249,14 +7211,14 @@ Object {
         },
         "TaskRoleArn": Object {
           "Fn::GetAtt": Array [
-            "RealtimeTaskDefinitionTaskRole8324A2B1",
+            "RealtimeTaskDefTaskRole3682E469",
             "Arn",
           ],
         },
       },
       "Type": "AWS::ECS::TaskDefinition",
     },
-    "RealtimeTaskDefinitionExecutionRoleCD260B29": Object {
+    "RealtimeTaskDefExecutionRole578AA7F5": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -7273,7 +7235,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "RealtimeTaskDefinitionExecutionRoleDefaultPolicyBD7C355B": Object {
+    "RealtimeTaskDefExecutionRoleDefaultPolicyD46A3DCC": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -7313,16 +7275,16 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "RealtimeTaskDefinitionExecutionRoleDefaultPolicyBD7C355B",
+        "PolicyName": "RealtimeTaskDefExecutionRoleDefaultPolicyD46A3DCC",
         "Roles": Array [
           Object {
-            "Ref": "RealtimeTaskDefinitionExecutionRoleCD260B29",
+            "Ref": "RealtimeTaskDefExecutionRole578AA7F5",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "RealtimeTaskDefinitionTaskRole8324A2B1": Object {
+    "RealtimeTaskDefTaskRole3682E469": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -7517,7 +7479,7 @@ Object {
           },
         ],
         "TaskDefinition": Object {
-          "Ref": "RestTaskDefinition4EBA60E9",
+          "Ref": "RestTaskDef716BD951",
         },
       },
       "Type": "AWS::ECS::Service",
@@ -7595,7 +7557,7 @@ Object {
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Delete",
     },
-    "RestTaskDefinition4EBA60E9": Object {
+    "RestTaskDef716BD951": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
           Object {
@@ -7690,11 +7652,11 @@ Object {
         },
         "ExecutionRoleArn": Object {
           "Fn::GetAtt": Array [
-            "RestTaskDefinitionExecutionRole3F0CBE29",
+            "RestTaskDefExecutionRole8E4C9F62",
             "Arn",
           ],
         },
-        "Family": "SupabaseRestTaskDefinitionDA0C2E15",
+        "Family": "SupabaseRestTaskDef0C1A5ADE",
         "Memory": Object {
           "Fn::FindInMap": Array [
             "TaskSize",
@@ -7714,14 +7676,14 @@ Object {
         },
         "TaskRoleArn": Object {
           "Fn::GetAtt": Array [
-            "RestTaskDefinitionTaskRole94551FBF",
+            "RestTaskDefTaskRole59E8D431",
             "Arn",
           ],
         },
       },
       "Type": "AWS::ECS::TaskDefinition",
     },
-    "RestTaskDefinitionExecutionRole3F0CBE29": Object {
+    "RestTaskDefExecutionRole8E4C9F62": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -7738,7 +7700,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "RestTaskDefinitionExecutionRoleDefaultPolicyB130F5B5": Object {
+    "RestTaskDefExecutionRoleDefaultPolicy2E2B5505": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -7800,16 +7762,16 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "RestTaskDefinitionExecutionRoleDefaultPolicyB130F5B5",
+        "PolicyName": "RestTaskDefExecutionRoleDefaultPolicy2E2B5505",
         "Roles": Array [
           Object {
-            "Ref": "RestTaskDefinitionExecutionRole3F0CBE29",
+            "Ref": "RestTaskDefExecutionRole8E4C9F62",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "RestTaskDefinitionTaskRole94551FBF": Object {
+    "RestTaskDefTaskRole59E8D431": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -7825,6 +7787,345 @@ Object {
         },
       },
       "Type": "AWS::IAM::Role",
+    },
+    "SmtpAccessKeyCCAD8B7D": Object {
+      "Properties": Object {
+        "UserName": Object {
+          "Ref": "SmtpUser4973DF55",
+        },
+      },
+      "Type": "AWS::IAM::AccessKey",
+    },
+    "SmtpGenPasswordFunction54B1181B": Object {
+      "DependsOn": Array [
+        "SmtpGenPasswordFunctionServiceRole670F2216",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "f313788ca3f2fa052e96d53301df52b707c280b900d594a906b624fac83c5505.zip",
+        },
+        "Description": "Supabase - Generate SMTP Password Function",
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+          },
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "SmtpGenPasswordFunctionServiceRole670F2216",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SmtpGenPasswordFunctionServiceRole670F2216": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SmtpGenPasswordProviderframeworkonEvent4C861253": Object {
+      "DependsOn": Array [
+        "SmtpGenPasswordProviderframeworkonEventServiceRoleDefaultPolicy2D91E6D6",
+        "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/GenPasswordProvider)",
+        "Environment": Object {
+          "Variables": Object {
+            "USER_ON_EVENT_FUNCTION_ARN": Object {
+              "Fn::GetAtt": Array [
+                "SmtpGenPasswordFunction54B1181B",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "Handler": "framework.onEvent",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SmtpGenPasswordProviderframeworkonEventServiceRoleDefaultPolicy2D91E6D6": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "SmtpGenPasswordFunction54B1181B",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "SmtpGenPasswordFunction54B1181B",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SmtpGenPasswordProviderframeworkonEventServiceRoleDefaultPolicy2D91E6D6",
+        "Roles": Array [
+          Object {
+            "Ref": "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SmtpPasswordBA01E518": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Region": Object {
+          "Ref": "SmtpRegionC7E863E7",
+        },
+        "SecretAccessKey": Object {
+          "Fn::GetAtt": Array [
+            "SmtpAccessKeyCCAD8B7D",
+            "SecretAccessKey",
+          ],
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "SmtpGenPasswordProviderframeworkonEvent4C861253",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::Password",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "SmtpSecretF89CC16B": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": "Supabase - SMTP Secret",
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "SmtpSecret",
+            ],
+          ],
+        },
+        "SecretString": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{\\"username\\":\\"",
+              Object {
+                "Fn::If": Array [
+                  "SmtpWorkMailEnabled0A4066BB",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "SmtpWorkMailNestedStackWorkMailNestedStackResource042ECB25",
+                      "Outputs.SupabaseSmtpWorkMailOrganizationSupabaseBD859A4AEmail",
+                    ],
+                  },
+                  Object {
+                    "Ref": "SmtpAccessKeyCCAD8B7D",
+                  },
+                ],
+              },
+              "\\",\\"password\\":\\"",
+              Object {
+                "Fn::GetAtt": Array [
+                  "SmtpPasswordBA01E518",
+                  "Password",
+                ],
+              },
+              "\\",\\"host\\":\\"",
+              Object {
+                "Fn::If": Array [
+                  "SmtpWorkMailEnabled0A4066BB",
+                  Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "smtp.mail.",
+                        Object {
+                          "Ref": "SmtpRegionC7E863E7",
+                        },
+                        ".awsapps.com",
+                      ],
+                    ],
+                  },
+                  Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "email-smtp.",
+                        Object {
+                          "Ref": "SmtpRegionC7E863E7",
+                        },
+                        ".amazonaws.com",
+                      ],
+                    ],
+                  },
+                ],
+              },
+              "\\"}",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "SmtpSendEmailPolicyCCA0AA9B": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ses:SendRawEmail",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SmtpSendEmailPolicyCCA0AA9B",
+        "Users": Array [
+          Object {
+            "Ref": "SmtpUser4973DF55",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SmtpUser4973DF55": Object {
+      "Type": "AWS::IAM::User",
+    },
+    "SmtpWorkMailNestedStackWorkMailNestedStackResource042ECB25": Object {
+      "Condition": "SmtpWorkMailEnabled0A4066BB",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Parameters": Object {
+          "referencetoSupabaseSmtpPassword76B56B34Password": Object {
+            "Fn::GetAtt": Array [
+              "SmtpPasswordBA01E518",
+              "Password",
+            ],
+          },
+          "referencetoSupabaseSmtpRegion60DF7AC5Ref": Object {
+            "Ref": "SmtpRegionC7E863E7",
+          },
+        },
+        "TemplateURL": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "https://s3.",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ".",
+              Object {
+                "Ref": "AWS::URLSuffix",
+              },
+              "/",
+              Object {
+                "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+              },
+              "/a9aa9ad98249749d03658499e89aef21484483af9dac05950a7b6b71e08b674b.json",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::Stack",
+      "UpdateReplacePolicy": "Delete",
     },
     "StorageFargateCloudmapServiceB19C4F44": Object {
       "Properties": Object {
@@ -7962,7 +8263,7 @@ Object {
           },
         ],
         "TaskDefinition": Object {
-          "Ref": "StorageTaskDefinition6B21D26E",
+          "Ref": "StorageTaskDef36011FFA",
         },
       },
       "Type": "AWS::ECS::Service",
@@ -8040,7 +8341,7 @@ Object {
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Delete",
     },
-    "StorageTaskDefinition6B21D26E": Object {
+    "StorageTaskDef36011FFA": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
           Object {
@@ -8234,11 +8535,11 @@ Object {
         },
         "ExecutionRoleArn": Object {
           "Fn::GetAtt": Array [
-            "StorageTaskDefinitionExecutionRoleAEB5CF80",
+            "StorageTaskDefExecutionRoleA2EF27E4",
             "Arn",
           ],
         },
-        "Family": "SupabaseStorageTaskDefinition0123FC26",
+        "Family": "SupabaseStorageTaskDef9FD687B2",
         "Memory": Object {
           "Fn::FindInMap": Array [
             "TaskSize",
@@ -8258,14 +8559,14 @@ Object {
         },
         "TaskRoleArn": Object {
           "Fn::GetAtt": Array [
-            "StorageTaskDefinitionTaskRole24C4C137",
+            "StorageTaskDefTaskRoleFB709706",
             "Arn",
           ],
         },
       },
       "Type": "AWS::ECS::TaskDefinition",
     },
-    "StorageTaskDefinitionExecutionRoleAEB5CF80": Object {
+    "StorageTaskDefExecutionRoleA2EF27E4": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -8282,7 +8583,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "StorageTaskDefinitionExecutionRoleDefaultPolicy537D0826": Object {
+    "StorageTaskDefExecutionRoleDefaultPolicyCFBB4B95": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -8408,33 +8709,16 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "StorageTaskDefinitionExecutionRoleDefaultPolicy537D0826",
+        "PolicyName": "StorageTaskDefExecutionRoleDefaultPolicyCFBB4B95",
         "Roles": Array [
           Object {
-            "Ref": "StorageTaskDefinitionExecutionRoleAEB5CF80",
+            "Ref": "StorageTaskDefExecutionRoleA2EF27E4",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "StorageTaskDefinitionTaskRole24C4C137": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "ecs-tasks.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "StorageTaskDefinitionTaskRoleDefaultPolicy3448147D": Object {
+    "StorageTaskDefTaskRoleDefaultPolicy0587C2F8": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -8478,579 +8762,16 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "StorageTaskDefinitionTaskRoleDefaultPolicy3448147D",
+        "PolicyName": "StorageTaskDefTaskRoleDefaultPolicy0587C2F8",
         "Roles": Array [
           Object {
-            "Ref": "StorageTaskDefinitionTaskRole24C4C137",
+            "Ref": "StorageTaskDefTaskRoleFB709706",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "StudioClient100BA227": Object {
-      "Condition": "StudioHttpsEnabledFB7951B2",
-      "Properties": Object {
-        "AllowedOAuthFlows": Array [
-          "code",
-        ],
-        "AllowedOAuthFlowsUserPoolClient": true,
-        "AllowedOAuthScopes": Array [
-          "openid",
-        ],
-        "CallbackURLs": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "https://",
-                Object {
-                  "Fn::GetAtt": Array [
-                    "StudioLB850A0917",
-                    "DNSName",
-                  ],
-                },
-                "/oauth2/idpresponse",
-              ],
-            ],
-          },
-        ],
-        "ExplicitAuthFlows": Array [
-          "ALLOW_USER_PASSWORD_AUTH",
-          "ALLOW_USER_SRP_AUTH",
-          "ALLOW_REFRESH_TOKEN_AUTH",
-        ],
-        "GenerateSecret": true,
-        "LogoutURLs": Array [
-          "https://example.com",
-        ],
-        "SupportedIdentityProviders": Array [
-          "COGNITO",
-        ],
-        "UserPoolId": Object {
-          "Ref": "StudioUserPool94F50620",
-        },
-      },
-      "Type": "AWS::Cognito::UserPoolClient",
-    },
-    "StudioLB850A0917": Object {
-      "DependsOn": Array [
-        "VPCPublicSubnet1DefaultRoute91CEF279",
-        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
-        "VPCPublicSubnet2DefaultRouteB7481BBA",
-        "VPCPublicSubnet2RouteTableAssociation5A808732",
-      ],
-      "Properties": Object {
-        "LoadBalancerAttributes": Array [
-          Object {
-            "Key": "deletion_protection.enabled",
-            "Value": "false",
-          },
-        ],
-        "Scheme": "internet-facing",
-        "SecurityGroups": Array [
-          Object {
-            "Fn::GetAtt": Array [
-              "StudioLBSecurityGroupD6350C35",
-              "GroupId",
-            ],
-          },
-        ],
-        "Subnets": Array [
-          Object {
-            "Ref": "VPCPublicSubnet1SubnetB4246D30",
-          },
-          Object {
-            "Ref": "VPCPublicSubnet2Subnet74179F39",
-          },
-        ],
-        "Type": "application",
-      },
-      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-    },
-    "StudioLBPublicListenerECSGroupB7410BDD": Object {
-      "Properties": Object {
-        "Port": 80,
-        "Protocol": "HTTP",
-        "TargetGroupAttributes": Array [
-          Object {
-            "Key": "stickiness.enabled",
-            "Value": "false",
-          },
-        ],
-        "TargetType": "ip",
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-    },
-    "StudioLBPublicListenerF4E3892D": Object {
-      "Properties": Object {
-        "Certificates": Object {
-          "Fn::If": Array [
-            "StudioHttpsEnabledFB7951B2",
-            Array [
-              Object {
-                "CertificateArn": Object {
-                  "Ref": "StudioAcmCertArn2D10C4B8",
-                },
-              },
-            ],
-            Object {
-              "Ref": "AWS::NoValue",
-            },
-          ],
-        },
-        "DefaultActions": Array [
-          Object {
-            "Order": Object {
-              "Fn::If": Array [
-                "StudioHttpsEnabledFB7951B2",
-                2,
-                1,
-              ],
-            },
-            "TargetGroupArn": Object {
-              "Ref": "StudioLBPublicListenerECSGroupB7410BDD",
-            },
-            "Type": "forward",
-          },
-          Object {
-            "Fn::If": Array [
-              "StudioHttpsEnabledFB7951B2",
-              Object {
-                "AuthenticateCognitoConfig": Object {
-                  "UserPoolArn": Object {
-                    "Fn::GetAtt": Array [
-                      "StudioUserPool94F50620",
-                      "Arn",
-                    ],
-                  },
-                  "UserPoolClientId": Object {
-                    "Ref": "StudioClient100BA227",
-                  },
-                  "UserPoolDomain": Object {
-                    "Fn::Select": Array [
-                      2,
-                      Object {
-                        "Fn::Split": Array [
-                          "/",
-                          Object {
-                            "Ref": "AWS::StackId",
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                },
-                "Order": 1,
-                "Type": "authenticate-cognito",
-              },
-              Object {
-                "Ref": "AWS::NoValue",
-              },
-            ],
-          },
-        ],
-        "LoadBalancerArn": Object {
-          "Ref": "StudioLB850A0917",
-        },
-        "Port": Object {
-          "Fn::If": Array [
-            "StudioHttpsEnabledFB7951B2",
-            443,
-            80,
-          ],
-        },
-        "Protocol": Object {
-          "Fn::If": Array [
-            "StudioHttpsEnabledFB7951B2",
-            "HTTPS",
-            "HTTP",
-          ],
-        },
-      },
-      "Type": "AWS::ElasticLoadBalancingV2::Listener",
-    },
-    "StudioLBSecurityGroupD6350C35": Object {
-      "Properties": Object {
-        "GroupDescription": "Automatically created Security Group for ELB SupabaseStudioLB132CBDFF",
-        "SecurityGroupIngress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow from anyone on port 80",
-            "FromPort": 80,
-            "IpProtocol": "tcp",
-            "ToPort": 80,
-          },
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow from anyone on port 443",
-            "FromPort": 443,
-            "IpProtocol": "tcp",
-            "ToPort": 443,
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "StudioLBSecurityGrouptoSupabaseStudioServiceSecurityGroup41B519B730004FA74141": Object {
-      "Properties": Object {
-        "Description": "Load balancer to target",
-        "DestinationSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioServiceSecurityGroup5209A715",
-            "GroupId",
-          ],
-        },
-        "FromPort": 3000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioLBSecurityGroupD6350C35",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "ToPort": 3000,
-      },
-      "Type": "AWS::EC2::SecurityGroupEgress",
-    },
-    "StudioService1995B017": Object {
-      "DependsOn": Array [
-        "StudioLBPublicListenerECSGroupB7410BDD",
-        "StudioLBPublicListenerF4E3892D",
-      ],
-      "Properties": Object {
-        "Cluster": Object {
-          "Ref": "ClusterEB0386A7",
-        },
-        "DeploymentConfiguration": Object {
-          "MaximumPercent": 200,
-          "MinimumHealthyPercent": 50,
-        },
-        "EnableECSManagedTags": false,
-        "HealthCheckGracePeriodSeconds": 60,
-        "LaunchType": "FARGATE",
-        "LoadBalancers": Array [
-          Object {
-            "ContainerName": "web",
-            "ContainerPort": 3000,
-            "TargetGroupArn": Object {
-              "Ref": "StudioLBPublicListenerECSGroupB7410BDD",
-            },
-          },
-        ],
-        "NetworkConfiguration": Object {
-          "AwsvpcConfiguration": Object {
-            "AssignPublicIp": "DISABLED",
-            "SecurityGroups": Array [
-              Object {
-                "Fn::GetAtt": Array [
-                  "StudioServiceSecurityGroup5209A715",
-                  "GroupId",
-                ],
-              },
-            ],
-            "Subnets": Array [
-              Object {
-                "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
-              },
-              Object {
-                "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A",
-              },
-            ],
-          },
-        },
-        "TaskDefinition": Object {
-          "Ref": "StudioTaskDef17A0330B",
-        },
-      },
-      "Type": "AWS::ECS::Service",
-    },
-    "StudioServiceSecurityGroup5209A715": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/Studio/Service/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "StudioServiceSecurityGroupfromSupabaseStudioLBSecurityGroup49D6AE2530006CBBD8A2": Object {
-      "Properties": Object {
-        "Description": "Load balancer to target",
-        "FromPort": 3000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioServiceSecurityGroup5209A715",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "StudioLBSecurityGroupD6350C35",
-            "GroupId",
-          ],
-        },
-        "ToPort": 3000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "StudioServiceTaskCountTargetF90DE957": Object {
-      "Properties": Object {
-        "MaxCapacity": 10,
-        "MinCapacity": 1,
-        "ResourceId": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "service/",
-              Object {
-                "Ref": "ClusterEB0386A7",
-              },
-              "/",
-              Object {
-                "Fn::GetAtt": Array [
-                  "StudioService1995B017",
-                  "Name",
-                ],
-              },
-            ],
-          ],
-        },
-        "RoleARN": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":iam::",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
-            ],
-          ],
-        },
-        "ScalableDimension": "ecs:service:DesiredCount",
-        "ServiceNamespace": "ecs",
-      },
-      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
-    },
-    "StudioServiceTaskCountTargetScaleOnCpu77890CC4": Object {
-      "Properties": Object {
-        "PolicyName": "SupabaseStudioServiceTaskCountTargetScaleOnCpu0A2EC8EC",
-        "PolicyType": "TargetTrackingScaling",
-        "ScalingTargetId": Object {
-          "Ref": "StudioServiceTaskCountTargetF90DE957",
-        },
-        "TargetTrackingScalingPolicyConfiguration": Object {
-          "PredefinedMetricSpecification": Object {
-            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
-          },
-          "ScaleInCooldown": 60,
-          "ScaleOutCooldown": 60,
-          "TargetValue": 50,
-        },
-      },
-      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-    },
-    "StudioTaskDef17A0330B": Object {
-      "Properties": Object {
-        "ContainerDefinitions": Array [
-          Object {
-            "Environment": Array [
-              Object {
-                "Name": "STUDIO_PG_META_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "https://",
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "CdnDistribution149FA6C8",
-                          "DomainName",
-                        ],
-                      },
-                      "/pg",
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "SUPABASE_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "https://",
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "CdnDistribution149FA6C8",
-                          "DomainName",
-                        ],
-                      },
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "SUPABASE_REST_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "https://",
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "CdnDistribution149FA6C8",
-                          "DomainName",
-                        ],
-                      },
-                      "/rest/v1/",
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "DEFAULT_ORGANIZATION_NAME",
-                "Value": "My Organization",
-              },
-              Object {
-                "Name": "DEFAULT_PROJECT_NAME",
-                "Value": "My Project",
-              },
-            ],
-            "Essential": true,
-            "Image": Object {
-              "Ref": "StudioImageUri",
-            },
-            "LogConfiguration": Object {
-              "LogDriver": "awslogs",
-              "Options": Object {
-                "awslogs-group": Object {
-                  "Ref": "StudioTaskDefwebLogGroup95CB5D4E",
-                },
-                "awslogs-region": Object {
-                  "Ref": "AWS::Region",
-                },
-                "awslogs-stream-prefix": "Studio",
-              },
-            },
-            "Name": "web",
-            "PortMappings": Array [
-              Object {
-                "ContainerPort": 3000,
-                "Protocol": "tcp",
-              },
-            ],
-            "Secrets": Array [
-              Object {
-                "Name": "POSTGRES_PASSWORD",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-                      },
-                      ":password::",
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "SUPABASE_ANON_KEY",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":ssm:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":parameter",
-                      Object {
-                        "Ref": "SupabaseJwtAnonKey90E80F90",
-                      },
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "SUPABASE_SERVICE_KEY",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":ssm:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":parameter",
-                      Object {
-                        "Ref": "SupabaseJwtServiceRoleKey94675B64",
-                      },
-                    ],
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-        "Cpu": "256",
-        "ExecutionRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "StudioTaskDefExecutionRoleA3E52254",
-            "Arn",
-          ],
-        },
-        "Family": "SupabaseStudioTaskDef0ECEB662",
-        "Memory": "512",
-        "NetworkMode": "awsvpc",
-        "RequiresCompatibilities": Array [
-          "FARGATE",
-        ],
-        "TaskRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "StudioTaskDefTaskRole30BC5B9C",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::ECS::TaskDefinition",
-    },
-    "StudioTaskDefExecutionRoleA3E52254": Object {
+    "StorageTaskDefTaskRoleFB709706": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -9067,7 +8788,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "StudioTaskDefExecutionRoleDefaultPolicy806359C6": Object {
+    "StudioAmplifySSRLoggingPolicyB3151918": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -9078,29 +8799,36 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "StudioTaskDefwebLogGroup95CB5D4E",
-                  "Arn",
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":logs:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":log-group:/aws/amplify/",
+                    Object {
+                      "Fn::GetAtt": Array [
+                        "StudioAppE10A3450",
+                        "AppId",
+                      ],
+                    },
+                    ":log-stream:*",
+                  ],
                 ],
               },
+              "Sid": "PushLogs",
             },
             Object {
-              "Action": Array [
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:DescribeSecret",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-            },
-            Object {
-              "Action": Array [
-                "ssm:DescribeParameters",
-                "ssm:GetParameters",
-                "ssm:GetParameter",
-                "ssm:GetParameterHistory",
-              ],
+              "Action": "logs:CreateLogGroup",
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::Join": Array [
@@ -9110,7 +8838,7 @@ Object {
                     Object {
                       "Ref": "AWS::Partition",
                     },
-                    ":ssm:",
+                    ":logs:",
                     Object {
                       "Ref": "AWS::Region",
                     },
@@ -9118,21 +8846,14 @@ Object {
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":parameter",
-                    Object {
-                      "Ref": "SupabaseJwtAnonKey90E80F90",
-                    },
+                    ":log-group:/aws/amplify/*",
                   ],
                 ],
               },
+              "Sid": "CreateLogGroup",
             },
             Object {
-              "Action": Array [
-                "ssm:DescribeParameters",
-                "ssm:GetParameters",
-                "ssm:GetParameter",
-                "ssm:GetParameterHistory",
-              ],
+              "Action": "logs:DescribeLogGroups",
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::Join": Array [
@@ -9142,7 +8863,7 @@ Object {
                     Object {
                       "Ref": "AWS::Partition",
                     },
-                    ":ssm:",
+                    ":logs:",
                     Object {
                       "Ref": "AWS::Region",
                     },
@@ -9150,27 +8871,38 @@ Object {
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":parameter",
-                    Object {
-                      "Ref": "SupabaseJwtServiceRoleKey94675B64",
-                    },
+                    ":log-group:*",
                   ],
                 ],
               },
+              "Sid": "DescribeLogGroups",
             },
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "StudioTaskDefExecutionRoleDefaultPolicy806359C6",
+        "PolicyName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "AmplifySSRLoggingPolicy-",
+              Object {
+                "Fn::GetAtt": Array [
+                  "StudioAppE10A3450",
+                  "AppId",
+                ],
+              },
+            ],
+          ],
+        },
         "Roles": Array [
           Object {
-            "Ref": "StudioTaskDefExecutionRoleA3E52254",
+            "Ref": "StudioAmplifySSRLoggingRole4245BB50",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "StudioTaskDefTaskRole30BC5B9C": Object {
+    "StudioAmplifySSRLoggingRole4245BB50": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -9178,7 +8910,7 @@ Object {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
               "Principal": Object {
-                "Service": "ecs-tasks.amazonaws.com",
+                "Service": "amplify.amazonaws.com",
               },
             },
           ],
@@ -9187,71 +8919,475 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "StudioTaskDefwebLogGroup95CB5D4E": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "StudioUserPool94F50620": Object {
-      "Condition": "StudioHttpsEnabledFB7951B2",
-      "DeletionPolicy": "Delete",
+    "StudioAmplifySSRLoggingRoleDefaultPolicyD00FDB3B": Object {
       "Properties": Object {
-        "AccountRecoverySetting": Object {
-          "RecoveryMechanisms": Array [
+        "PolicyDocument": Object {
+          "Statement": Array [
             Object {
-              "Name": "verified_phone_number",
-              "Priority": 1,
-            },
-            Object {
-              "Name": "verified_email",
-              "Priority": 2,
+              "Action": "codecommit:GitPull",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "StudioRepo63377C05",
+                  "Arn",
+                ],
+              },
             },
           ],
+          "Version": "2012-10-17",
         },
-        "AdminCreateUserConfig": Object {
-          "AllowAdminCreateUserOnly": true,
+        "PolicyName": "StudioAmplifySSRLoggingRoleDefaultPolicyD00FDB3B",
+        "Roles": Array [
+          Object {
+            "Ref": "StudioAmplifySSRLoggingRole4245BB50",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "StudioAppE10A3450": Object {
+      "Properties": Object {
+        "BasicAuthConfig": Object {
+          "EnableBasicAuth": false,
         },
-        "AutoVerifiedAttributes": Array [
-          "email",
+        "BuildSpec": "version: 1
+applications:
+  - appRoot: studio
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - env | grep -e STUDIO_PG_META_URL -e POSTGRES_PASSWORD -e SUPABASE_URL -e SUPABASE_REST_URL -e SUPABASE_ANON_KEY -e SUPABASE_SERVICE_KEY >> .env.production
+            - env | grep -e NEXT_PUBLIC_ >> .env.production
+            - npm ci || npm install
+        build:
+          commands:
+            - npm run build
+            - npm prune --omit=dev
+        postBuild:
+          commands:
+            - ln -s studio/server.js .next/standalone/server.js
+            - cp -r public .next/standalone/studio/public
+            - cp -r .next/static .next/standalone/studio/.next/static
+            - cp .env .env.production .next/standalone/studio
+      artifacts:
+        baseDirectory: .next
+        files:
+          - \\"**/*\\"
+      cache:
+        paths:
+          - node_modules/**/*
+",
+        "CustomRules": Array [
+          Object {
+            "Source": "/<*>",
+            "Status": "404-200",
+            "Target": "/index.html",
+          },
         ],
-        "EmailVerificationMessage": "The verification code to your new account is {####}",
-        "EmailVerificationSubject": "Verify your new account",
-        "SmsVerificationMessage": "The verification code to your new account is {####}",
-        "UserPoolName": "SupabaseStudio-UserPool",
-        "UsernameAttributes": Array [
-          "email",
+        "EnvironmentVariables": Array [
+          Object {
+            "Name": "STUDIO_PG_META_URL",
+            "Value": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "https://",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "CdnDistribution149FA6C8",
+                      "DomainName",
+                    ],
+                  },
+                  "/pg",
+                ],
+              ],
+            },
+          },
+          Object {
+            "Name": "POSTGRES_PASSWORD",
+            "Value": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:password::}}",
+                ],
+              ],
+            },
+          },
+          Object {
+            "Name": "SUPABASE_URL",
+            "Value": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "https://",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "CdnDistribution149FA6C8",
+                      "DomainName",
+                    ],
+                  },
+                ],
+              ],
+            },
+          },
+          Object {
+            "Name": "SUPABASE_REST_URL",
+            "Value": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "https://",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "CdnDistribution149FA6C8",
+                      "DomainName",
+                    ],
+                  },
+                  "/rest/v1/",
+                ],
+              ],
+            },
+          },
+          Object {
+            "Name": "SUPABASE_ANON_KEY",
+            "Value": Object {
+              "Fn::GetAtt": Array [
+                "SupabaseJwtAnonKey90E80F90",
+                "Value",
+              ],
+            },
+          },
+          Object {
+            "Name": "SUPABASE_SERVICE_KEY",
+            "Value": Object {
+              "Fn::GetAtt": Array [
+                "SupabaseJwtServiceRoleKey94675B64",
+                "Value",
+              ],
+            },
+          },
+          Object {
+            "Name": "NEXT_PRIVATE_OUTPUT_TRACE_ROOT",
+            "Value": "../",
+          },
+          Object {
+            "Name": "AMPLIFY_MONOREPO_APP_ROOT",
+            "Value": "studio",
+          },
+          Object {
+            "Name": "AMPLIFY_DIFF_DEPLOY",
+            "Value": "false",
+          },
+          Object {
+            "Name": "_LIVE_UPDATES",
+            "Value": "[{\\"pkg\\":\\"node\\",\\"type\\":\\"npm\\",\\"version\\":\\"16\\"},{\\"pkg\\":\\"next-version\\",\\"type\\":\\"internal\\",\\"version\\":\\"12\\"}]",
+          },
         ],
-        "VerificationMessageTemplate": Object {
-          "DefaultEmailOption": "CONFIRM_WITH_CODE",
-          "EmailMessage": "The verification code to your new account is {####}",
-          "EmailSubject": "Verify your new account",
-          "SmsMessage": "The verification code to your new account is {####}",
+        "IAMServiceRole": Object {
+          "Fn::GetAtt": Array [
+            "StudioAmplifySSRLoggingRole4245BB50",
+            "Arn",
+          ],
+        },
+        "Name": "SupabaseStudio",
+        "Platform": "WEB_COMPUTE",
+        "Repository": Object {
+          "Fn::GetAtt": Array [
+            "StudioRepo63377C05",
+            "CloneUrlHttp",
+          ],
         },
       },
-      "Type": "AWS::Cognito::UserPool",
+      "Type": "AWS::Amplify::App",
+    },
+    "StudioAppProdBranchED7568CB": Object {
+      "Properties": Object {
+        "AppId": Object {
+          "Fn::GetAtt": Array [
+            "StudioAppE10A3450",
+            "AppId",
+          ],
+        },
+        "BranchName": "main",
+        "EnableAutoBuild": true,
+        "EnablePullRequestPreview": true,
+        "EnvironmentVariables": Array [
+          Object {
+            "Name": "NEXT_PUBLIC_SITE_URL",
+            "Value": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "https://main.",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "StudioAppE10A3450",
+                      "AppId",
+                    ],
+                  },
+                  ".amplifyapp.com",
+                ],
+              ],
+            },
+          },
+        ],
+        "Framework": "Next.js - SSR",
+        "Stage": "PRODUCTION",
+      },
+      "Type": "AWS::Amplify::Branch",
+    },
+    "StudioCopyGitRepoFunctionAF34C665": Object {
+      "DependsOn": Array [
+        "StudioCopyGitRepoFunctionServiceRoleDefaultPolicy13551F82",
+        "StudioCopyGitRepoFunctionServiceRoleCDC1398A",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "00ee2ec83f114e49651582d4f2e01e582b08220156340fd47ae6e64aa059b880.zip",
+        },
+        "Description": "Copy Git Repository",
+        "EphemeralStorage": Object {
+          "Size": 2048,
+        },
+        "Handler": "index.handler",
+        "MemorySize": 2048,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "StudioCopyGitRepoFunctionServiceRoleCDC1398A",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.9",
+        "Timeout": 180,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "StudioCopyGitRepoFunctionServiceRoleCDC1398A": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "StudioCopyGitRepoFunctionServiceRoleDefaultPolicy13551F82": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "codecommit:GitPull",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "StudioRepo63377C05",
+                  "Arn",
+                ],
+              },
+            },
+            Object {
+              "Action": "codecommit:GitPush",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "StudioRepo63377C05",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "StudioCopyGitRepoFunctionServiceRoleDefaultPolicy13551F82",
+        "Roles": Array [
+          Object {
+            "Ref": "StudioCopyGitRepoFunctionServiceRoleCDC1398A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "StudioCopyGitRepoJobEFC84104": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "StudioCopyGitRepoProviderframeworkonEvent1EB3BA2E",
+            "Arn",
+          ],
+        },
+        "SourceBranch": Object {
+          "Ref": "StudioBranch",
+        },
+        "SourceRepo": "https://github.com/supabase/supabase.git",
+        "TargetBranch": "main",
+        "TargetRepo": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "codecommit::",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              "://",
+              Object {
+                "Fn::GetAtt": Array [
+                  "StudioRepo63377C05",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "Version": 4,
+      },
+      "Type": "Custom::CopyGitRepoJob",
       "UpdateReplacePolicy": "Delete",
     },
-    "StudioUserPoolDomain83E076DB": Object {
-      "Condition": "StudioHttpsEnabledFB7951B2",
+    "StudioCopyGitRepoProviderframeworkonEvent1EB3BA2E": Object {
+      "DependsOn": Array [
+        "StudioCopyGitRepoProviderframeworkonEventServiceRoleDefaultPolicyC7422947",
+        "StudioCopyGitRepoProviderframeworkonEventServiceRole91FB85A2",
+      ],
       "Properties": Object {
-        "Domain": Object {
-          "Fn::Select": Array [
-            2,
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Studio/CopyGitRepoProvider)",
+        "Environment": Object {
+          "Variables": Object {
+            "USER_ON_EVENT_FUNCTION_ARN": Object {
+              "Fn::GetAtt": Array [
+                "StudioCopyGitRepoFunctionAF34C665",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "Handler": "framework.onEvent",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "StudioCopyGitRepoProviderframeworkonEventServiceRole91FB85A2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "StudioCopyGitRepoProviderframeworkonEventServiceRole91FB85A2": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
             Object {
-              "Fn::Split": Array [
-                "/",
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
                 Object {
-                  "Ref": "AWS::StackId",
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "StudioCopyGitRepoProviderframeworkonEventServiceRoleDefaultPolicyC7422947": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "StudioCopyGitRepoFunctionAF34C665",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "StudioCopyGitRepoFunctionAF34C665",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
                 },
               ],
             },
           ],
+          "Version": "2012-10-17",
         },
-        "UserPoolId": Object {
-          "Ref": "StudioUserPool94F50620",
-        },
+        "PolicyName": "StudioCopyGitRepoProviderframeworkonEventServiceRoleDefaultPolicyC7422947",
+        "Roles": Array [
+          Object {
+            "Ref": "StudioCopyGitRepoProviderframeworkonEventServiceRole91FB85A2",
+          },
+        ],
       },
-      "Type": "AWS::Cognito::UserPoolDomain",
+      "Type": "AWS::IAM::Policy",
+    },
+    "StudioRepo63377C05": Object {
+      "Properties": Object {
+        "RepositoryName": "SupabaseStudio",
+      },
+      "Type": "AWS::CodeCommit::Repository",
     },
     "SupabaseDatabaseClusterSecret2AA4A5CD6b2eb8af71bef5c6813259b78dc271d3": Object {
       "DeletionPolicy": "Delete",
@@ -9330,7 +9466,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "711810d3f57d7256b05963e398fa514d237d4766e38bf8be79e548f5e0bf2f53.zip",
+          "S3Key": "68890b0512a1e2f6d392e08c8f16c635fd7aae8d469f117add5847bdb35fb0ca.zip",
         },
         "Description": "Supabase - Create API role & API key",
         "Environment": Object {
@@ -9571,258 +9707,6 @@ Object {
         },
       },
       "Type": "AWS::SSM::Parameter",
-    },
-    "SupabaseMailAccessKeyA6348E49": Object {
-      "Properties": Object {
-        "UserName": Object {
-          "Ref": "SupabaseMailUser6287674D",
-        },
-      },
-      "Type": "AWS::IAM::AccessKey",
-    },
-    "SupabaseMailGenSmtpPasswordFunction1BD23362": Object {
-      "DependsOn": Array [
-        "SupabaseMailGenSmtpPasswordFunctionServiceRole0A78DBF3",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "f313788ca3f2fa052e96d53301df52b707c280b900d594a906b624fac83c5505.zip",
-        },
-        "Description": "Supabase - Generate SMTP Password Function",
-        "Environment": Object {
-          "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-          },
-        },
-        "Handler": "index.handler",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "SupabaseMailGenSmtpPasswordFunctionServiceRole0A78DBF3",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs16.x",
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "SupabaseMailGenSmtpPasswordFunctionServiceRole0A78DBF3": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "SupabaseMailGenSmtpPasswordProviderframeworkonEvent3038CFFF": Object {
-      "DependsOn": Array [
-        "SupabaseMailGenSmtpPasswordProviderframeworkonEventServiceRoleDefaultPolicy28275DA1",
-        "SupabaseMailGenSmtpPasswordProviderframeworkonEventServiceRole4F5FF7D5",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
-        },
-        "Description": "AWS CDK resource provider framework - onEvent (Supabase/SupabaseMail/GenSmtpPasswordProvider)",
-        "Environment": Object {
-          "Variables": Object {
-            "USER_ON_EVENT_FUNCTION_ARN": Object {
-              "Fn::GetAtt": Array [
-                "SupabaseMailGenSmtpPasswordFunction1BD23362",
-                "Arn",
-              ],
-            },
-          },
-        },
-        "Handler": "framework.onEvent",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "SupabaseMailGenSmtpPasswordProviderframeworkonEventServiceRole4F5FF7D5",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs14.x",
-        "Timeout": 900,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "SupabaseMailGenSmtpPasswordProviderframeworkonEventServiceRole4F5FF7D5": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "SupabaseMailGenSmtpPasswordProviderframeworkonEventServiceRoleDefaultPolicy28275DA1": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "lambda:InvokeFunction",
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "SupabaseMailGenSmtpPasswordFunction1BD23362",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "SupabaseMailGenSmtpPasswordFunction1BD23362",
-                          "Arn",
-                        ],
-                      },
-                      ":*",
-                    ],
-                  ],
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "SupabaseMailGenSmtpPasswordProviderframeworkonEventServiceRoleDefaultPolicy28275DA1",
-        "Roles": Array [
-          Object {
-            "Ref": "SupabaseMailGenSmtpPasswordProviderframeworkonEventServiceRole4F5FF7D5",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "SupabaseMailPolicy575C9DA2": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "ses:SendRawEmail",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "SendEmailPolicy",
-        "Users": Array [
-          Object {
-            "Ref": "SupabaseMailUser6287674D",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "SupabaseMailSecret777E0288": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "Description": "Supabase - SES SMTP Secret",
-        "SecretString": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "{\\"username\\":\\"",
-              Object {
-                "Ref": "SupabaseMailAccessKeyA6348E49",
-              },
-              "\\",\\"password\\":\\"",
-              Object {
-                "Fn::GetAtt": Array [
-                  "SupabaseMailSmtpPassword3227537A",
-                  "Password",
-                ],
-              },
-              "\\",\\"host\\":\\"email-smtp.",
-              Object {
-                "Ref": "SesRegion",
-              },
-              ".amazonaws.com\\"}",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::SecretsManager::Secret",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "SupabaseMailSmtpPassword3227537A": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "Region": Object {
-          "Ref": "SesRegion",
-        },
-        "SecretAccessKey": Object {
-          "Fn::GetAtt": Array [
-            "SupabaseMailAccessKeyA6348E49",
-            "SecretAccessKey",
-          ],
-        },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "SupabaseMailGenSmtpPasswordProviderframeworkonEvent3038CFFF",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "Custom::SmtpPassword",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "SupabaseMailUser6287674D": Object {
-      "Type": "AWS::IAM::User",
     },
     "VPCB9E5F0B4": Object {
       "Properties": Object {
@@ -10179,42 +10063,6 @@ Object {
       },
       "Type": "AWS::EC2::VPCGatewayAttachment",
     },
-    "WorkMailNestedStackWorkMailNestedStackResource44BA1505": Object {
-      "Condition": "WorkMailEnabled",
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "Parameters": Object {
-          "referencetoSupabaseSesRegion184A3193Ref": Object {
-            "Ref": "SesRegion",
-          },
-          "referencetoSupabaseSupabaseMailSecret09707F68Ref": Object {
-            "Ref": "SupabaseMailSecret777E0288",
-          },
-        },
-        "TemplateURL": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "https://s3.",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ".",
-              Object {
-                "Ref": "AWS::URLSuffix",
-              },
-              "/",
-              Object {
-                "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-              },
-              "/2103ad55ee0df7089f3c041bbb1c498315915d609733b5ebc572864e3b413478.json",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::CloudFormation::Stack",
-      "UpdateReplacePolicy": "Delete",
-    },
   },
   "Rules": Object {
     "AuthProvider1CheckClientIdD806CC33": Object {
@@ -10428,7 +10276,7 @@ Object {
         },
       ],
     },
-    "CheckWorkMailRegion": Object {
+    "SmtpCheckWorkMailRegion2094F9E6": Object {
       "Assertions": Array [
         Object {
           "Assert": Object {
@@ -10439,7 +10287,7 @@ Object {
                 "eu-west-1",
               ],
               Object {
-                "Ref": "SesRegion",
+                "Ref": "SmtpRegionC7E863E7",
               },
             ],
           },
@@ -10449,7 +10297,7 @@ Object {
       "RuleCondition": Object {
         "Fn::Equals": Array [
           Object {
-            "Ref": "EnableWorkMail",
+            "Ref": "SmtpEnableTestDomain9DFEAF4D",
           },
           "true",
         ],

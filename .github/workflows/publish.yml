@@ -120,57 +120,6 @@ jobs:
             ${{ steps.login-ecr-public.outputs.registry }}/${{ env.ECR_PUBLIC_ALIAS }}/${{ env.IMAGE_NAME }}:latest
             ${{ steps.login-ecr-public.outputs.registry }}/${{ env.ECR_PUBLIC_ALIAS }}/${{ env.IMAGE_NAME }}:4
 
-  asset-to-git:
-    name: Asset to Git Docker Image for custom resource
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write # needed to interact with GitHub's OIDC Token endpoint.
-      contents: read
-    env:
-      ECR_PUBLIC_ALIAS: u3p7q2r8
-      IMAGE_NAME: asset-to-git
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - uses: technote-space/get-diff-action@v6
-        with:
-          PATTERNS: |
-            containers/asset-to-git/**/*
-            .github/workflows/publish.yml
-
-      - name: Set up QEMU
-        if: env.GIT_DIFF
-        uses: docker/setup-qemu-action@v1
-
-      - name: Set up Docker Buildx
-        if: env.GIT_DIFF
-        uses: docker/setup-buildx-action@v2
-
-      - name: Configure AWS credentials
-        if: env.GIT_DIFF
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: ${{ secrets.ECR_PUBLIC_ROLE }}
-          aws-region: us-east-1
-
-      - name: Login to Amazon ECR Public
-        id: login-ecr-public
-        if: env.GIT_DIFF
-        uses: aws-actions/amazon-ecr-login@v1
-        with:
-          registry-type: public
-
-      - name: Build and push
-        if: env.GIT_DIFF
-        uses: docker/build-push-action@v3
-        with:
-          context: ./containers/asset-to-git
-          file: ./containers/asset-to-git/Dockerfile
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.login-ecr-public.outputs.registry }}/${{ env.ECR_PUBLIC_ALIAS }}/${{ env.IMAGE_NAME }}:latest
-
   cloudformation:
     name: CloudFormation Templates
     runs-on: ubuntu-latest
