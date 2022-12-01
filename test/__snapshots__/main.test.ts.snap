@@ -865,7 +865,7 @@ Object {
   },
   "Parameters": Object {
     "AuthImageUri": Object {
-      "Default": "public.ecr.aws/supabase/gotrue:v2.27.0",
+      "Default": "public.ecr.aws/supabase/gotrue:v2.37.2",
       "Description": "https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
     },
@@ -1271,7 +1271,7 @@ Object {
       "Type": "String",
     },
     "StorageImageUri": Object {
-      "Default": "public.ecr.aws/supabase/storage-api:v0.24.10",
+      "Default": "public.ecr.aws/supabase/storage-api:v0.25.1",
       "Description": "https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
     },
@@ -3376,7 +3376,7 @@ Object {
         },
         "DatabaseName": "postgres",
         "Engine": "aurora-postgresql",
-        "EngineVersion": "14.4",
+        "EngineVersion": "14.5",
         "MasterUserPassword": Object {
           "Fn::Join": Array [
             "",
