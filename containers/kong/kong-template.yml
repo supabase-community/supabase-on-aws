@@ -35,7 +35,7 @@ acls:
 services:
   ## Open Auth routes
   - name: auth-v1-open
-    url: ${SUPABASE_AUTH_URL:=http://auth.supabase.local:9999/}verify
+    url: ${SUPABASE_AUTH_URL:=http://auth:9999/}verify
     routes:
       - name: auth-v1-open
         strip_path: true
@@ -44,7 +44,7 @@ services:
     plugins:
       - name: cors
   - name: auth-v1-open-callback
-    url: ${SUPABASE_AUTH_URL:=http://auth.supabase.local:9999/}callback
+    url: ${SUPABASE_AUTH_URL:=http://auth:9999/}callback
     routes:
       - name: auth-v1-open-callback
         strip_path: true
@@ -53,7 +53,7 @@ services:
     plugins:
       - name: cors
   - name: auth-v1-open-authorize
-    url: ${SUPABASE_AUTH_URL:=http://auth.supabase.local:9999/}authorize
+    url: ${SUPABASE_AUTH_URL:=http://auth:9999/}authorize
     routes:
       - name: auth-v1-open-authorize
         strip_path: true
@@ -65,7 +65,7 @@ services:
   ## Secure Auth routes
   - name: auth-v1
     _comment: "GoTrue: /auth/v1/* -> http://auth:9999/*"
-    url: ${SUPABASE_AUTH_URL:=http://auth.supabase.local:9999/}
+    url: ${SUPABASE_AUTH_URL:=http://auth:9999/}
     routes:
       - name: auth-v1-all
         strip_path: true
@@ -86,7 +86,7 @@ services:
   ## Secure REST routes
   - name: rest-v1
     _comment: "PostgREST: /rest/v1/* -> http://rest:3000/*"
-    url: ${SUPABASE_REST_URL:=http://rest.supabase.local:3000/}
+    url: ${SUPABASE_REST_URL:=http://rest:3000/}
     routes:
       - name: rest-v1-all
         strip_path: true
@@ -107,7 +107,7 @@ services:
   ## Secure GraphQL routes
   - name: graphql-v1
     _comment: "PostgREST: /graphql/v1/* -> http://rest:3000/rpc/graphql"
-    url: ${SUPABASE_GRAPHQL_URL:=http://rest.supabase.local:3000/rpc/graphql}
+    url: ${SUPABASE_GRAPHQL_URL:=http://rest:3000/rpc/graphql}
     routes:
       - name: graphql-v1-all
         strip_path: true
@@ -133,7 +133,7 @@ services:
   ## Secure Realtime routes
   - name: realtime-v1
     _comment: "Realtime: /realtime/v1/* -> ws://realtime:4000/socket/*"
-    url: ${SUPABASE_REALTIME_URL:=http://realtime.supabase.local:4000/socket/}
+    url: ${SUPABASE_REALTIME_URL:=http://realtime:4000/socket/}
     routes:
       - name: realtime-v1-all
         strip_path: true
@@ -154,7 +154,7 @@ services:
   ## Storage routes: the storage server manages its own auth
   - name: storage-v1
     _comment: "Storage: /storage/v1/* -> http://storage:5000/*"
-    url: ${SUPABASE_STORAGE_URL:=http://storage.supabase.local:5000/}
+    url: ${SUPABASE_STORAGE_URL:=http://storage:5000/}
     routes:
       - name: storage-v1-all
         strip_path: true
@@ -166,7 +166,7 @@ services:
   ## Secure Database routes
   - name: meta
     _comment: "pg-meta: /pg/* -> http://pg-meta:8080/*"
-    url: ${SUPABASE_META_HOST:=http://meta.supabase.local:8080/}
+    url: ${SUPABASE_META_HOST:=http://meta:8080/}
     routes:
       - name: meta-all
         strip_path: true
