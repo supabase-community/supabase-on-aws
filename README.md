@@ -66,7 +66,6 @@ This repo includes a blueprint of starting Supabase stack on AWS via CloudFormat
 
 | Size | vCPU | Memory |
 |:--|:--|:--|
-| nano | 256 | 512 |
 | micro | 256 | 1024 |
 | small | 512 | 1024 |
 | medium | 1024 | 2048 |
