@@ -5,7 +5,7 @@ import { NetworkLoadBalancedTaskImageOptions } from 'aws-cdk-lib/aws-ecs-pattern
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 //import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
-//import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
+import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { AuthProvider } from './supabase-auth-provider';
 import { SupabaseDatabase } from './supabase-db';
@@ -21,6 +21,7 @@ export interface BaseFargateServiceProps {
   serviceName?: string;
   cluster: ecs.ICluster;
   taskImageOptions: SupabaseTaskImageOptions;
+  enableCloudMap?: boolean;
 }
 
 export interface AutoScalingFargateServiceProps extends BaseFargateServiceProps {
@@ -42,8 +43,10 @@ export class BaseFargateService extends Construct {
 
     const serviceName = props.serviceName || id.toLowerCase();
     const { cluster, taskImageOptions } = props;
+    const enableCloudMap = (typeof props.enableCloudMap == 'undefined') ? false : props.enableCloudMap;
 
     this.listenerPort = taskImageOptions.containerPort;
+    this.endpoint = `http://${serviceName}.${cluster.defaultCloudMapNamespace?.namespaceName}:${this.listenerPort}`;
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
       runtimePlatform: {
@@ -88,15 +91,15 @@ export class BaseFargateService extends Construct {
       logDriver,
     });
 
-    this.endpoint = `http://${serviceName}.${cluster.defaultCloudMapNamespace?.namespaceName}:${this.listenerPort}`;
-
-    //const cloudMapService = this.service.enableCloudMap({
-    //  name: this.serviceName,
-    //  dnsRecordType: servicediscovery.DnsRecordType.SRV,
-    //  container: appContainer,
-    //  dnsTtl: cdk.Duration.seconds(10),
-    //});
-    //(cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
+    if (enableCloudMap) {
+      const cloudMapService = this.service.enableCloudMap({
+        name: serviceName,
+        dnsRecordType: servicediscovery.DnsRecordType.SRV,
+        container: appContainer,
+        dnsTtl: cdk.Duration.seconds(10),
+      });
+      (cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
+    }
   }
 
   addApplicationLoadBalancer(props: { healthCheck?: elb.HealthCheck }) {
