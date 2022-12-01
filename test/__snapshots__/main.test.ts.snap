@@ -5044,6 +5044,74 @@ Object {
       },
       "Type": "AWS::SSM::Parameter",
     },
+    "EcsServiceCreatedDC2CA219": Object {
+      "Properties": Object {
+        "Description": "Supabase - new ECS service created (for Service Connect)",
+        "EventPattern": Object {
+          "detail": Object {
+            "eventName": Array [
+              "CreateSearvice",
+            ],
+            "responseElements": Object {
+              "cluster": Object {
+                "clusterArn": Array [
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "ClusterEB0386A7",
+                      "Arn",
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          "detail-type": Array [
+            "AWS API Call via CloudTrail",
+          ],
+          "source": Array [
+            "aws.ecs",
+          ],
+        },
+        "State": "ENABLED",
+        "Targets": Array [
+          Object {
+            "Arn": Object {
+              "Ref": "ForceDeployJobStateMachine528644B1",
+            },
+            "Id": "Target0",
+            "Input": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{\\"services\\":[\\"",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "KongFargateServiceA23C8C36",
+                      "Name",
+                    ],
+                  },
+                  "\\",\\"",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "StorageFargateService64A6F247",
+                      "Name",
+                    ],
+                  },
+                  "\\"]}",
+                ],
+              ],
+            },
+            "RoleArn": Object {
+              "Fn::GetAtt": Array [
+                "ForceDeployJobStateMachineEventsRole3137AB10",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
     "ForceDeployJobStateMachine528644B1": Object {
       "DependsOn": Array [
         "ForceDeployJobStateMachineRoleDefaultPolicyD8B5C2E1",

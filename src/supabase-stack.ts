@@ -382,6 +382,22 @@ export class SupabaseStack extends FargateStack {
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
 
+    const ecsServiceCreatedRule = new events.Rule(this, 'EcsServiceCreated', {
+      description: 'Supabase - new ECS service created (for Service Connect)',
+      eventPattern: {
+        source: ['aws.ecs'],
+        detailType: ['AWS API Call via CloudTrail'],
+        detail: {
+          eventName: ['CreateSearvice'],
+          responseElements: {
+            cluster: {
+              clusterArn: [cluster.clusterArn],
+            },
+          },
+        },
+      },
+    });
+
     const dbSecretRotatedRule = new events.Rule(this, 'DatabaseSecretRotated', {
       description: 'Supabase - Database secret rotated',
       eventPattern: {
@@ -407,6 +423,7 @@ export class SupabaseStack extends FargateStack {
       },
     });
 
+    forceDeployJob.addTrigger({ rule: ecsServiceCreatedRule, services: [kong, storage] }); // for Service Connect
     forceDeployJob.addTrigger({ rule: dbSecretRotatedRule, services: [auth, rest, realtime, storage, meta] });
     forceDeployJob.addTrigger({ rule: authParameterChangedRule, services: [auth] });
 
