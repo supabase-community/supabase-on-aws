@@ -65,7 +65,7 @@ export class SupabaseDatabase extends Construct {
     };
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
-      version: rds.AuroraPostgresEngineVersion.VER_14_4,
+      version: rds.AuroraPostgresEngineVersion.VER_14_5,
     });
 
     const parameterGroup = new rds.ParameterGroup(this, 'ParameterGroup', {
