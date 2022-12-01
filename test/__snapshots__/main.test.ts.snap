@@ -1470,7 +1470,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "auth",
                   "Port": 9999,
                 },
               ],
@@ -5293,7 +5292,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "graphql",
                   "Port": 5000,
                 },
               ],
@@ -6093,7 +6091,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "kong",
                   "Port": 8000,
                 },
               ],
@@ -6350,8 +6347,28 @@ Object {
                 "Value": "0.0.0.0:8100",
               },
               Object {
+                "Name": "SUPABASE_AUTH_URL",
+                "Value": "http://auth.supabase.internal:9999/",
+              },
+              Object {
+                "Name": "SUPABASE_REST_URL",
+                "Value": "http://rest.supabase.internal:3000/",
+              },
+              Object {
                 "Name": "SUPABASE_GRAPHQL_URL",
-                "Value": "http://graphql:5000/graphql",
+                "Value": "http://graphql.supabase.internal:5000/graphql",
+              },
+              Object {
+                "Name": "SUPABASE_REALTIME_URL",
+                "Value": "http://realtime.supabase.internal:4000/socket/",
+              },
+              Object {
+                "Name": "SUPABASE_STORAGE_URL",
+                "Value": "http://storage.supabase.internal:5000/",
+              },
+              Object {
+                "Name": "SUPABASE_META_HOST",
+                "Value": "http://meta.supabase.internal:8080/",
               },
             ],
             "Essential": true,
@@ -6725,7 +6742,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "meta",
                   "Port": 8080,
                 },
               ],
@@ -7150,7 +7166,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "realtime",
                   "Port": 4000,
                 },
               ],
@@ -7670,7 +7685,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "rest",
                   "Port": 3000,
                 },
               ],
@@ -8436,7 +8450,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "storage",
                   "Port": 5000,
                 },
               ],
@@ -8531,7 +8544,7 @@ Object {
             "Environment": Array [
               Object {
                 "Name": "POSTGREST_URL",
-                "Value": "http://rest:3000",
+                "Value": "http://rest.supabase.internal:3000",
               },
               Object {
                 "Name": "PGOPTIONS",

@@ -30,13 +30,13 @@ export interface AutoScalingFargateServiceProps extends BaseFargateServiceProps 
 
 export class BaseFargateService extends Construct {
   readonly listenerPort: number;
-  readonly serviceName: string;
+  readonly dnsName: string;
   readonly service: ecs.FargateService;
 
   constructor(scope: Construct, id: string, props: BaseFargateServiceProps) {
     super(scope, id);
 
-    this.serviceName = props.serviceName || id.toLowerCase();
+    const serviceName = props.serviceName || id.toLowerCase();
     const { cluster, taskImageOptions } = props;
 
     this.listenerPort = taskImageOptions.containerPort;
@@ -79,11 +79,12 @@ export class BaseFargateService extends Construct {
     this.service.enableServiceConnect({
       services: [{
         portMappingName: 'http',
-        discoveryName: this.serviceName,
-        dnsName: this.serviceName,
+        discoveryName: serviceName,
       }],
       logDriver,
     });
+
+    this.dnsName = `${serviceName}.${cluster.defaultCloudMapNamespace?.namespaceName}`;
 
     //const cloudMapService = this.service.enableCloudMap({
     //  name: this.serviceName,

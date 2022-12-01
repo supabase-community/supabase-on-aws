@@ -269,7 +269,6 @@ export class SupabaseStack extends FargateStack {
       minTaskCount: 0,
       maxTaskCount: 0,
     });
-    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_GRAPHQL_URL', `http://${gql.serviceName}:${gql.listenerPort}/graphql`);
 
     const realtime = new AutoScalingFargateService(this, 'Realtime', {
       cluster,
@@ -313,7 +312,7 @@ export class SupabaseStack extends FargateStack {
         image: ecs.ContainerImage.fromRegistry(storageImageUri.valueAsString),
         containerPort: 5000,
         environment: {
-          POSTGREST_URL: `http://${rest.serviceName}:${rest.listenerPort}`,
+          POSTGREST_URL: `http://${rest.dnsName}:${rest.listenerPort}`,
           PGOPTIONS: '-c search_path=storage,public',
           FILE_SIZE_LIMIT: '52428800',
           TENANT_ID: 'stub',
@@ -356,6 +355,13 @@ export class SupabaseStack extends FargateStack {
         },
       },
     });
+
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_AUTH_URL', `http://${auth.dnsName}:${auth.listenerPort}/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REST_URL', `http://${rest.dnsName}:${rest.listenerPort}/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_GRAPHQL_URL', `http://${gql.dnsName}:${gql.listenerPort}/graphql`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REALTIME_URL', `http://${realtime.dnsName}:${realtime.listenerPort}/socket/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_STORAGE_URL', `http://${storage.dnsName}:${storage.listenerPort}/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_META_HOST', `http://${meta.dnsName}:${meta.listenerPort}/`);
 
     kong.addBackend(auth);
     kong.addBackend(rest);
