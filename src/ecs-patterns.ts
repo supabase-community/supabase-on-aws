@@ -29,8 +29,12 @@ export interface AutoScalingFargateServiceProps extends BaseFargateServiceProps 
 }
 
 export class BaseFargateService extends Construct {
+  /**
+   * The URL to connect to an API. The URL contains the protocol, a DNS name, and the port.
+   * (e.g. `http://rest.supabase.internal:8000`)
+   */
+  readonly endpoint: string;
   readonly listenerPort: number;
-  readonly dnsName: string;
   readonly service: ecs.FargateService;
 
   constructor(scope: Construct, id: string, props: BaseFargateServiceProps) {
@@ -84,7 +88,7 @@ export class BaseFargateService extends Construct {
       logDriver,
     });
 
-    this.dnsName = `${serviceName}.${cluster.defaultCloudMapNamespace?.namespaceName}`;
+    this.endpoint = `http://${serviceName}.${cluster.defaultCloudMapNamespace?.namespaceName}:${this.listenerPort}`;
 
     //const cloudMapService = this.service.enableCloudMap({
     //  name: this.serviceName,
