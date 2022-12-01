@@ -46,21 +46,18 @@ This repo includes a blueprint of starting Supabase stack on AWS via CloudFormat
 
 ### Specification and Limitation
 
-- API
-  - All containers run on ECS Fargate (Graviton2).
-    - Only Storage API run on x86 pratform.
+- APIs
+  - All containers run on ECS Fargate.
   - All components are configured with AutoScaling.
   - GraphQL is supported using [PostGraphile](https://www.graphile.org/postgraphile/), because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
 - Database
   - Use [Aurora Serverless v2](https://aws.amazon.com/rds/aurora/serverless/).
   - DB password will be rotated automatically every 30 days.
-- Service Discovery
-  - Use [Cloud Map](https://aws.amazon.com/cloud-map/) as internal DNS.
-    - Each component is discovered as `***.supabase.local`.
+- Service Discovery & Service Mesh
+  - Use [ECS Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html).
+    - Each component is discovered as `***.supabase.internal`.
 - Studio
-  - You can use authentication using Cognito UserPool.
-    - Need to set certificate ARN.
-    - By default, use http without authentication.
+  - It is deployed on [Amplify Hosting](https://aws.amazon.com/amplify/hosting/).
 
 #### Fargate Task Size
 
