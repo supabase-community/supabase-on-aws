@@ -43,7 +43,7 @@ export class Organization extends Construct {
     const createOrgFunction = new NodejsFunction(this, 'CreateOrgFunction', {
       description: 'Supabase - Create WorkMail Org Function',
       entry: './src/functions/create-workmail-org.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(10),
       initialPolicy: [
         new iam.PolicyStatement({
@@ -78,7 +78,7 @@ export class Organization extends Construct {
     const checkOrgFunction = new NodejsFunction(this, 'CheckOrgFunction', {
       description: 'Supabase - Check state WorkMail Org Function',
       entry: './src/functions/check-workmail-org.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       initialPolicy: [
         new iam.PolicyStatement({
           actions: [
@@ -108,7 +108,7 @@ export class Organization extends Construct {
     const createUserFunction = new NodejsFunction(this, 'CreateUserFunction', {
       description: 'Supabase - Create WorkMail User Function',
       entry: './src/functions/create-workmail-user.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(10),
       initialPolicy: [
         new iam.PolicyStatement({

@@ -149,7 +149,7 @@ export class SupabaseDatabase extends Construct {
     const syncSecretFunction = new NodejsFunction(this, 'SyncSecretFunction', {
       description: 'Supabase - Sync DB secret to parameter store',
       entry: 'src/functions/db-secret-sync.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       architecture: lambda.Architecture.ARM_64,
       environment: {
         WRITER_PARAMETER_NAME: this.url.writer.parameterName,
@@ -208,7 +208,7 @@ export class SupabaseDatabase extends Construct {
           },
         },
       },
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(60),
       vpc,
     });

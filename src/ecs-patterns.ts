@@ -121,7 +121,7 @@ export class BaseFargateService extends Construct {
     });
     if (typeof healthCheck?.port != 'undefined') {
       const healthCheckPort = Number(healthCheck.port);
-      this.service.connections.allowFrom(loadBalancer, ec2.Port.tcp(healthCheckPort), 'ALB healthcheck'); 
+      this.service.connections.allowFrom(loadBalancer, ec2.Port.tcp(healthCheckPort), 'ALB healthcheck');
     }
     (securityGroup.node.defaultChild as ec2.CfnSecurityGroup).securityGroupIngress = [];
     return loadBalancer;
