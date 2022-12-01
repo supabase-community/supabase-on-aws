@@ -5050,7 +5050,7 @@ Object {
         "EventPattern": Object {
           "detail": Object {
             "eventName": Array [
-              "CreateSearvice",
+              "CreateService",
             ],
             "responseElements": Object {
               "cluster": Object {

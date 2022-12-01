@@ -388,7 +388,7 @@ export class SupabaseStack extends FargateStack {
         source: ['aws.ecs'],
         detailType: ['AWS API Call via CloudTrail'],
         detail: {
-          eventName: ['CreateSearvice'],
+          eventName: ['CreateService'],
           responseElements: {
             cluster: {
               clusterArn: [cluster.clusterArn],
