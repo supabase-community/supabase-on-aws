@@ -24,44 +24,45 @@ export class SupabaseDatabase extends Construct {
     writerSearchPathAuth: ssm.StringParameter;
     reader: ssm.StringParameter;
   };
-  minCapacity: cdk.CfnParameter;
-  maxCapacity: cdk.CfnParameter;
-  instanceClass: cdk.CfnParameter;
-  instanceCount: cdk.CfnParameter;
+  cfnParameters: {
+    minCapacity: cdk.CfnParameter;
+    maxCapacity: cdk.CfnParameter;
+    instanceClass: cdk.CfnParameter;
+    instanceCount: cdk.CfnParameter;
+  };
 
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
     super(scope, id);
 
     const { vpc } = props;
 
-    this.instanceClass = new cdk.CfnParameter(this, 'InstanceClass', {
-      type: 'String',
-      default: 'db.serverless',
-      allowedValues: ['db.serverless', 'db.t4g.medium', 'db.t4g.large', 'db.r6g.large', 'db.r6g.xlarge', 'db.r6g.2xlarge', 'db.r6g.4xlarge', 'db.r6g.8xlarge', 'db.r6g.12xlarge', 'db.r6g.16xlarge'],
-    });
-
-    this.instanceCount = new cdk.CfnParameter(this, 'InstanceCount', {
-      type: 'Number',
-      default: 1,
-      minValue: 1,
-      maxValue: 16,
-    });
-
-    this.minCapacity = new cdk.CfnParameter(this, 'MinCapacity', {
-      description: 'The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
-      type: 'Number',
-      default: 0.5,
-      minValue: 0.5,
-      maxValue: 128,
-    });
-
-    this.maxCapacity = new cdk.CfnParameter(this, 'MaxCapacity', {
-      description: 'The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
-      type: 'Number',
-      default: 32,
-      minValue: 0.5,
-      maxValue: 128,
-    });
+    this.cfnParameters = {
+      instanceClass: new cdk.CfnParameter(this, 'InstanceClass', {
+        type: 'String',
+        default: 'db.serverless',
+        allowedValues: ['db.serverless', 'db.t4g.medium', 'db.t4g.large', 'db.r6g.large', 'db.r6g.xlarge', 'db.r6g.2xlarge', 'db.r6g.4xlarge', 'db.r6g.8xlarge', 'db.r6g.12xlarge', 'db.r6g.16xlarge'],
+      }),
+      instanceCount: new cdk.CfnParameter(this, 'InstanceCount', {
+        type: 'Number',
+        default: 1,
+        minValue: 1,
+        maxValue: 16,
+      }),
+      minCapacity: new cdk.CfnParameter(this, 'MinCapacity', {
+        description: 'The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
+        type: 'Number',
+        default: 0.5,
+        minValue: 0.5,
+        maxValue: 128,
+      }),
+      maxCapacity: new cdk.CfnParameter(this, 'MaxCapacity', {
+        description: 'The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
+        type: 'Number',
+        default: 32,
+        minValue: 0.5,
+        maxValue: 128,
+      }),
+    };
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
       version: rds.AuroraPostgresEngineVersion.VER_14_4,
@@ -100,18 +101,18 @@ export class SupabaseDatabase extends Construct {
     });
 
     (this.cluster.node.defaultChild as rds.CfnDBCluster).serverlessV2ScalingConfiguration = {
-      minCapacity: this.minCapacity.valueAsNumber,
-      maxCapacity: this.maxCapacity.valueAsNumber,
+      minCapacity: this.cfnParameters.minCapacity.valueAsNumber,
+      maxCapacity: this.cfnParameters.maxCapacity.valueAsNumber,
     };
 
     const updateDBInstance = (index: number, parentCondition?: cdk.CfnCondition) => {
       const expression = (typeof parentCondition == 'undefined')
-        ? cdk.Fn.conditionEquals(this.instanceCount, index)
-        : cdk.Fn.conditionOr(parentCondition, cdk.Fn.conditionEquals(this.instanceCount, index));
+        ? cdk.Fn.conditionEquals(this.cfnParameters.instanceCount, index)
+        : cdk.Fn.conditionOr(parentCondition, cdk.Fn.conditionEquals(this.cfnParameters.instanceCount, index));
       const condition = new cdk.CfnCondition(this, `Instance${index}Enabled`, { expression });
       const dbInstance = this.cluster.node.findChild(`Instance${index}`) as rds.CfnDBInstance;
       dbInstance.cfnOptions.condition = condition;
-      dbInstance.dbInstanceClass = this.instanceClass.valueAsString;
+      dbInstance.dbInstanceClass = this.cfnParameters.instanceClass.valueAsString;
       if (index >= 2) {
         updateDBInstance(index-1, condition);
       }

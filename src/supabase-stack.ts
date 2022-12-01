@@ -475,10 +475,10 @@ export class SupabaseStack extends FargateStack {
         {
           Label: { default: 'Infrastructure Settings - Database' },
           Parameters: [
-            db.instanceClass.logicalId,
-            db.instanceCount.logicalId,
-            db.minCapacity.logicalId,
-            db.maxCapacity.logicalId,
+            db.cfnParameters.instanceClass.logicalId,
+            db.cfnParameters.instanceCount.logicalId,
+            db.cfnParameters.minCapacity.logicalId,
+            db.cfnParameters.maxCapacity.logicalId,
           ],
         },
         {
@@ -562,10 +562,10 @@ export class SupabaseStack extends FargateStack {
         [storageImageUri.logicalId]: { default: 'Storage API Image URI' },
         [postgresMetaImageUri.logicalId]: { default: 'Postgres Meta API Image URI' },
 
-        [db.instanceClass.logicalId]: { default: 'DB Instance Class' },
-        [db.instanceCount.logicalId]: { default: 'DB Instance Count' },
-        [db.minCapacity.logicalId]: { default: 'Minimum ACUs' },
-        [db.maxCapacity.logicalId]: { default: 'Maximum ACUs' },
+        [db.cfnParameters.instanceClass.logicalId]: { default: 'DB Instance Class' },
+        [db.cfnParameters.instanceCount.logicalId]: { default: 'DB Instance Count' },
+        [db.cfnParameters.minCapacity.logicalId]: { default: 'Minimum ACUs' },
+        [db.cfnParameters.maxCapacity.logicalId]: { default: 'Maximum ACUs' },
         [cdn.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
         [kong.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
