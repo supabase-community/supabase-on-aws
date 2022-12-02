@@ -411,7 +411,7 @@ export class SupabaseStack extends FargateStack {
     });
 
     forceDeployJob.addTrigger({ rule: newServiceCreated }); // for Service Connect
-    forceDeployJob.addTrigger({ rule: db.secretRotationSucceeded, services: [auth, rest, gql, realtime, storage, meta] });
+    forceDeployJob.addTrigger({ rule: db.secretRotationSucceeded });
     forceDeployJob.addTrigger({ rule: authParameterChangedRule, services: [auth] });
 
     // Supabase Studio

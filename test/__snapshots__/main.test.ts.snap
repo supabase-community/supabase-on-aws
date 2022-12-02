@@ -4660,38 +4660,7 @@ Object {
               "Ref": "ForceDeployJobStateMachine528644B1",
             },
             "Id": "Target1",
-            "Input": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "{\\"services\\":[\\"",
-                  Object {
-                    "Ref": "AuthFargateService0D491951",
-                  },
-                  "\\",\\"",
-                  Object {
-                    "Ref": "RestFargateServiceB761E563",
-                  },
-                  "\\",\\"",
-                  Object {
-                    "Ref": "GraphQLFargateService28D3AC46",
-                  },
-                  "\\",\\"",
-                  Object {
-                    "Ref": "RealtimeFargateService9F99B0D0",
-                  },
-                  "\\",\\"",
-                  Object {
-                    "Ref": "StorageFargateService64A6F247",
-                  },
-                  "\\",\\"",
-                  Object {
-                    "Ref": "MetaFargateServiceF2E9C2CC",
-                  },
-                  "\\"]}",
-                ],
-              ],
-            },
+            "Input": "{}",
             "RoleArn": Object {
               "Fn::GetAtt": Array [
                 "ForceDeployJobStateMachineEventsRole3137AB10",

@@ -66,7 +66,7 @@ export class ForceDeployJob extends Construct {
 
   }
 
-  addTrigger(props: { rule: events.Rule; services?: (BaseFargateService|ApplicationLoadBalancedFargateService)[] }) {
+  addTrigger(props: TriggerProps) {
     const rule = props.rule;
     const services = props.services?.map(x => x.service.serviceArn);
     const target = new targets.SfnStateMachine(this.stateMachine, {
@@ -74,4 +74,9 @@ export class ForceDeployJob extends Construct {
     });
     rule.addTarget(target);
   }
+}
+
+interface TriggerProps {
+  rule: events.Rule;
+  services?: BaseFargateService[];
 }
