@@ -113,7 +113,7 @@ export class SupabaseStack extends FargateStack {
       enableFargateCapacityProviders: true,
       containerInsights: false,
       defaultCloudMapNamespace: {
-        name: 'supabase.internal',
+        name: 'supabase.local',
         useForServiceConnect: true,
       },
       vpc,
@@ -382,19 +382,22 @@ export class SupabaseStack extends FargateStack {
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
 
-    const ecsServiceCreatedRule = new events.Rule(this, 'EcsServiceCreated', {
-      description: 'Supabase - new ECS service created (for Service Connect)',
+    const microServiceDeployedRule = new events.Rule(this, 'MicroServiceDeployed', {
+      description: 'Supabase - micro service deployed (for Service Connect)',
       eventPattern: {
         source: ['aws.ecs'],
-        detailType: ['AWS API Call via CloudTrail'],
+        detailType: ['ECS Deployment State Change'],
         detail: {
-          eventName: ['CreateService'],
-          responseElements: {
-            cluster: {
-              clusterArn: [cluster.clusterArn],
-            },
-          },
+          eventName: ['SERVICE_DEPLOYMENT_COMPLETED'],
         },
+        resources: [
+          auth.service.serviceArn,
+          rest.service.serviceArn,
+          gql.service.serviceArn,
+          realtime.service.serviceArn,
+          storage.service.serviceArn,
+          meta.service.serviceArn,
+        ],
       },
     });
 
@@ -402,6 +405,7 @@ export class SupabaseStack extends FargateStack {
       description: 'Supabase - Database secret rotated',
       eventPattern: {
         source: ['aws.secretsmanager'],
+        detailType: ['AWS API Call via CloudTrail'],
         detail: {
           eventName: ['RotationSucceeded'],
           additionalEventData: {
@@ -423,8 +427,8 @@ export class SupabaseStack extends FargateStack {
       },
     });
 
-    forceDeployJob.addTrigger({ rule: ecsServiceCreatedRule, services: [kong, storage] }); // for Service Connect
-    forceDeployJob.addTrigger({ rule: dbSecretRotatedRule, services: [auth, rest, realtime, storage, meta] });
+    forceDeployJob.addTrigger({ rule: microServiceDeployedRule, services: [kong] }); // for Service Connect
+    forceDeployJob.addTrigger({ rule: dbSecretRotatedRule, services: [auth, rest, gql, realtime, storage, meta] });
     forceDeployJob.addTrigger({ rule: authParameterChangedRule, services: [auth] });
 
     // Supabase Studio

@@ -1465,7 +1465,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.internal",
+          "Namespace": "supabase.local",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -3342,7 +3342,7 @@ Object {
     },
     "ClusterDefaultServiceDiscoveryNamespaceC336F9B4": Object {
       "Properties": Object {
-        "Name": "supabase.internal",
+        "Name": "supabase.local",
         "Vpc": Object {
           "Ref": "VPCB9E5F0B4",
         },
@@ -3358,7 +3358,7 @@ Object {
           },
         ],
         "ServiceConnectDefaults": Object {
-          "Namespace": "supabase.internal",
+          "Namespace": "supabase.local",
         },
       },
       "Type": "AWS::ECS::Cluster",
@@ -4694,6 +4694,9 @@ Object {
               "RotationSucceeded",
             ],
           },
+          "detail-type": Array [
+            "AWS API Call via CloudTrail",
+          ],
           "source": Array [
             "aws.secretsmanager",
           ],
@@ -4720,6 +4723,13 @@ Object {
                   Object {
                     "Fn::GetAtt": Array [
                       "RestFargateServiceB761E563",
+                      "Name",
+                    ],
+                  },
+                  "\\",\\"",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "GraphQLFargateService28D3AC46",
                       "Name",
                     ],
                   },
@@ -5044,74 +5054,6 @@ Object {
       },
       "Type": "AWS::SSM::Parameter",
     },
-    "EcsServiceCreatedDC2CA219": Object {
-      "Properties": Object {
-        "Description": "Supabase - new ECS service created (for Service Connect)",
-        "EventPattern": Object {
-          "detail": Object {
-            "eventName": Array [
-              "CreateService",
-            ],
-            "responseElements": Object {
-              "cluster": Object {
-                "clusterArn": Array [
-                  Object {
-                    "Fn::GetAtt": Array [
-                      "ClusterEB0386A7",
-                      "Arn",
-                    ],
-                  },
-                ],
-              },
-            },
-          },
-          "detail-type": Array [
-            "AWS API Call via CloudTrail",
-          ],
-          "source": Array [
-            "aws.ecs",
-          ],
-        },
-        "State": "ENABLED",
-        "Targets": Array [
-          Object {
-            "Arn": Object {
-              "Ref": "ForceDeployJobStateMachine528644B1",
-            },
-            "Id": "Target0",
-            "Input": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "{\\"services\\":[\\"",
-                  Object {
-                    "Fn::GetAtt": Array [
-                      "KongFargateServiceA23C8C36",
-                      "Name",
-                    ],
-                  },
-                  "\\",\\"",
-                  Object {
-                    "Fn::GetAtt": Array [
-                      "StorageFargateService64A6F247",
-                      "Name",
-                    ],
-                  },
-                  "\\"]}",
-                ],
-              ],
-            },
-            "RoleArn": Object {
-              "Fn::GetAtt": Array [
-                "ForceDeployJobStateMachineEventsRole3137AB10",
-                "Arn",
-              ],
-            },
-          },
-        ],
-      },
-      "Type": "AWS::Events::Rule",
-    },
     "ForceDeployJobStateMachine528644B1": Object {
       "DependsOn": Array [
         "ForceDeployJobStateMachineRoleDefaultPolicyD8B5C2E1",
@@ -5355,7 +5297,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.internal",
+          "Namespace": "supabase.local",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -6154,7 +6096,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.internal",
+          "Namespace": "supabase.local",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -6416,27 +6358,27 @@ Object {
               },
               Object {
                 "Name": "SUPABASE_AUTH_URL",
-                "Value": "http://auth.supabase.internal:9999/",
+                "Value": "http://auth.supabase.local:9999/",
               },
               Object {
                 "Name": "SUPABASE_REST_URL",
-                "Value": "http://rest.supabase.internal:3000/",
+                "Value": "http://rest.supabase.local:3000/",
               },
               Object {
                 "Name": "SUPABASE_GRAPHQL_URL",
-                "Value": "http://graphql.supabase.internal:5000/graphql",
+                "Value": "http://graphql.supabase.local:5000/graphql",
               },
               Object {
                 "Name": "SUPABASE_REALTIME_URL",
-                "Value": "http://realtime.supabase.internal:4000/socket/",
+                "Value": "http://realtime.supabase.local:4000/socket/",
               },
               Object {
                 "Name": "SUPABASE_STORAGE_URL",
-                "Value": "http://storage.supabase.internal:5000/",
+                "Value": "http://storage.supabase.local:5000/",
               },
               Object {
                 "Name": "SUPABASE_META_HOST",
-                "Value": "http://meta.supabase.internal:8080/",
+                "Value": "http://meta.supabase.local:8080/",
               },
             ],
             "Essential": true,
@@ -6805,7 +6747,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.internal",
+          "Namespace": "supabase.local",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -7126,6 +7068,75 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "MicroServiceDeployedEC935DD9": Object {
+      "Properties": Object {
+        "Description": "Supabase - micro service deployed (for Service Connect)",
+        "EventPattern": Object {
+          "detail": Object {
+            "eventName": Array [
+              "SERVICE_DEPLOYMENT_COMPLETED",
+            ],
+          },
+          "detail-type": Array [
+            "ECS Deployment State Change",
+          ],
+          "resources": Array [
+            Object {
+              "Ref": "AuthFargateService0D491951",
+            },
+            Object {
+              "Ref": "RestFargateServiceB761E563",
+            },
+            Object {
+              "Ref": "GraphQLFargateService28D3AC46",
+            },
+            Object {
+              "Ref": "RealtimeFargateService9F99B0D0",
+            },
+            Object {
+              "Ref": "StorageFargateService64A6F247",
+            },
+            Object {
+              "Ref": "MetaFargateServiceF2E9C2CC",
+            },
+          ],
+          "source": Array [
+            "aws.ecs",
+          ],
+        },
+        "State": "ENABLED",
+        "Targets": Array [
+          Object {
+            "Arn": Object {
+              "Ref": "ForceDeployJobStateMachine528644B1",
+            },
+            "Id": "Target0",
+            "Input": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{\\"services\\":[\\"",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "KongFargateServiceA23C8C36",
+                      "Name",
+                    ],
+                  },
+                  "\\"]}",
+                ],
+              ],
+            },
+            "RoleArn": Object {
+              "Fn::GetAtt": Array [
+                "ForceDeployJobStateMachineEventsRole3137AB10",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
     "RealtimeFargateSecurityGroupC1A41CAF": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Realtime/Fargate/SecurityGroup",
@@ -7229,7 +7240,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.internal",
+          "Namespace": "supabase.local",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -7748,7 +7759,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.internal",
+          "Namespace": "supabase.local",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -8513,7 +8524,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.internal",
+          "Namespace": "supabase.local",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -8612,7 +8623,7 @@ Object {
             "Environment": Array [
               Object {
                 "Name": "POSTGREST_URL",
-                "Value": "http://rest.supabase.internal:3000",
+                "Value": "http://rest.supabase.local:3000",
               },
               Object {
                 "Name": "PGOPTIONS",
