@@ -19,6 +19,7 @@ interface SupabaseDatabaseProps {
 export class SupabaseDatabase extends Construct {
   cluster: rds.DatabaseCluster;
   secret: secretsmanager.ISecret;
+  secretRotationSucceeded: events.Rule;
   url: {
     writer: ssm.StringParameter;
     writerSearchPathAuth: ssm.StringParameter;
@@ -163,10 +164,11 @@ export class SupabaseDatabase extends Construct {
     this.url.reader.grantWrite(syncSecretFunction);
     this.secret.grantRead(syncSecretFunction);
 
-    new events.Rule(this, 'SecretChangeRule', {
-      description: 'Supabase - Update parameter store, when DB secret rotated',
+    this.secretRotationSucceeded = new events.Rule(this, 'SecretRotationSucceeded', {
+      description: `Supabase - ${id} secret rotation succeeded`,
       eventPattern: {
         source: ['aws.secretsmanager'],
+        detailType: ['AWS Service Event via CloudTrail'],
         detail: {
           eventName: ['RotationSucceeded'],
           additionalEventData: {

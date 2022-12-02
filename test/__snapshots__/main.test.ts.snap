@@ -1602,10 +1602,7 @@ Object {
                 Array [
                   "{\\"services\\":[\\"",
                   Object {
-                    "Fn::GetAtt": Array [
-                      "AuthFargateService0D491951",
-                      "Name",
-                    ],
+                    "Ref": "AuthFargateService0D491951",
                   },
                   "\\"]}",
                 ],
@@ -4624,9 +4621,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "DatabaseSecretChangeRule472D79D9": Object {
+    "DatabaseSecretRotationSucceeded943807E0": Object {
       "Properties": Object {
-        "Description": "Supabase - Update parameter store, when DB secret rotated",
+        "Description": "Supabase - Database secret rotation succeeded",
         "EventPattern": Object {
           "detail": Object {
             "additionalEventData": Object {
@@ -4640,6 +4637,9 @@ Object {
               "RotationSucceeded",
             ],
           },
+          "detail-type": Array [
+            "AWS Service Event via CloudTrail",
+          ],
           "source": Array [
             "aws.secretsmanager",
           ],
@@ -4655,104 +4655,38 @@ Object {
             },
             "Id": "Target0",
           },
-        ],
-      },
-      "Type": "AWS::Events::Rule",
-    },
-    "DatabaseSecretChangeRuleAllowEventRuleSupabaseDatabaseSyncSecretFunction77A96CED31900495": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "DatabaseSyncSecretFunction60FEB86F",
-            "Arn",
-          ],
-        },
-        "Principal": "events.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::GetAtt": Array [
-            "DatabaseSecretChangeRule472D79D9",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "DatabaseSecretRotatedF099F998": Object {
-      "Properties": Object {
-        "Description": "Supabase - Database secret rotated",
-        "EventPattern": Object {
-          "detail": Object {
-            "additionalEventData": Object {
-              "SecretId": Array [
-                Object {
-                  "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-                },
-              ],
-            },
-            "eventName": Array [
-              "RotationSucceeded",
-            ],
-          },
-          "detail-type": Array [
-            "AWS API Call via CloudTrail",
-          ],
-          "source": Array [
-            "aws.secretsmanager",
-          ],
-        },
-        "State": "ENABLED",
-        "Targets": Array [
           Object {
             "Arn": Object {
               "Ref": "ForceDeployJobStateMachine528644B1",
             },
-            "Id": "Target0",
+            "Id": "Target1",
             "Input": Object {
               "Fn::Join": Array [
                 "",
                 Array [
                   "{\\"services\\":[\\"",
                   Object {
-                    "Fn::GetAtt": Array [
-                      "AuthFargateService0D491951",
-                      "Name",
-                    ],
+                    "Ref": "AuthFargateService0D491951",
                   },
                   "\\",\\"",
                   Object {
-                    "Fn::GetAtt": Array [
-                      "RestFargateServiceB761E563",
-                      "Name",
-                    ],
+                    "Ref": "RestFargateServiceB761E563",
                   },
                   "\\",\\"",
                   Object {
-                    "Fn::GetAtt": Array [
-                      "GraphQLFargateService28D3AC46",
-                      "Name",
-                    ],
+                    "Ref": "GraphQLFargateService28D3AC46",
                   },
                   "\\",\\"",
                   Object {
-                    "Fn::GetAtt": Array [
-                      "RealtimeFargateService9F99B0D0",
-                      "Name",
-                    ],
+                    "Ref": "RealtimeFargateService9F99B0D0",
                   },
                   "\\",\\"",
                   Object {
-                    "Fn::GetAtt": Array [
-                      "StorageFargateService64A6F247",
-                      "Name",
-                    ],
+                    "Ref": "StorageFargateService64A6F247",
                   },
                   "\\",\\"",
                   Object {
-                    "Fn::GetAtt": Array [
-                      "MetaFargateServiceF2E9C2CC",
-                      "Name",
-                    ],
+                    "Ref": "MetaFargateServiceF2E9C2CC",
                   },
                   "\\"]}",
                 ],
@@ -4768,6 +4702,25 @@ Object {
         ],
       },
       "Type": "AWS::Events::Rule",
+    },
+    "DatabaseSecretRotationSucceededAllowEventRuleSupabaseDatabaseSyncSecretFunction77A96CED34706C90": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseSyncSecretFunction60FEB86F",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseSecretRotationSucceeded943807E0",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "DatabaseSyncSecretFunction60FEB86F": Object {
       "DependsOn": Array [
@@ -5064,7 +5017,15 @@ Object {
           "Fn::Join": Array [
             "",
             Array [
-              "{\\"StartAt\\":\\"Map\\",\\"States\\":{\\"Map\\":{\\"Type\\":\\"Map\\",\\"End\\":true,\\"Parameters\\":{\\"service.$\\":\\"$$.Map.Item.Value\\"},\\"Iterator\\":{\\"StartAt\\":\\"UpdateServiceTask\\",\\"States\\":{\\"UpdateServiceTask\\":{\\"End\\":true,\\"Type\\":\\"Task\\",\\"Comment\\":\\"Force deploy ECS Service\\",\\"Resource\\":\\"arn:",
+              "{\\"StartAt\\":\\"CheckInput\\",\\"States\\":{\\"CheckInput\\":{\\"Type\\":\\"Choice\\",\\"Choices\\":[{\\"Variable\\":\\"$.services\\",\\"IsPresent\\":true,\\"Next\\":\\"ForceDeployment\\"}],\\"Default\\":\\"GetEcsServiceList\\"},\\"GetEcsServiceList\\":{\\"Next\\":\\"ForceDeployment\\",\\"Type\\":\\"Task\\",\\"Comment\\":\\"Fetch ECS Services\\",\\"ResultSelector\\":{\\"services.$\\":\\"$.ServiceArns\\"},\\"Resource\\":\\"arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":states:::aws-sdk:ecs:listServices\\",\\"Parameters\\":{\\"Cluster\\":\\"",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "\\"}},\\"ForceDeployment\\":{\\"Type\\":\\"Map\\",\\"End\\":true,\\"Parameters\\":{\\"service.$\\":\\"$$.Map.Item.Value\\"},\\"Iterator\\":{\\"StartAt\\":\\"ForceDeployEcsTask\\",\\"States\\":{\\"ForceDeployEcsTask\\":{\\"End\\":true,\\"Type\\":\\"Task\\",\\"Comment\\":\\"Force deploy ECS Tasks\\",\\"Resource\\":\\"arn:",
               Object {
                 "Ref": "AWS::Partition",
               },
@@ -5154,6 +5115,11 @@ Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
+            Object {
+              "Action": "ecs:ListServices",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
             Object {
               "Action": "ecs:UpdateService",
               "Effect": "Allow",
@@ -7068,40 +7034,48 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "MicroServiceDeployedEC935DD9": Object {
+    "NewServiceCreatedEEF56E11": Object {
       "Properties": Object {
-        "Description": "Supabase - micro service deployed (for Service Connect)",
+        "Description": "Supabase - New service created (for Service Connect)",
         "EventPattern": Object {
           "detail": Object {
             "eventName": Array [
-              "SERVICE_DEPLOYMENT_COMPLETED",
+              "CreateService",
             ],
+            "responseElements": Object {
+              "service": Object {
+                "description": Array [
+                  Object {
+                    "prefix": Object {
+                      "Fn::Join": Array [
+                        "",
+                        Array [
+                          "Managed by arn:aws:ecs:",
+                          Object {
+                            "Ref": "AWS::Region",
+                          },
+                          ":",
+                          Object {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":service/",
+                          Object {
+                            "Ref": "ClusterEB0386A7",
+                          },
+                          "/",
+                        ],
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
           },
           "detail-type": Array [
-            "ECS Deployment State Change",
-          ],
-          "resources": Array [
-            Object {
-              "Ref": "AuthFargateService0D491951",
-            },
-            Object {
-              "Ref": "RestFargateServiceB761E563",
-            },
-            Object {
-              "Ref": "GraphQLFargateService28D3AC46",
-            },
-            Object {
-              "Ref": "RealtimeFargateService9F99B0D0",
-            },
-            Object {
-              "Ref": "StorageFargateService64A6F247",
-            },
-            Object {
-              "Ref": "MetaFargateServiceF2E9C2CC",
-            },
+            "AWS API Call via CloudTrail",
           ],
           "source": Array [
-            "aws.ecs",
+            "aws.servicediscovery",
           ],
         },
         "State": "ENABLED",
@@ -7111,21 +7085,7 @@ Object {
               "Ref": "ForceDeployJobStateMachine528644B1",
             },
             "Id": "Target0",
-            "Input": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "{\\"services\\":[\\"",
-                  Object {
-                    "Fn::GetAtt": Array [
-                      "KongFargateServiceA23C8C36",
-                      "Name",
-                    ],
-                  },
-                  "\\"]}",
-                ],
-              ],
-            },
+            "Input": "{}",
             "RoleArn": Object {
               "Fn::GetAtt": Array [
                 "ForceDeployJobStateMachineEventsRole3137AB10",

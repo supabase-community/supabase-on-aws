@@ -20,15 +20,8 @@ export class ForceDeployJob extends Construct {
 
     const cluster = props.cluster;
 
-    const mapTask = new sfn.Map(this, 'Map', {
-      itemsPath: sfn.JsonPath.stringAt('$.services'),
-      parameters: {
-        'service.$': '$$.Map.Item.Value',
-      },
-    });
-
-    const updateServiceTask = new CallAwsService(this, 'UpdateServiceTask', {
-      comment: 'Force deploy ECS Service',
+    const forceDeployEcsTask = new CallAwsService(this, 'ForceDeployEcsTask', {
+      comment: 'Force deploy ECS Tasks',
       service: 'ECS',
       action: 'updateService',
       parameters: {
@@ -40,20 +33,44 @@ export class ForceDeployJob extends Construct {
       iamAction: 'ecs:UpdateService',
     });
 
-    mapTask.iterator(updateServiceTask);
+    const forceDeployment = new sfn.Map(this, 'ForceDeployment', {
+      itemsPath: sfn.JsonPath.stringAt('$.services'),
+      parameters: {
+        'service.$': '$$.Map.Item.Value',
+      },
+    });
+    forceDeployment.iterator(forceDeployEcsTask);
+
+    const getEcsServiceList = new CallAwsService(this, 'GetEcsServiceList', {
+      comment: 'Fetch ECS Services',
+      service: 'ECS',
+      action: 'listServices',
+      parameters: {
+        Cluster: cluster.clusterName,
+      },
+      resultSelector: {
+        'services.$': '$.ServiceArns',
+      },
+      iamResources: ['*'],
+      iamAction: 'ecs:ListServices',
+    });
+    getEcsServiceList.next(forceDeployment);
+
+    const checkInput = new sfn.Choice(this, 'CheckInput');
+    checkInput.when(sfn.Condition.isPresent('$.services'), forceDeployment);
+    checkInput.otherwise(getEcsServiceList);
 
     this.stateMachine = new sfn.StateMachine(this, 'StateMachine', {
-      definition: mapTask,
+      definition: checkInput,
     });
 
   }
 
-  addTrigger(props: { rule: events.Rule; services: (BaseFargateService|ApplicationLoadBalancedFargateService)[] }) {
-    const { rule, services } = props;
+  addTrigger(props: { rule: events.Rule; services?: (BaseFargateService|ApplicationLoadBalancedFargateService)[] }) {
+    const rule = props.rule;
+    const services = props.services?.map(x => x.service.serviceArn);
     const target = new targets.SfnStateMachine(this.stateMachine, {
-      input: events.RuleTargetInput.fromObject({
-        services: services.map(x => x.service.serviceName),
-      }),
+      input: events.RuleTargetInput.fromObject({ services }),
     });
     rule.addTarget(target);
   }

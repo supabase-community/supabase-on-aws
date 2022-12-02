@@ -113,7 +113,7 @@ export class SupabaseStack extends FargateStack {
       enableFargateCapacityProviders: true,
       containerInsights: false,
       defaultCloudMapNamespace: {
-        name: 'supabase.local',
+        name: `${id.toLowerCase()}.local`,
         useForServiceConnect: true,
       },
       vpc,
@@ -382,34 +382,17 @@ export class SupabaseStack extends FargateStack {
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
 
-    const microServiceDeployedRule = new events.Rule(this, 'MicroServiceDeployed', {
-      description: 'Supabase - micro service deployed (for Service Connect)',
+    const newServiceCreated = new events.Rule(this, 'NewServiceCreated', {
+      description: 'Supabase - New service created (for Service Connect)',
       eventPattern: {
-        source: ['aws.ecs'],
-        detailType: ['ECS Deployment State Change'],
-        detail: {
-          eventName: ['SERVICE_DEPLOYMENT_COMPLETED'],
-        },
-        resources: [
-          auth.service.serviceArn,
-          rest.service.serviceArn,
-          gql.service.serviceArn,
-          realtime.service.serviceArn,
-          storage.service.serviceArn,
-          meta.service.serviceArn,
-        ],
-      },
-    });
-
-    const dbSecretRotatedRule = new events.Rule(this, 'DatabaseSecretRotated', {
-      description: 'Supabase - Database secret rotated',
-      eventPattern: {
-        source: ['aws.secretsmanager'],
+        source: ['aws.servicediscovery'],
         detailType: ['AWS API Call via CloudTrail'],
         detail: {
-          eventName: ['RotationSucceeded'],
-          additionalEventData: {
-            SecretId: [db.secret.secretArn],
+          eventName: ['CreateService'],
+          responseElements: {
+            service: {
+              description: [{ prefix: `Managed by arn:aws:ecs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:service/${cluster.clusterName}/` }],
+            },
           },
         },
       },
@@ -427,8 +410,8 @@ export class SupabaseStack extends FargateStack {
       },
     });
 
-    forceDeployJob.addTrigger({ rule: microServiceDeployedRule, services: [kong] }); // for Service Connect
-    forceDeployJob.addTrigger({ rule: dbSecretRotatedRule, services: [auth, rest, gql, realtime, storage, meta] });
+    forceDeployJob.addTrigger({ rule: newServiceCreated }); // for Service Connect
+    forceDeployJob.addTrigger({ rule: db.secretRotationSucceeded, services: [auth, rest, gql, realtime, storage, meta] });
     forceDeployJob.addTrigger({ rule: authParameterChangedRule, services: [auth] });
 
     // Supabase Studio
