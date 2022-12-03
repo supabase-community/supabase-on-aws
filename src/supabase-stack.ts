@@ -212,7 +212,7 @@ export class SupabaseStack extends FargateStack {
           GOTRUE_SMS_AUTOCONFIRM: 'true',
         },
         secrets: {
-          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writerSearchPathAuth),
+          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writerAuth),
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(smtp.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(smtp.secret, 'password'),

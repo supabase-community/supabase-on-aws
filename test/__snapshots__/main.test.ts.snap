@@ -2259,7 +2259,7 @@ Object {
                       },
                       ":parameter",
                       Object {
-                        "Ref": "DatabaseWriterSearchPathAuthUrlParameter37B7880D",
+                        "Ref": "DatabaseWriterAuthUrlParameter0D61EDD3",
                       },
                     ],
                   ],
@@ -2668,7 +2668,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "DatabaseWriterSearchPathAuthUrlParameter37B7880D",
+                      "Ref": "DatabaseWriterAuthUrlParameter0D61EDD3",
                     },
                   ],
                 ],
@@ -4714,7 +4714,7 @@ Object {
               "Ref": "DatabaseReaderUrlParameter0C13E1C1",
             },
             "WRITER_AUTH_PARAMETER_NAME": Object {
-              "Ref": "DatabaseWriterSearchPathAuthUrlParameter37B7880D",
+              "Ref": "DatabaseWriterAuthUrlParameter0D61EDD3",
             },
             "WRITER_PARAMETER_NAME": Object {
               "Ref": "DatabaseWriterUrlParameter9E7B47B6",
@@ -4815,7 +4815,7 @@ Object {
                     },
                     ":parameter",
                     Object {
-                      "Ref": "DatabaseWriterSearchPathAuthUrlParameter37B7880D",
+                      "Ref": "DatabaseWriterAuthUrlParameter0D61EDD3",
                     },
                   ],
                 ],
@@ -4870,9 +4870,9 @@ Object {
       },
       "Type": "AWS::IAM::Policy",
     },
-    "DatabaseWriterSearchPathAuthUrlParameter37B7880D": Object {
+    "DatabaseWriterAuthUrlParameter0D61EDD3": Object {
       "Properties": Object {
-        "Description": "The standard connection PostgreSQL URI format",
+        "Description": "The standard connection PostgreSQL URI with search_path=auth",
         "Name": Object {
           "Fn::Join": Array [
             "",
@@ -4881,7 +4881,7 @@ Object {
               Object {
                 "Ref": "AWS::StackName",
               },
-              "/Database/Url/WriterSearchPathAuth",
+              "/Database/Url/Writer/auth",
             ],
           ],
         },

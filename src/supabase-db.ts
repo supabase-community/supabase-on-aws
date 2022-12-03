@@ -22,7 +22,7 @@ export class SupabaseDatabase extends Construct {
   secretRotationSucceeded: events.Rule;
   url: {
     writer: ssm.StringParameter;
-    writerSearchPathAuth: ssm.StringParameter;
+    writerAuth: ssm.StringParameter;
     reader: ssm.StringParameter;
   };
   cfnParameters: {
@@ -134,9 +134,9 @@ export class SupabaseDatabase extends Construct {
         stringValue: `postgres://${username}:${password}@${this.cluster.clusterEndpoint.hostname}:${this.cluster.clusterEndpoint.port}/${dbname}`,
         simpleName: false,
       }),
-      writerSearchPathAuth: new ssm.StringParameter(this, 'WriterSearchPathAuthUrlParameter', {
-        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/WriterSearchPathAuth`,
-        description: 'The standard connection PostgreSQL URI format',
+      writerAuth: new ssm.StringParameter(this, 'WriterAuthUrlParameter', {
+        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Writer/auth`,
+        description: 'The standard connection PostgreSQL URI with search_path=auth',
         stringValue: `postgres://${username}:${password}@${this.cluster.clusterEndpoint.hostname}:${this.cluster.clusterEndpoint.port}/${dbname}?search_path=auth`,
         simpleName: false,
       }),
@@ -155,12 +155,12 @@ export class SupabaseDatabase extends Construct {
       architecture: lambda.Architecture.ARM_64,
       environment: {
         WRITER_PARAMETER_NAME: this.url.writer.parameterName,
-        WRITER_AUTH_PARAMETER_NAME: this.url.writerSearchPathAuth.parameterName,
+        WRITER_AUTH_PARAMETER_NAME: this.url.writerAuth.parameterName,
         READER_PARAMETER_NAME: this.url.reader.parameterName,
       },
     });
     this.url.writer.grantWrite(syncSecretFunction);
-    this.url.writerSearchPathAuth.grantWrite(syncSecretFunction);
+    this.url.writerAuth.grantWrite(syncSecretFunction);
     this.url.reader.grantWrite(syncSecretFunction);
     this.secret.grantRead(syncSecretFunction);
 
