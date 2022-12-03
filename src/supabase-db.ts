@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as rds from 'aws-cdk-lib/aws-rds';
@@ -155,13 +156,26 @@ export class SupabaseDatabase extends Construct {
       architecture: lambda.Architecture.ARM_64,
       environment: {
         WRITER_PARAMETER_NAME: this.url.writer.parameterName,
-        WRITER_AUTH_PARAMETER_NAME: this.url.writerAuth.parameterName,
         READER_PARAMETER_NAME: this.url.reader.parameterName,
       },
+      initialPolicy: [
+        new iam.PolicyStatement({
+          sid: 'PutParameter',
+          actions: [
+            'ssm:PutParameter',
+            'ssm:GetParametersByPath',
+            'ssm:GetParameters',
+            'ssm:GetParameter',
+          ],
+          resources: [
+            this.url.writer.parameterArn,
+            this.url.writer.parameterArn + '/*',
+            this.url.reader.parameterArn,
+            this.url.reader.parameterArn + '/*',
+          ],
+        }),
+      ],
     });
-    this.url.writer.grantWrite(syncSecretFunction);
-    this.url.writerAuth.grantWrite(syncSecretFunction);
-    this.url.reader.grantWrite(syncSecretFunction);
     this.secret.grantRead(syncSecretFunction);
 
     this.secretRotationSucceeded = new events.Rule(this, 'SecretRotationSucceeded', {

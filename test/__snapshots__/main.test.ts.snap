@@ -4704,7 +4704,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "d51a9028c668308e58e2bb878bca164059367daa8993bbb4b7a981d32ccf9103.zip",
+          "S3Key": "a02e0f19d129a67d4af43a0b61aacb3e42e5ed8ccfb7be28431e557d44fb7e29.zip",
         },
         "Description": "Supabase - Sync DB secret to parameter store",
         "Environment": Object {
@@ -4712,9 +4712,6 @@ Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "READER_PARAMETER_NAME": Object {
               "Ref": "DatabaseReaderUrlParameter0C13E1C1",
-            },
-            "WRITER_AUTH_PARAMETER_NAME": Object {
-              "Ref": "DatabaseWriterAuthUrlParameter0D61EDD3",
             },
             "WRITER_PARAMETER_NAME": Object {
               "Ref": "DatabaseWriterUrlParameter9E7B47B6",
@@ -4768,85 +4765,110 @@ Object {
         "PolicyDocument": Object {
           "Statement": Array [
             Object {
-              "Action": "ssm:PutParameter",
+              "Action": Array [
+                "ssm:PutParameter",
+                "ssm:GetParametersByPath",
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":ssm:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":parameter",
-                    Object {
-                      "Ref": "DatabaseWriterUrlParameter9E7B47B6",
-                    },
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ssm:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":parameter",
+                      Object {
+                        "Ref": "DatabaseWriterUrlParameter9E7B47B6",
+                      },
+                    ],
                   ],
-                ],
-              },
-            },
-            Object {
-              "Action": "ssm:PutParameter",
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":ssm:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":parameter",
-                    Object {
-                      "Ref": "DatabaseWriterAuthUrlParameter0D61EDD3",
-                    },
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ssm:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":parameter",
+                      Object {
+                        "Ref": "DatabaseWriterUrlParameter9E7B47B6",
+                      },
+                      "/*",
+                    ],
                   ],
-                ],
-              },
-            },
-            Object {
-              "Action": "ssm:PutParameter",
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":ssm:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":parameter",
-                    Object {
-                      "Ref": "DatabaseReaderUrlParameter0C13E1C1",
-                    },
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ssm:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":parameter",
+                      Object {
+                        "Ref": "DatabaseReaderUrlParameter0C13E1C1",
+                      },
+                    ],
                   ],
-                ],
-              },
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ssm:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":parameter",
+                      Object {
+                        "Ref": "DatabaseReaderUrlParameter0C13E1C1",
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+              "Sid": "PutParameter",
             },
             Object {
               "Action": Array [
