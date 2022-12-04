@@ -106,18 +106,21 @@ export class SupabaseStack extends FargateStack {
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
+    const namespaceName = new cdk.CfnParameter(this, 'NamespaceName', {
+      type: 'String',
+      default: 'supabase.local',
+    });
+
     // Resources
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
     const cluster = new ecs.Cluster(this, 'Cluster', {
       enableFargateCapacityProviders: true,
       containerInsights: false,
-      defaultCloudMapNamespace: {
-        name: `${id.toLowerCase()}.local`,
-        useForServiceConnect: true,
-      },
       vpc,
     });
+
+    const namespace = cluster.addDefaultCloudMapNamespace({ name: namespaceName.valueAsString });
 
     const smtp = new Smtp(this, 'Smtp');
 
@@ -391,7 +394,8 @@ export class SupabaseStack extends FargateStack {
           eventName: ['CreateService'],
           responseElements: {
             service: {
-              description: [{ prefix: `Managed by arn:aws:ecs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:service/${cluster.clusterName}/` }],
+              namespaceId: [namespace.namespaceId],
+              type: ['HTTP'],
             },
           },
         },
@@ -492,10 +496,10 @@ export class SupabaseStack extends FargateStack {
           ],
         },
         {
-          Label: { default: 'Infrastructure Settings - Security' },
+          Label: { default: 'Infrastructure Settings - Network & Security' },
           Parameters: [
+            namespaceName.logicalId,
             cdn.webAclArn.logicalId,
-            //studio.acmCertArn.logicalId,
           ],
         },
         {
@@ -576,6 +580,8 @@ export class SupabaseStack extends FargateStack {
         [db.cfnParameters.instanceCount.logicalId]: { default: 'DB Instance Count' },
         [db.cfnParameters.minCapacity.logicalId]: { default: 'Minimum ACUs' },
         [db.cfnParameters.maxCapacity.logicalId]: { default: 'Maximum ACUs' },
+
+        [namespaceName.logicalId]: { default: 'Namespace' },
         [cdn.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
         [kong.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },

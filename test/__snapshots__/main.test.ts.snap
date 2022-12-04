@@ -525,9 +525,10 @@ Object {
         },
         Object {
           "Label": Object {
-            "default": "Infrastructure Settings - Security",
+            "default": "Infrastructure Settings - Network & Security",
           },
           "Parameters": Array [
+            "NamespaceName",
             "CdnWebAclArn5923748A",
           ],
         },
@@ -719,6 +720,9 @@ Object {
         },
         "MetaTaskSize556D36D9": Object {
           "default": "Fargate Task Size",
+        },
+        "NamespaceName": Object {
+          "default": "Namespace",
         },
         "PasswordMinLength": Object {
           "default": "Min password length",
@@ -1141,6 +1145,10 @@ Object {
       "Description": "Fargare task size",
       "Type": "String",
     },
+    "NamespaceName": Object {
+      "Default": "supabase.local",
+      "Type": "String",
+    },
     "PasswordMinLength": Object {
       "Default": "8",
       "Description": "When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.",
@@ -1465,11 +1473,17 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.local",
+          "Namespace": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Arn",
+            ],
+          },
           "Services": Array [
             Object {
               "ClientAliases": Array [
                 Object {
+                  "DnsName": "auth",
                   "Port": 9999,
                 },
               ],
@@ -3339,7 +3353,9 @@ Object {
     },
     "ClusterDefaultServiceDiscoveryNamespaceC336F9B4": Object {
       "Properties": Object {
-        "Name": "supabase.local",
+        "Name": Object {
+          "Ref": "NamespaceName",
+        },
         "Vpc": Object {
           "Ref": "VPCB9E5F0B4",
         },
@@ -3354,9 +3370,6 @@ Object {
             "Value": "disabled",
           },
         ],
-        "ServiceConnectDefaults": Object {
-          "Namespace": "supabase.local",
-        },
       },
       "Type": "AWS::ECS::Cluster",
     },
@@ -5254,11 +5267,17 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.local",
+          "Namespace": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Arn",
+            ],
+          },
           "Services": Array [
             Object {
               "ClientAliases": Array [
                 Object {
+                  "DnsName": "graphql",
                   "Port": 5000,
                 },
               ],
@@ -6053,11 +6072,17 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.local",
+          "Namespace": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Arn",
+            ],
+          },
           "Services": Array [
             Object {
               "ClientAliases": Array [
                 Object {
+                  "DnsName": "kong",
                   "Port": 8000,
                 },
               ],
@@ -6315,27 +6340,27 @@ Object {
               },
               Object {
                 "Name": "SUPABASE_AUTH_URL",
-                "Value": "http://auth.supabase.local:9999/",
+                "Value": "http://auth:9999/",
               },
               Object {
                 "Name": "SUPABASE_REST_URL",
-                "Value": "http://rest.supabase.local:3000/",
+                "Value": "http://rest:3000/",
               },
               Object {
                 "Name": "SUPABASE_GRAPHQL_URL",
-                "Value": "http://graphql.supabase.local:5000/graphql",
+                "Value": "http://graphql:5000/graphql",
               },
               Object {
                 "Name": "SUPABASE_REALTIME_URL",
-                "Value": "http://realtime.supabase.local:4000/socket/",
+                "Value": "http://realtime:4000/socket/",
               },
               Object {
                 "Name": "SUPABASE_STORAGE_URL",
-                "Value": "http://storage.supabase.local:5000/",
+                "Value": "http://storage:5000/",
               },
               Object {
                 "Name": "SUPABASE_META_HOST",
-                "Value": "http://meta.supabase.local:8080/",
+                "Value": "http://meta:8080/",
               },
             ],
             "Essential": true,
@@ -6704,11 +6729,17 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.local",
+          "Namespace": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Arn",
+            ],
+          },
           "Services": Array [
             Object {
               "ClientAliases": Array [
                 Object {
+                  "DnsName": "meta",
                   "Port": 8080,
                 },
               ],
@@ -7035,29 +7066,16 @@ Object {
             ],
             "responseElements": Object {
               "service": Object {
-                "description": Array [
+                "namespaceId": Array [
                   Object {
-                    "prefix": Object {
-                      "Fn::Join": Array [
-                        "",
-                        Array [
-                          "Managed by arn:aws:ecs:",
-                          Object {
-                            "Ref": "AWS::Region",
-                          },
-                          ":",
-                          Object {
-                            "Ref": "AWS::AccountId",
-                          },
-                          ":service/",
-                          Object {
-                            "Ref": "ClusterEB0386A7",
-                          },
-                          "/",
-                        ],
-                      ],
-                    },
+                    "Fn::GetAtt": Array [
+                      "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+                      "Id",
+                    ],
                   },
+                ],
+                "type": Array [
+                  "HTTP",
                 ],
               },
             },
@@ -7191,11 +7209,17 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.local",
+          "Namespace": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Arn",
+            ],
+          },
           "Services": Array [
             Object {
               "ClientAliases": Array [
                 Object {
+                  "DnsName": "realtime",
                   "Port": 4000,
                 },
               ],
@@ -7710,11 +7734,17 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.local",
+          "Namespace": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Arn",
+            ],
+          },
           "Services": Array [
             Object {
               "ClientAliases": Array [
                 Object {
+                  "DnsName": "rest",
                   "Port": 3000,
                 },
               ],
@@ -8475,11 +8505,17 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": "supabase.local",
+          "Namespace": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Arn",
+            ],
+          },
           "Services": Array [
             Object {
               "ClientAliases": Array [
                 Object {
+                  "DnsName": "storage",
                   "Port": 5000,
                 },
               ],
@@ -8574,7 +8610,7 @@ Object {
             "Environment": Array [
               Object {
                 "Name": "POSTGREST_URL",
-                "Value": "http://rest.supabase.local:3000",
+                "Value": "http://rest:3000",
               },
               Object {
                 "Name": "PGOPTIONS",

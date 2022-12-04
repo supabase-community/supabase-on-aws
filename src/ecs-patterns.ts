@@ -5,7 +5,6 @@ import { NetworkLoadBalancedTaskImageOptions } from 'aws-cdk-lib/aws-ecs-pattern
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 //import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
-import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { AuthProvider } from './supabase-auth-provider';
 import { SupabaseDatabase } from './supabase-db';
@@ -18,10 +17,9 @@ interface SupabaseTaskImageOptions extends NetworkLoadBalancedTaskImageOptions {
 }
 
 export interface BaseFargateServiceProps {
-  serviceName?: string;
+  discoveryName?: string;
   cluster: ecs.ICluster;
   taskImageOptions: SupabaseTaskImageOptions;
-  enableCloudMap?: boolean;
 }
 
 export interface AutoScalingFargateServiceProps extends BaseFargateServiceProps {
@@ -41,12 +39,10 @@ export class BaseFargateService extends Construct {
   constructor(scope: Construct, id: string, props: BaseFargateServiceProps) {
     super(scope, id);
 
-    const serviceName = props.serviceName || id.toLowerCase();
+    const discoveryName = props.discoveryName || id.toLowerCase();
     const { cluster, taskImageOptions } = props;
-    const enableCloudMap = (typeof props.enableCloudMap == 'undefined') ? false : props.enableCloudMap;
 
     this.listenerPort = taskImageOptions.containerPort;
-    this.endpoint = `http://${serviceName}.${cluster.defaultCloudMapNamespace?.namespaceName}:${this.listenerPort}`;
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
       runtimePlatform: {
@@ -84,22 +80,15 @@ export class BaseFargateService extends Construct {
     });
 
     this.service.enableServiceConnect({
+      namespace: cluster.defaultCloudMapNamespace?.namespaceArn,
       services: [{
         portMappingName: 'http',
-        discoveryName: serviceName,
+        discoveryName,
+        dnsName: discoveryName,
       }],
       logDriver,
     });
-
-    if (enableCloudMap) {
-      const cloudMapService = this.service.enableCloudMap({
-        name: serviceName,
-        dnsRecordType: servicediscovery.DnsRecordType.SRV,
-        container: appContainer,
-        dnsTtl: cdk.Duration.seconds(10),
-      });
-      (cloudMapService.node.defaultChild as servicediscovery.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
-    }
+    this.endpoint = `http://${discoveryName}:${this.listenerPort}`;
   }
 
   addApplicationLoadBalancer(props: { healthCheck?: elb.HealthCheck }) {
@@ -135,30 +124,30 @@ export class BaseFargateService extends Construct {
     return loadBalancer;
   }
 
-  addNetworkLoadBalancer(props: { healthCheck?: elb.HealthCheck }) {
-    const healthCheck = props.healthCheck;
-    const vpc = this.service.cluster.vpc;
-    const targetGroup = new elb.NetworkTargetGroup(this, 'TargetGroup', {
-      port: this.listenerPort,
-      targets: [
-        this.service.loadBalancerTarget({ containerName: 'app' }),
-      ],
-      healthCheck: props.healthCheck,
-      deregistrationDelay: cdk.Duration.seconds(30),
-      preserveClientIp: true,
-      vpc,
-    });
-    const loadBalancer = new elb.NetworkLoadBalancer(this, 'LoadBalancer', { internetFacing: true, crossZoneEnabled: true, vpc });
-    loadBalancer.addListener('Listener', {
-      port: 80,
-      defaultTargetGroups: [targetGroup],
-    });
-    if (typeof healthCheck?.port != 'undefined') {
-      const healthCheckPort = Number(healthCheck.port);
-      this.service.connections.allowFrom(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.tcp(healthCheckPort), 'NLB healthcheck');
-    }
-    return loadBalancer;
-  }
+  //addNetworkLoadBalancer(props: { healthCheck?: elb.HealthCheck }) {
+  //  const healthCheck = props.healthCheck;
+  //  const vpc = this.service.cluster.vpc;
+  //  const targetGroup = new elb.NetworkTargetGroup(this, 'TargetGroup', {
+  //    port: this.listenerPort,
+  //    targets: [
+  //      this.service.loadBalancerTarget({ containerName: 'app' }),
+  //    ],
+  //    healthCheck: props.healthCheck,
+  //    deregistrationDelay: cdk.Duration.seconds(30),
+  //    preserveClientIp: true,
+  //    vpc,
+  //  });
+  //  const loadBalancer = new elb.NetworkLoadBalancer(this, 'LoadBalancer', { internetFacing: true, crossZoneEnabled: true, vpc });
+  //  loadBalancer.addListener('Listener', {
+  //    port: 80,
+  //    defaultTargetGroups: [targetGroup],
+  //  });
+  //  if (typeof healthCheck?.port != 'undefined') {
+  //    const healthCheckPort = Number(healthCheck.port);
+  //    this.service.connections.allowFrom(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.tcp(healthCheckPort), 'NLB healthcheck');
+  //  }
+  //  return loadBalancer;
+  //}
 
   addBackend(backend: BaseFargateService) {
     this.service.connections.allowTo(backend.service, ec2.Port.tcp(backend.listenerPort));
