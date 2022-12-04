@@ -9395,7 +9395,28 @@ applications:
     },
     "StudioRepo63377C05": Object {
       "Properties": Object {
-        "RepositoryName": "SupabaseStudio",
+        "RepositoryDescription": "Supabase/Studio/Repo",
+        "RepositoryName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "SupabaseStudio-",
+              Object {
+                "Fn::Select": Array [
+                  2,
+                  Object {
+                    "Fn::Split": Array [
+                      "/",
+                      Object {
+                        "Ref": "AWS::StackId",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          ],
+        },
       },
       "Type": "AWS::CodeCommit::Repository",
     },

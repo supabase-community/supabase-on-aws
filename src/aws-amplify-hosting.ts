@@ -27,9 +27,10 @@ export class AmplifyHosting extends Construct {
 
     const { sourceRepo, sourceBranch, appRoot, environmentVariables = {}, liveUpdates } = props;
 
-    const repository = new Repository(this, 'Repo', {
-      repositoryName: this.node.path.replace(/\//g, ''),
-    });
+    const stackId = cdk.Fn.select(2, cdk.Fn.split('/', cdk.Aws.STACK_ID));
+    const repositoryName = `${this.node.path.replace(/\//g, '')}-${stackId}`;
+
+    const repository = new Repository(this, 'Repo', { repositoryName, description: `${this.node.path}/Repo` });
 
     const repoImportJob = repository.importFromUrl('main', sourceRepo, sourceBranch);
 
