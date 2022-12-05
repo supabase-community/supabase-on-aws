@@ -109,6 +109,7 @@ export class SupabaseStack extends FargateStack {
     const namespaceName = new cdk.CfnParameter(this, 'NamespaceName', {
       type: 'String',
       default: 'supabase.local',
+      description: 'Namespace for ECS Service Connect',
     });
 
     // Resources
