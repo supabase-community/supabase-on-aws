@@ -396,39 +396,44 @@ export class SupabaseStack extends FargateStack {
     meta.connectDatabase(db);
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
-
-    const newServiceCreated = new events.Rule(this, 'NewServiceCreated', {
-      description: 'Supabase - New service created (for Service Connect)',
-      eventPattern: {
-        source: ['aws.servicediscovery'],
-        detailType: ['AWS API Call via CloudTrail'],
-        detail: {
-          eventName: ['CreateService'],
-          responseElements: {
-            service: {
-              namespaceId: [namespace.namespaceId],
-              type: ['HTTP'],
+    // for ECS Service Connect
+    forceDeployJob.addTrigger({
+      rule: new events.Rule(this, 'NewServiceCreated', {
+        description: 'Supabase - New service created (for Service Connect)',
+        eventPattern: {
+          source: ['aws.servicediscovery'],
+          detailType: ['AWS API Call via CloudTrail'],
+          detail: {
+            eventName: ['CreateService'],
+            responseElements: {
+              service: {
+                namespaceId: [namespace.namespaceId],
+                type: ['HTTP'],
+              },
             },
           },
         },
-      },
+      }),
     });
-
-    const authParameterChangedRule = new events.Rule(this, 'AuthParameterChanged', {
-      description: 'Supabase - Auth parameter changed',
-      eventPattern: {
-        source: ['aws.ssm'],
-        detailType: ['Parameter Store Change'],
-        detail: {
-          name: [{ prefix: `/${cdk.Aws.STACK_NAME}/${auth.node.id}/` }],
-          operation: ['Update'],
+    // for DB secret rotation
+    forceDeployJob.addTrigger({
+      rule: db.secretRotationSucceeded,
+    });
+    // for Auth provider settings changed
+    forceDeployJob.addTrigger({
+      input: { services: [auth.service.serviceArn] },
+      rule: new events.Rule(this, 'AuthParameterChanged', {
+        description: 'Supabase - Auth parameter changed',
+        eventPattern: {
+          source: ['aws.ssm'],
+          detailType: ['Parameter Store Change'],
+          detail: {
+            name: [{ prefix: `/${cdk.Aws.STACK_NAME}/${auth.node.id}/` }],
+            operation: ['Update'],
+          },
         },
-      },
+      }),
     });
-
-    forceDeployJob.addTrigger({ rule: newServiceCreated }); // for Service Connect
-    forceDeployJob.addTrigger({ rule: db.secretRotationSucceeded });
-    forceDeployJob.addTrigger({ rule: authParameterChangedRule, services: [auth] });
 
     // Supabase Studio
     const studioBranch = new cdk.CfnParameter(this, 'StudioBranch', {

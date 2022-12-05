@@ -68,9 +68,9 @@ export class ForceDeployJob extends Construct {
 
   addTrigger(props: TriggerProps) {
     const rule = props.rule;
-    const services = props.services?.map(x => x.service.serviceArn);
+    const input = props.input || {};
     const target = new targets.SfnStateMachine(this.stateMachine, {
-      input: events.RuleTargetInput.fromObject({ services }),
+      input: events.RuleTargetInput.fromObject(input),
     });
     rule.addTarget(target);
   }
@@ -78,5 +78,9 @@ export class ForceDeployJob extends Construct {
 
 interface TriggerProps {
   rule: events.Rule;
-  services?: BaseFargateService[];
+  input?: ForceDeployJobInput;
+}
+
+interface ForceDeployJobInput {
+  services?: string[];
 }
