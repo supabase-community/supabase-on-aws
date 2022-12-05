@@ -3,7 +3,7 @@ import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import { LoadBalancerV2Origin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Construct } from 'constructs';
-import { SupabaseStandardWaf } from './supabase-standard-waf';
+import { WebAcl } from './aws-waf-for-cloudfront';
 
 interface SupabaseCdnProps {
   origin: string|elb.ILoadBalancerV2;
@@ -17,7 +17,9 @@ interface BehaviorProps {
 export class SupabaseCdn extends Construct {
   distribution: cf.Distribution;
   defaultBehaviorOptions: cf.AddBehaviorOptions;
-  webAclArn: cdk.CfnParameter;
+  cfnParameters: {
+    webAclArn: cdk.CfnParameter;
+  };
 
   constructor(scope: Construct, id: string, props: SupabaseCdnProps) {
     super(scope, id);
@@ -26,19 +28,21 @@ export class SupabaseCdn extends Construct {
       ? new HttpOrigin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY })
       : new LoadBalancerV2Origin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY });
 
-    this.webAclArn = new cdk.CfnParameter(this, 'WebAclArn', {
-      description: 'Web ACL for CloudFront.',
-      type: 'String',
-      default: '',
-      allowedPattern: '^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\w-]+/[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$|',
-    });
+    this.cfnParameters = {
+      webAclArn: new cdk.CfnParameter(this, 'WebAclArn', {
+        description: 'Web ACL for CloudFront.',
+        type: 'String',
+        default: '',
+        allowedPattern: '^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\w-]+/[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$|',
+      }),
+    };
 
-    const managedWafEnabled = new cdk.CfnCondition(this, 'ManagedWafEnabled', { expression: cdk.Fn.conditionEquals(this.webAclArn, '') });
+    const webAclUndefined = new cdk.CfnCondition(this, 'WebAclUndefined', { expression: cdk.Fn.conditionEquals(this.cfnParameters.webAclArn, '') });
 
-    const waf = new SupabaseStandardWaf(this, 'ManagedWaf', { description: 'Supabase Standard WAF' });
-    (waf.node.defaultChild as cdk.CfnStack).cfnOptions.condition = managedWafEnabled;
+    const webAcl = new WebAcl(this, 'WebAcl', { description: 'Supabase Standard WebAcl' });
+    (webAcl.node.defaultChild as cdk.CfnStack).cfnOptions.condition = webAclUndefined;
 
-    const webAclId = cdk.Fn.conditionIf(managedWafEnabled.logicalId, waf.webAcl.getAttString('Arn'), this.webAclArn.valueAsString);
+    const webAclId = cdk.Fn.conditionIf(webAclUndefined.logicalId, webAcl.webAclArn, this.cfnParameters.webAclArn.valueAsString);
 
     const cachePolicy = new cf.CachePolicy(this, 'CachePolicy', {
       cachePolicyName: `${cdk.Aws.STACK_NAME}-CachePolicy-${cdk.Aws.REGION}`,

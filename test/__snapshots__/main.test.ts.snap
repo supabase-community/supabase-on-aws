@@ -47,7 +47,7 @@ Object {
         "0",
       ],
     },
-    "CdnManagedWafEnabledD3A8F9B9": Object {
+    "CdnWebAclUndefinedCAA325A4": Object {
       "Fn::Equals": Array [
         Object {
           "Ref": "CdnWebAclArn5923748A",
@@ -3224,11 +3224,11 @@ Object {
           ],
           "WebACLId": Object {
             "Fn::If": Array [
-              "CdnManagedWafEnabledD3A8F9B9",
+              "CdnWebAclUndefinedCAA325A4",
               Object {
                 "Fn::GetAtt": Array [
-                  "CdnManagedWafNestedStackManagedWafNestedStackResourceD2D798AD",
-                  "Outputs.SupabaseCdnManagedWafWebAcl63E0E0ABArn",
+                  "CdnWebAclNestedStackWebAclNestedStackResourceFDB876C0",
+                  "Outputs.SupabaseCdnWebAcl5ECF61CDArn",
                 ],
               },
               Object {
@@ -3239,34 +3239,6 @@ Object {
         },
       },
       "Type": "AWS::CloudFront::Distribution",
-    },
-    "CdnManagedWafNestedStackManagedWafNestedStackResourceD2D798AD": Object {
-      "Condition": "CdnManagedWafEnabledD3A8F9B9",
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "TemplateURL": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "https://s3.",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ".",
-              Object {
-                "Ref": "AWS::URLSuffix",
-              },
-              "/",
-              Object {
-                "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-              },
-              "/954539b2b8cc52f995a5771b6ccbf43e7f1001cccabf69ec34e0cdf70f7e9fd4.json",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::CloudFormation::Stack",
-      "UpdateReplacePolicy": "Delete",
     },
     "CdnResponseHeadersPolicy36E4B823": Object {
       "Properties": Object {
@@ -3298,6 +3270,34 @@ Object {
         },
       },
       "Type": "AWS::CloudFront::ResponseHeadersPolicy",
+    },
+    "CdnWebAclNestedStackWebAclNestedStackResourceFDB876C0": Object {
+      "Condition": "CdnWebAclUndefinedCAA325A4",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "TemplateURL": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "https://s3.",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ".",
+              Object {
+                "Ref": "AWS::URLSuffix",
+              },
+              "/",
+              Object {
+                "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+              },
+              "/07aee184fbce7eedfc37d5a223a0d3b757f2aefd57ed8d24c11746a630b335a1.json",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::Stack",
+      "UpdateReplacePolicy": "Delete",
     },
     "CloudFrontPrefixList22014EFD": Object {
       "DeletionPolicy": "Delete",

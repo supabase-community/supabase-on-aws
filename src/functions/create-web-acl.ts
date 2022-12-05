@@ -1,4 +1,4 @@
-import { WAFV2Client, CreateWebACLCommand, UpdateWebACLCommand, DeleteWebACLCommand, GetWebACLCommand, CreateWebACLCommandInput, Rule } from '@aws-sdk/client-wafv2';
+import { WAFV2Client, CreateWebACLCommand, UpdateWebACLCommand, DeleteWebACLCommand, GetWebACLCommand, Rule } from '@aws-sdk/client-wafv2';
 import { fromUtf8 } from '@aws-sdk/util-utf8-node';
 import { CdkCustomResourceHandler } from 'aws-lambda';
 
@@ -177,33 +177,34 @@ interface CustomResourceProperties {
   ServiceToken: string;
   Name: string;
   Description?: string;
+  Fingerprint: string;
 }
 
 export const handler: CdkCustomResourceHandler = async (event, _context) => {
+  const hash = event.RequestId.split('-')[0];
   const props = event.ResourceProperties as CustomResourceProperties;
-  const webAclName = props.Name;
-  const webAclDescription = props.Description;
 
   switch (event.RequestType) {
     case 'Create': {
-      const webAcl = await createWebAcl(webAclName, webAclDescription);
+      const webAcl = await createWebAcl(`${props.Name}-${hash}`, props.Description);
       return {
         PhysicalResourceId: arnToPhysicalResourceId(webAcl.ARN!),
         Data: { Arn: webAcl.ARN, Id: webAcl.Id, Name: webAcl.Name },
       };
     }
     case 'Update': {
-      const { name, id, scope } = parsePhysicalResourceId(event.PhysicalResourceId);
-      const webAcl = (props.Name == name)
-        ? await updateWebAcl(id, webAclName, webAclDescription)
-        : await createWebAcl(webAclName, webAclDescription);
+      const { id, name } = parsePhysicalResourceId(event.PhysicalResourceId);
+      const oldProps = event.OldResourceProperties as CustomResourceProperties;
+      const webAcl = (props.Name == oldProps.Name)
+        ? await updateWebAcl(id, name, props.Description)
+        : await createWebAcl(`${props.Name}-${hash}`, props.Description);
       return {
         PhysicalResourceId: arnToPhysicalResourceId(webAcl.ARN!),
         Data: { Arn: webAcl.ARN, Id: webAcl.Id, Name: webAcl.Name },
       };
     }
     case 'Delete': {
-      const { name, id, scope } = parsePhysicalResourceId(event.PhysicalResourceId);
+      const { name, id } = parsePhysicalResourceId(event.PhysicalResourceId);
       await deleteWebAcl(id, name);
       return {};
     }

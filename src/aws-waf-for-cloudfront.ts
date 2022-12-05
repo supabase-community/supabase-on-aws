@@ -5,8 +5,8 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
-export class SupabaseStandardWaf extends cdk.NestedStack {
-  webAcl: cdk.CustomResource;
+export class WebAcl extends cdk.NestedStack {
+  webAclArn: string;
 
   constructor(scope: Construct, id: string, props: cdk.NestedStackProps) {
     super(scope, id, props);
@@ -14,7 +14,7 @@ export class SupabaseStandardWaf extends cdk.NestedStack {
     const crFunction = new NodejsFunction(this, 'Function', {
       description: `Supabase - Create Web ACL Function (${this.node.path}/Function)`,
       entry: './src/functions/create-web-acl.ts',
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(15),
       initialPolicy: [
         new iam.PolicyStatement({
@@ -42,14 +42,16 @@ export class SupabaseStandardWaf extends cdk.NestedStack {
 
     const crProvider = new cr.Provider(this, 'Provider', { onEventHandler: crFunction });
 
-    this.webAcl = new cdk.CustomResource(this, 'WebAcl', {
-      serviceToken: crProvider.serviceToken,
+    const resource = new cdk.CustomResource(this, 'Resource', {
       resourceType: 'Custom::WebACL',
+      serviceToken: crProvider.serviceToken,
       properties: {
-        Name: `${this.node.path.split('/').join('-')}-${cdk.Aws.REGION}`,
-        Description: `${this.node.path}/WebAcl`,
+        Name: this.node.path.replace(/\//g, '-'),
+        Description: this.node.path,
+        Fingerprint: cdk.FileSystem.fingerprint('./src/functions/create-web-acl.ts'),
       },
     });
+    this.webAclArn = resource.getAttString('Arn');
 
   }
 };

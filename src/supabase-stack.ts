@@ -499,7 +499,7 @@ export class SupabaseStack extends FargateStack {
           Label: { default: 'Infrastructure Settings - Network & Security' },
           Parameters: [
             namespaceName.logicalId,
-            cdn.webAclArn.logicalId,
+            cdn.cfnParameters.webAclArn.logicalId,
           ],
         },
         {
@@ -582,7 +582,7 @@ export class SupabaseStack extends FargateStack {
         [db.cfnParameters.maxCapacity.logicalId]: { default: 'Maximum ACUs' },
 
         [namespaceName.logicalId]: { default: 'Namespace' },
-        [cdn.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
+        [cdn.cfnParameters.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
         [kong.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
         [kong.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
