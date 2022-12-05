@@ -37,7 +37,6 @@ export class BaseFargateService extends Construct {
    * (e.g. `http://rest.supabase.internal:8000`)
    */
   readonly endpoint: string;
-  readonly listenerPort: number;
   readonly service: ecs.FargateService;
   readonly connections: ec2.Connections;
 
@@ -46,8 +45,7 @@ export class BaseFargateService extends Construct {
 
     const discoveryName = props.discoveryName || id.toLowerCase();
     const { cluster, taskImageOptions } = props;
-
-    this.listenerPort = taskImageOptions.containerPort;
+    const containerPort = taskImageOptions.containerPort;
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
       runtimePlatform: {
@@ -95,16 +93,16 @@ export class BaseFargateService extends Construct {
     });
 
     this.connections = new ec2.Connections({
-      defaultPort: ec2.Port.tcp(this.listenerPort),
+      defaultPort: ec2.Port.tcp(containerPort),
       securityGroups: this.service.connections.securityGroups,
     });
 
-    this.endpoint = `http://${discoveryName}:${this.listenerPort}`;
+    this.endpoint = `http://${discoveryName}:${containerPort}`;
   }
 
   addTargetGroup(props: TargetGroupProps) {
     const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
-      port: this.listenerPort,
+      port: Number(this.connections.defaultPort),
       targets: [this.service.loadBalancerTarget({ containerName: 'app' })],
       deregistrationDelay: cdk.Duration.seconds(30),
       healthCheck: props.healthCheck,
