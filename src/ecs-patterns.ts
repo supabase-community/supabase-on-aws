@@ -104,12 +104,13 @@ export class BaseFargateService extends Construct {
     this.endpoint = `http://${discoveryName}:${containerPort}`;
   }
 
-  addTargetGroup(props: TargetGroupProps) {
+  addTargetGroup(props?: TargetGroupProps) {
     const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
+      protocol: elb.ApplicationProtocol.HTTP,
       port: Number(this.connections.defaultPort),
       targets: [this.service.loadBalancerTarget({ containerName: 'app' })],
       deregistrationDelay: cdk.Duration.seconds(30),
-      healthCheck: props.healthCheck,
+      healthCheck: props?.healthCheck,
       vpc: this.service.cluster.vpc,
     });
     return targetGroup;
