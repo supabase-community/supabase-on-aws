@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Vpc, Port, Peer } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
@@ -131,6 +132,14 @@ export class SupabaseStack extends FargateStack {
     const anonKey = jwtSecret.genApiKey('AnonKey', { roleName: 'anon', issuer: 'supabase', expiresIn: '10y' });
     const serviceRoleKey = jwtSecret.genApiKey('ServiceRoleKey', { roleName: 'service_role', issuer: 'supabase', expiresIn: '10y' });
 
+    const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
+
+    const cfPrefixList = new PrefixList(this, 'CloudFrontPrefixList', { prefixListName: 'com.amazonaws.global.cloudfront.origin-facing' });
+    loadBalancer.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(80), 'CloudFront');
+
+    const cdn = new SupabaseCdn(this, 'Cdn', { origin: loadBalancer });
+    const apiExternalUrl = `https://${cdn.distribution.domainName}`;
+
     const kong = new AutoScalingFargateService(this, 'Kong', {
       cluster,
       taskImageOptions: {
@@ -157,7 +166,8 @@ export class SupabaseStack extends FargateStack {
         },
       },
     });
-    const kongLoadBalancer = kong.addApplicationLoadBalancer({
+
+    const kongTargetGroup = kong.addTargetGroup({
       healthCheck: {
         port: '8100',
         path: '/status',
@@ -166,11 +176,12 @@ export class SupabaseStack extends FargateStack {
       },
     });
 
-    const cfPrefixList = new PrefixList(this, 'CloudFrontPrefixList', { prefixListName: 'com.amazonaws.global.cloudfront.origin-facing' });
-    kongLoadBalancer.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(80), 'CloudFront');
-
-    const cdn = new SupabaseCdn(this, 'Cdn', { origin: kongLoadBalancer });
-    const apiExternalUrl = `https://${cdn.distribution.domainName}`;
+    const listener = loadBalancer.addListener('Listener', {
+      port: 80,
+      defaultTargetGroups: [kongTargetGroup],
+      open: false,
+    });
+    kong.connections.allowFrom(loadBalancer, Port.tcp(8100), 'ALB healthcheck');
 
     const auth = new AutoScalingFargateService(this, 'Auth', {
       cluster,
@@ -367,22 +378,22 @@ export class SupabaseStack extends FargateStack {
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_STORAGE_URL', `${storage.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_META_HOST', `${meta.endpoint}/`);
 
-    kong.addBackend(auth);
-    kong.addBackend(rest);
-    kong.addBackend(gql);
-    kong.addBackend(realtime);
-    kong.addBackend(storage);
-    kong.addBackend(meta);
+    kong.connections.allowToDefaultPort(auth);
+    kong.connections.allowToDefaultPort(rest);
+    kong.connections.allowToDefaultPort(gql);
+    kong.connections.allowToDefaultPort(realtime);
+    kong.connections.allowToDefaultPort(storage);
+    kong.connections.allowToDefaultPort(meta);
 
-    auth.addBackend(rest);
-    storage.addBackend(rest);
+    auth.connections.allowToDefaultPort(rest);
+    storage.connections.allowToDefaultPort(rest);
 
-    auth.addDatabaseBackend(db);
-    rest.addDatabaseBackend(db);
-    gql.addDatabaseBackend(db);
-    realtime.addDatabaseBackend(db);
-    storage.addDatabaseBackend(db);
-    meta.addDatabaseBackend(db);
+    auth.connectDatabase(db);
+    rest.connectDatabase(db);
+    gql.connectDatabase(db);
+    realtime.connectDatabase(db);
+    storage.connectDatabase(db);
+    meta.connectDatabase(db);
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
 

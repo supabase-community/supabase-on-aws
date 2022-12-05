@@ -3216,7 +3216,7 @@ Object {
               },
               "DomainName": Object {
                 "Fn::GetAtt": Array [
-                  "KongLoadBalancerD341ED7C",
+                  "LoadBalancerBE9EEC3A",
                   "DNSName",
                 ],
               },
@@ -5955,7 +5955,7 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "KongFargateSecurityGroupfromSupabaseKongLoadBalancerSecurityGroup19D476A380005A162266": Object {
+    "KongFargateSecurityGroupfromSupabaseLoadBalancerSecurityGroupADDF6EB88000431006BA": Object {
       "Properties": Object {
         "Description": "Load balancer to target",
         "FromPort": 8000,
@@ -5968,7 +5968,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "KongLoadBalancerSecurityGroup2209FF1F",
+            "LoadBalancerSecurityGroupA28D6DD7",
             "GroupId",
           ],
         },
@@ -5976,7 +5976,7 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "KongFargateSecurityGroupfromSupabaseKongLoadBalancerSecurityGroup19D476A38100904EF0BB": Object {
+    "KongFargateSecurityGroupfromSupabaseLoadBalancerSecurityGroupADDF6EB8810028DF33E8": Object {
       "Properties": Object {
         "Description": "ALB healthcheck",
         "FromPort": 8100,
@@ -5989,7 +5989,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "KongLoadBalancerSecurityGroup2209FF1F",
+            "LoadBalancerSecurityGroupA28D6DD7",
             "GroupId",
           ],
         },
@@ -5999,7 +5999,7 @@ Object {
     },
     "KongFargateServiceA23C8C36": Object {
       "DependsOn": Array [
-        "KongLoadBalancerListenerA03182E0",
+        "LoadBalancerListenerE1A099B9",
       ],
       "Properties": Object {
         "Cluster": Object {
@@ -6162,132 +6162,6 @@ Object {
         },
       },
       "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-    },
-    "KongLoadBalancerD341ED7C": Object {
-      "DependsOn": Array [
-        "VPCPublicSubnet1DefaultRoute91CEF279",
-        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
-        "VPCPublicSubnet2DefaultRouteB7481BBA",
-        "VPCPublicSubnet2RouteTableAssociation5A808732",
-      ],
-      "Properties": Object {
-        "LoadBalancerAttributes": Array [
-          Object {
-            "Key": "deletion_protection.enabled",
-            "Value": "false",
-          },
-        ],
-        "Scheme": "internet-facing",
-        "SecurityGroups": Array [
-          Object {
-            "Fn::GetAtt": Array [
-              "KongLoadBalancerSecurityGroup2209FF1F",
-              "GroupId",
-            ],
-          },
-        ],
-        "Subnets": Array [
-          Object {
-            "Ref": "VPCPublicSubnet1SubnetB4246D30",
-          },
-          Object {
-            "Ref": "VPCPublicSubnet2Subnet74179F39",
-          },
-        ],
-        "Type": "application",
-      },
-      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-    },
-    "KongLoadBalancerListenerA03182E0": Object {
-      "Properties": Object {
-        "DefaultActions": Array [
-          Object {
-            "TargetGroupArn": Object {
-              "Ref": "KongTargetGroupD0277B2A",
-            },
-            "Type": "forward",
-          },
-        ],
-        "LoadBalancerArn": Object {
-          "Ref": "KongLoadBalancerD341ED7C",
-        },
-        "Port": 80,
-        "Protocol": "HTTP",
-      },
-      "Type": "AWS::ElasticLoadBalancingV2::Listener",
-    },
-    "KongLoadBalancerSecurityGroup2209FF1F": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/Kong/LoadBalancerSecurityGroup",
-        "SecurityGroupIngress": Array [],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "KongLoadBalancerSecurityGroupfromIndirectPeer80B7BAB98B": Object {
-      "Properties": Object {
-        "Description": "CloudFront",
-        "FromPort": 80,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongLoadBalancerSecurityGroup2209FF1F",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourcePrefixListId": Object {
-          "Fn::GetAtt": Array [
-            "CloudFrontPrefixList22014EFD",
-            "PrefixLists.0.PrefixListId",
-          ],
-        },
-        "ToPort": 80,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "KongLoadBalancerSecurityGrouptoSupabaseKongFargateSecurityGroupB95937A280007524170D": Object {
-      "Properties": Object {
-        "Description": "Load balancer to target",
-        "DestinationSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
-            "GroupId",
-          ],
-        },
-        "FromPort": 8000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongLoadBalancerSecurityGroup2209FF1F",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "ToPort": 8000,
-      },
-      "Type": "AWS::EC2::SecurityGroupEgress",
-    },
-    "KongLoadBalancerSecurityGrouptoSupabaseKongFargateSecurityGroupB95937A281000D02B25E": Object {
-      "Properties": Object {
-        "Description": "ALB healthcheck",
-        "DestinationSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
-            "GroupId",
-          ],
-        },
-        "FromPort": 8100,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongLoadBalancerSecurityGroup2209FF1F",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "ToPort": 8100,
-      },
-      "Type": "AWS::EC2::SecurityGroupEgress",
     },
     "KongLogs4BD50491": Object {
       "DeletionPolicy": "Delete",
@@ -6626,6 +6500,131 @@ Object {
         },
       },
       "Type": "AWS::IAM::Role",
+    },
+    "LoadBalancerBE9EEC3A": Object {
+      "DependsOn": Array [
+        "VPCPublicSubnet1DefaultRoute91CEF279",
+        "VPCPublicSubnet1RouteTableAssociation0B0896DC",
+        "VPCPublicSubnet2DefaultRouteB7481BBA",
+        "VPCPublicSubnet2RouteTableAssociation5A808732",
+      ],
+      "Properties": Object {
+        "LoadBalancerAttributes": Array [
+          Object {
+            "Key": "deletion_protection.enabled",
+            "Value": "false",
+          },
+        ],
+        "Scheme": "internet-facing",
+        "SecurityGroups": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "LoadBalancerSecurityGroupA28D6DD7",
+              "GroupId",
+            ],
+          },
+        ],
+        "Subnets": Array [
+          Object {
+            "Ref": "VPCPublicSubnet1SubnetB4246D30",
+          },
+          Object {
+            "Ref": "VPCPublicSubnet2Subnet74179F39",
+          },
+        ],
+        "Type": "application",
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+    },
+    "LoadBalancerListenerE1A099B9": Object {
+      "Properties": Object {
+        "DefaultActions": Array [
+          Object {
+            "TargetGroupArn": Object {
+              "Ref": "KongTargetGroupD0277B2A",
+            },
+            "Type": "forward",
+          },
+        ],
+        "LoadBalancerArn": Object {
+          "Ref": "LoadBalancerBE9EEC3A",
+        },
+        "Port": 80,
+        "Protocol": "HTTP",
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+    },
+    "LoadBalancerSecurityGroupA28D6DD7": Object {
+      "Properties": Object {
+        "GroupDescription": "Automatically created Security Group for ELB SupabaseLoadBalancer630C0AFC",
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "LoadBalancerSecurityGroupfromIndirectPeer80AB4C6575": Object {
+      "Properties": Object {
+        "Description": "CloudFront",
+        "FromPort": 80,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "LoadBalancerSecurityGroupA28D6DD7",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourcePrefixListId": Object {
+          "Fn::GetAtt": Array [
+            "CloudFrontPrefixList22014EFD",
+            "PrefixLists.0.PrefixListId",
+          ],
+        },
+        "ToPort": 80,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "LoadBalancerSecurityGrouptoSupabaseKongFargateSecurityGroupB95937A2800054036A7C": Object {
+      "Properties": Object {
+        "Description": "Load balancer to target",
+        "DestinationSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongFargateSecurityGroup972A8F5C",
+            "GroupId",
+          ],
+        },
+        "FromPort": 8000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "LoadBalancerSecurityGroupA28D6DD7",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 8000,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "LoadBalancerSecurityGrouptoSupabaseKongFargateSecurityGroupB95937A28100C27D41FB": Object {
+      "Properties": Object {
+        "Description": "ALB healthcheck",
+        "DestinationSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongFargateSecurityGroup972A8F5C",
+            "GroupId",
+          ],
+        },
+        "FromPort": 8100,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "LoadBalancerSecurityGroupA28D6DD7",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 8100,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
     },
     "MetaFargateSecurityGroup9D26952C": Object {
       "Properties": Object {

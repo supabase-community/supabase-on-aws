@@ -27,6 +27,10 @@ export interface AutoScalingFargateServiceProps extends BaseFargateServiceProps 
   maxTaskCount?: number;
 }
 
+export interface TargetGroupProps {
+  healthCheck?: elb.HealthCheck;
+}
+
 export class BaseFargateService extends Construct {
   /**
    * The URL to connect to an API. The URL contains the protocol, a DNS name, and the port.
@@ -35,6 +39,7 @@ export class BaseFargateService extends Construct {
   readonly endpoint: string;
   readonly listenerPort: number;
   readonly service: ecs.FargateService;
+  readonly connections: ec2.Connections;
 
   constructor(scope: Construct, id: string, props: BaseFargateServiceProps) {
     super(scope, id);
@@ -88,74 +93,29 @@ export class BaseFargateService extends Construct {
       }],
       logDriver,
     });
+
+    this.connections = new ec2.Connections({
+      defaultPort: ec2.Port.tcp(this.listenerPort),
+      securityGroups: this.service.connections.securityGroups,
+    });
+
     this.endpoint = `http://${discoveryName}:${this.listenerPort}`;
   }
 
-  addApplicationLoadBalancer(props: { healthCheck?: elb.HealthCheck }) {
-    const healthCheck = props.healthCheck;
-    const vpc = this.service.cluster.vpc;
-    const securityGroup = new ec2.SecurityGroup(this, 'LoadBalancerSecurityGroup', {
-      allowAllOutbound: false,
-      vpc,
-    });
-    const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', {
-      internetFacing: true,
-      securityGroup,
-      vpc,
-    });
+  addTargetGroup(props: TargetGroupProps) {
     const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
       port: this.listenerPort,
-      targets: [
-        this.service.loadBalancerTarget({ containerName: 'app' }),
-      ],
+      targets: [this.service.loadBalancerTarget({ containerName: 'app' })],
       deregistrationDelay: cdk.Duration.seconds(30),
-      healthCheck,
-      vpc,
+      healthCheck: props.healthCheck,
+      vpc: this.service.cluster.vpc,
     });
-    loadBalancer.addListener('Listener', {
-      port: 80,
-      defaultTargetGroups: [targetGroup],
-    });
-    if (typeof healthCheck?.port != 'undefined') {
-      const healthCheckPort = Number(healthCheck.port);
-      this.service.connections.allowFrom(loadBalancer, ec2.Port.tcp(healthCheckPort), 'ALB healthcheck');
-    }
-    (securityGroup.node.defaultChild as ec2.CfnSecurityGroup).securityGroupIngress = [];
-    return loadBalancer;
+    return targetGroup;
   }
 
-  //addNetworkLoadBalancer(props: { healthCheck?: elb.HealthCheck }) {
-  //  const healthCheck = props.healthCheck;
-  //  const vpc = this.service.cluster.vpc;
-  //  const targetGroup = new elb.NetworkTargetGroup(this, 'TargetGroup', {
-  //    port: this.listenerPort,
-  //    targets: [
-  //      this.service.loadBalancerTarget({ containerName: 'app' }),
-  //    ],
-  //    healthCheck: props.healthCheck,
-  //    deregistrationDelay: cdk.Duration.seconds(30),
-  //    preserveClientIp: true,
-  //    vpc,
-  //  });
-  //  const loadBalancer = new elb.NetworkLoadBalancer(this, 'LoadBalancer', { internetFacing: true, crossZoneEnabled: true, vpc });
-  //  loadBalancer.addListener('Listener', {
-  //    port: 80,
-  //    defaultTargetGroups: [targetGroup],
-  //  });
-  //  if (typeof healthCheck?.port != 'undefined') {
-  //    const healthCheckPort = Number(healthCheck.port);
-  //    this.service.connections.allowFrom(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.tcp(healthCheckPort), 'NLB healthcheck');
-  //  }
-  //  return loadBalancer;
-  //}
-
-  addBackend(backend: BaseFargateService) {
-    this.service.connections.allowTo(backend.service, ec2.Port.tcp(backend.listenerPort));
-  }
-
-  addDatabaseBackend(backend: SupabaseDatabase) {
-    this.service.connections.allowToDefaultPort(backend.cluster);
-    this.service.node.defaultChild?.node.addDependency(backend.cluster.node.findChild('Instance1'));
+  connectDatabase(database: SupabaseDatabase) {
+    this.service.connections.allowToDefaultPort(database.cluster);
+    this.service.node.defaultChild?.node.addDependency(database.cluster.node.findChild('Instance1'));
   }
 
   addExternalAuthProviders(redirectUri: string, providerCount: number) {
