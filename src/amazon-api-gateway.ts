@@ -4,6 +4,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as cloudMap from 'aws-cdk-lib/aws-servicediscovery';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 import { BaseFargateService } from './ecs-patterns';
@@ -44,15 +45,24 @@ export class ApiGateway extends Construct {
     this.domainName = cdk.Fn.select(2, cdk.Fn.split('/', this.api.apiEndpoint));
   }
 
-  addRoute(path: string, service: BaseFargateService) {
+  addProxyRoute(path: string, service: BaseFargateService) {
+    const cloudMapService = service.service.enableCloudMap({
+      name: service.discoveryName,
+      dnsRecordType: cloudMap.DnsRecordType.SRV,
+      dnsTtl: cdk.Duration.seconds(10),
+    });
     const parameterMapping = new apigw.ParameterMapping();
     parameterMapping.overwritePath(apigw.MappingValue.custom('/${request.path.proxy}'));
-    const integration = new HttpServiceDiscoveryIntegration(service.node.id, service.service.cloudMapService!, {
+    const integration = new HttpServiceDiscoveryIntegration(service.node.id, cloudMapService, {
       vpcLink: this.vpcLink,
       parameterMapping,
     });
-    this.api.addRoutes({ path, integration });
-    this.securityGroup.connections.allowTo(service.service, ec2.Port.tcp(service.listenerPort));
+    this.api.addRoutes({
+      methods: [apigw.HttpMethod.GET, apigw.HttpMethod.POST, apigw.HttpMethod.PUT],
+      path: `${path}{proxy+}`,
+      integration,
+    });
+    this.securityGroup.connections.allowToDefaultPort(service);
   }
 }
 

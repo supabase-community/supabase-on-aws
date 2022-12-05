@@ -38,13 +38,14 @@ export class BaseFargateService extends Construct {
    * (e.g. `http://rest.supabase.internal:8000`)
    */
   readonly endpoint: string;
+  readonly discoveryName: string;
   readonly service: ecs.FargateService;
   readonly connections: ec2.Connections;
 
   constructor(scope: Construct, id: string, props: BaseFargateServiceProps) {
     super(scope, id);
 
-    const discoveryName = props.discoveryName || id.toLowerCase();
+    this.discoveryName = props.discoveryName || id.toLowerCase();
     const { cluster, taskImageOptions } = props;
     const containerPort = taskImageOptions.containerPort;
     const enableServiceConnect = (typeof props.enableServiceConnect == 'undefined') ? true : props.enableServiceConnect;
@@ -89,8 +90,8 @@ export class BaseFargateService extends Construct {
         namespace: cluster.defaultCloudMapNamespace?.namespaceArn,
         services: [{
           portMappingName: 'http',
-          discoveryName,
-          dnsName: discoveryName,
+          discoveryName: this.discoveryName,
+          dnsName: this.discoveryName,
         }],
         logDriver,
       });
@@ -101,7 +102,7 @@ export class BaseFargateService extends Construct {
       securityGroups: this.service.connections.securityGroups,
     });
 
-    this.endpoint = `http://${discoveryName}:${containerPort}`;
+    this.endpoint = `http://${this.discoveryName}:${containerPort}`;
   }
 
   addTargetGroup(props?: TargetGroupProps) {
