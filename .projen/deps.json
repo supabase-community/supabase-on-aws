@@ -67,11 +67,6 @@
       "type": "build"
     },
     {
-      "name": "npm-check-updates",
-      "version": "^15",
-      "type": "build"
-    },
-    {
       "name": "projen",
       "type": "build"
     },
