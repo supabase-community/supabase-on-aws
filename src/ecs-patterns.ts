@@ -20,6 +20,7 @@ export interface BaseFargateServiceProps {
   discoveryName?: string;
   cluster: ecs.ICluster;
   taskImageOptions: SupabaseTaskImageOptions;
+  enableServiceConnect?: boolean;
 }
 
 export interface AutoScalingFargateServiceProps extends BaseFargateServiceProps {
@@ -46,6 +47,7 @@ export class BaseFargateService extends Construct {
     const discoveryName = props.discoveryName || id.toLowerCase();
     const { cluster, taskImageOptions } = props;
     const containerPort = taskImageOptions.containerPort;
+    const enableServiceConnect = (typeof props.enableServiceConnect == 'undefined') ? true : props.enableServiceConnect;
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
       runtimePlatform: {
@@ -82,15 +84,17 @@ export class BaseFargateService extends Construct {
       propagateTags: ecs.PropagatedTagSource.SERVICE,
     });
 
-    this.service.enableServiceConnect({
-      namespace: cluster.defaultCloudMapNamespace?.namespaceArn,
-      services: [{
-        portMappingName: 'http',
-        discoveryName,
-        dnsName: discoveryName,
-      }],
-      logDriver,
-    });
+    if (enableServiceConnect) {
+      this.service.enableServiceConnect({
+        namespace: cluster.defaultCloudMapNamespace?.namespaceArn,
+        services: [{
+          portMappingName: 'http',
+          discoveryName,
+          dnsName: discoveryName,
+        }],
+        logDriver,
+      });
+    }
 
     this.connections = new ec2.Connections({
       defaultPort: ec2.Port.tcp(containerPort),
