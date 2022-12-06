@@ -1371,6 +1371,40 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "AuthFargateCloudmapService77173080": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "auth",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "AuthFargateSecurityGroup512F6031": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Auth/Fargate/SecurityGroup",
@@ -1488,11 +1522,23 @@ Object {
                   "Port": 9999,
                 },
               ],
-              "DiscoveryName": "auth",
+              "DiscoveryName": "auth-svcconnect",
               "PortName": "http",
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 9999,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "AuthFargateCloudmapService77173080",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "AuthTaskDef5FB652ED",
         },
@@ -5165,6 +5211,40 @@ Object {
       },
       "Type": "AWS::IAM::Policy",
     },
+    "GraphQLFargateCloudmapService0FA0462B": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "graphql",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "GraphQLFargateSecurityGroupC37FE3F0": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/GraphQL/Fargate/SecurityGroup",
@@ -5282,11 +5362,23 @@ Object {
                   "Port": 5000,
                 },
               ],
-              "DiscoveryName": "graphql",
+              "DiscoveryName": "graphql-svcconnect",
               "PortName": "http",
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 5000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "GraphQLFargateCloudmapService0FA0462B",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "GraphQLTaskDefA9ADD420",
         },
@@ -5939,6 +6031,40 @@ Object {
       "Type": "Custom::JsonWebToken",
       "UpdateReplacePolicy": "Delete",
     },
+    "KongFargateCloudmapService5994A750": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "kong",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "KongFargateSecurityGroup972A8F5C": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Kong/Fargate/SecurityGroup",
@@ -6087,11 +6213,23 @@ Object {
                   "Port": 8000,
                 },
               ],
-              "DiscoveryName": "kong",
+              "DiscoveryName": "kong-svcconnect",
               "PortName": "http",
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 8000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "KongFargateCloudmapService5994A750",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "KongTaskDef115E456D",
         },
@@ -6626,6 +6764,40 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
     },
+    "MetaFargateCloudmapService49FA2349": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "meta",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "MetaFargateSecurityGroup9D26952C": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Meta/Fargate/SecurityGroup",
@@ -6743,11 +6915,23 @@ Object {
                   "Port": 8080,
                 },
               ],
-              "DiscoveryName": "meta",
+              "DiscoveryName": "meta-svcconnect",
               "PortName": "http",
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 8080,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "MetaFargateCloudmapService49FA2349",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "MetaTaskDef2C490DD3",
         },
@@ -7106,6 +7290,40 @@ Object {
       },
       "Type": "AWS::Events::Rule",
     },
+    "RealtimeFargateCloudmapServiceECA0414A": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "realtime",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "RealtimeFargateSecurityGroupC1A41CAF": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Realtime/Fargate/SecurityGroup",
@@ -7223,11 +7441,23 @@ Object {
                   "Port": 4000,
                 },
               ],
-              "DiscoveryName": "realtime",
+              "DiscoveryName": "realtime-svcconnect",
               "PortName": "http",
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 4000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "RealtimeFargateCloudmapServiceECA0414A",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "RealtimeTaskDef9E0DD838",
         },
@@ -7589,6 +7819,40 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "RestFargateCloudmapServiceEC842507": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "rest",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "RestFargateSecurityGroupEADE3F44": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Rest/Fargate/SecurityGroup",
@@ -7748,11 +8012,23 @@ Object {
                   "Port": 3000,
                 },
               ],
-              "DiscoveryName": "rest",
+              "DiscoveryName": "rest-svcconnect",
               "PortName": "http",
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 3000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "RestFargateCloudmapServiceEC842507",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "RestTaskDef716BD951",
         },
@@ -8402,6 +8678,40 @@ Object {
       "Type": "AWS::CloudFormation::Stack",
       "UpdateReplacePolicy": "Delete",
     },
+    "StorageFargateCloudmapServiceB19C4F44": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "storage",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "StorageFargateSecurityGroupC6388B3F": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Storage/Fargate/SecurityGroup",
@@ -8519,11 +8829,23 @@ Object {
                   "Port": 5000,
                 },
               ],
-              "DiscoveryName": "storage",
+              "DiscoveryName": "storage-svcconnect",
               "PortName": "http",
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 5000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "StorageFargateCloudmapServiceB19C4F44",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "StorageTaskDef36011FFA",
         },

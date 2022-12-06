@@ -46,11 +46,7 @@ export class ApiGateway extends Construct {
   }
 
   addProxyRoute(path: string, service: BaseFargateService) {
-    const cloudMapService = service.service.enableCloudMap({
-      name: service.discoveryName,
-      dnsRecordType: cloudMap.DnsRecordType.SRV,
-      dnsTtl: cdk.Duration.seconds(10),
-    });
+    const cloudMapService = service.service.cloudMapService!;
     const parameterMapping = new apigw.ParameterMapping();
     parameterMapping.overwritePath(apigw.MappingValue.custom('/${request.path.proxy}'));
     const integration = new HttpServiceDiscoveryIntegration(service.node.id, cloudMapService, {

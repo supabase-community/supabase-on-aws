@@ -5,6 +5,7 @@ import { NetworkLoadBalancedTaskImageOptions } from 'aws-cdk-lib/aws-ecs-pattern
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 //import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as cloudMap from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { AuthProvider } from './supabase-auth-provider';
 import { SupabaseDatabase } from './supabase-db';
@@ -17,10 +18,11 @@ interface SupabaseTaskImageOptions extends NetworkLoadBalancedTaskImageOptions {
 }
 
 export interface BaseFargateServiceProps {
-  discoveryName?: string;
+  serviceName?: string;
   cluster: ecs.ICluster;
   taskImageOptions: SupabaseTaskImageOptions;
   enableServiceConnect?: boolean;
+  enableCloudMap?: boolean;
 }
 
 export interface AutoScalingFargateServiceProps extends BaseFargateServiceProps {
@@ -38,17 +40,17 @@ export class BaseFargateService extends Construct {
    * (e.g. `http://rest.supabase.internal:8000`)
    */
   readonly endpoint: string;
-  readonly discoveryName: string;
   readonly service: ecs.FargateService;
   readonly connections: ec2.Connections;
 
   constructor(scope: Construct, id: string, props: BaseFargateServiceProps) {
     super(scope, id);
 
-    this.discoveryName = props.discoveryName || id.toLowerCase();
+    const serviceName = props.serviceName || id.toLowerCase();
     const { cluster, taskImageOptions } = props;
     const containerPort = taskImageOptions.containerPort;
     const enableServiceConnect = (typeof props.enableServiceConnect == 'undefined') ? true : props.enableServiceConnect;
+    const enableCloudMap = (typeof props.enableCloudMap == 'undefined') ? true : props.enableCloudMap;
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
       runtimePlatform: {
@@ -90,11 +92,22 @@ export class BaseFargateService extends Construct {
         namespace: cluster.defaultCloudMapNamespace?.namespaceArn,
         services: [{
           portMappingName: 'http',
-          discoveryName: this.discoveryName,
-          dnsName: this.discoveryName,
+          discoveryName: serviceName + '-svcconnect',
+          dnsName: serviceName,
         }],
         logDriver,
       });
+    }
+
+    if (enableCloudMap) {
+      const cloudMapService = this.service.enableCloudMap({
+        cloudMapNamespace: cluster.defaultCloudMapNamespace,
+        name: serviceName,
+        container: appContainer,
+        dnsRecordType: cloudMap.DnsRecordType.SRV,
+        dnsTtl: cdk.Duration.seconds(10),
+      });
+      (cloudMapService.node.defaultChild as cloudMap.CfnService).addPropertyOverride('DnsConfig.DnsRecords.1', { Type: 'A', TTL: 10 });
     }
 
     this.connections = new ec2.Connections({
@@ -102,7 +115,7 @@ export class BaseFargateService extends Construct {
       securityGroups: this.service.connections.securityGroups,
     });
 
-    this.endpoint = `http://${this.discoveryName}:${containerPort}`;
+    this.endpoint = `http://${serviceName}:${containerPort}`;
   }
 
   addTargetGroup(props?: TargetGroupProps) {
