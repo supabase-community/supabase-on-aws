@@ -145,7 +145,7 @@ jobs:
         if: env.GIT_DIFF
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
       - name: Install dependencies
         if: env.GIT_DIFF
