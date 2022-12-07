@@ -1,10 +1,25 @@
 {
-  "image": "ghcr.io/mats16/devcontainer-for-aws:latest",
-  "mounts": [
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-  ],
-  "extensions": [
-    "dbaeumer.vscode-eslint",
-    "ms-azuretools.vscode-docker",
-  ]
+  "name": "Node.js",
+  "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:18",
+  "postCreateCommand": "echo alias pj=\\'npx projen\\' >> /home/node/.zshrc && yarn install",
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.profiles.linux": {
+      "zsh": {
+        "path": "/usr/bin/zsh"
+      }
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+          "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "remoteUser": "node",
+  "features": {
+    "aws-cli": "latest",
+    "docker-in-docker": "latest"
+  }
 }
