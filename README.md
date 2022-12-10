@@ -1,8 +1,8 @@
-# Supabase on AWS - CloudFormation/CDK Blueprint
+# Supabase on AWS - CloudFormation/CDK Template
 
 _Launch in minutes. Scale to millions._
 
-This repo includes a blueprint of starting Supabase stack on AWS via CloudFormation/CDK. This blueprint use managed services such as Amazon ECS and Amazon Aurora etc...
+This repo includes a template of starting Supabase stack on AWS via CloudFormation/CDK. This template use managed services such as Amazon ECS and Amazon Aurora etc...
 
 ![architecture-diagram](docs/images/architecture-diagram.png)
 
@@ -47,17 +47,18 @@ This repo includes a blueprint of starting Supabase stack on AWS via CloudFormat
 ### Specification and Limitation
 
 - APIs
-  - All containers run on ECS Fargate.
+  - All containers run on ECS Fargate (Graviton2).
+    - Only Storage API works on x86_64 platforms.
   - All components are configured with AutoScaling.
   - GraphQL is supported using [PostGraphile](https://www.graphile.org/postgraphile/), because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
-- Database
-  - Use [Aurora Serverless v2](https://aws.amazon.com/rds/aurora/serverless/).
-  - DB password will be rotated automatically every 30 days.
 - Service Discovery & Service Mesh
-  - Use [ECS Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html).
-    - Each component is discovered as `***.supabase.internal`.
-- Studio
-  - It is deployed on [Amplify Hosting](https://aws.amazon.com/amplify/hosting/).
+  - [ECS Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) is used.
+    - Each component is discovered as `***.supabase.local` by default.
+- Database (PostgreSQL)
+  - [Aurora Serverless v2](https://aws.amazon.com/rds/aurora/serverless/) is used.
+  - DB password is automatically rotated every 30 days.
+- Supabase Studio
+  - It is deployed on [Amplify Hosting](https://aws.amazon.com/amplify/hosting/) as a Next.js application.
 
 #### Fargate Task Size
 
