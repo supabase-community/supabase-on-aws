@@ -21,6 +21,7 @@ export interface BaseFargateServiceProps {
   serviceName?: string;
   cluster: ecs.ICluster;
   taskImageOptions: SupabaseTaskImageOptions;
+  cpuArchitecture?: 'X86_64'|'ARM64';
   enableServiceConnect?: boolean;
   enableCloudMap?: boolean;
 }
@@ -49,13 +50,14 @@ export class BaseFargateService extends Construct {
     const serviceName = props.serviceName || id.toLowerCase();
     const { cluster, taskImageOptions } = props;
     const containerPort = taskImageOptions.containerPort;
+    const cpuArchitecture = (props.cpuArchitecture == 'X86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
     const enableServiceConnect = (typeof props.enableServiceConnect == 'undefined') ? true : props.enableServiceConnect;
     const enableCloudMap = (typeof props.enableCloudMap == 'undefined') ? true : props.enableCloudMap;
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
       runtimePlatform: {
         operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
-        //cpuArchitecture: (serviceName == 'storage') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64,
+        cpuArchitecture,
       },
     });
 

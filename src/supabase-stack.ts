@@ -349,7 +349,7 @@ export class SupabaseStack extends FargateStack {
           retries: 3,
         },
       },
-      //cpuArchitecture: 'x86_64', // storage-api does not work on ARM64
+      cpuArchitecture: 'X86_64', // storage-api does not work on ARM64
     });
     bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
 

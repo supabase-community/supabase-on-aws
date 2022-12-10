@@ -2658,6 +2658,7 @@ Object {
           "FARGATE",
         ],
         "RuntimePlatform": Object {
+          "CpuArchitecture": "ARM64",
           "OperatingSystemFamily": "LINUX",
         },
         "TaskRoleArn": Object {
@@ -5580,6 +5581,7 @@ Object {
           "FARGATE",
         ],
         "RuntimePlatform": Object {
+          "CpuArchitecture": "ARM64",
           "OperatingSystemFamily": "LINUX",
         },
         "TaskRoleArn": Object {
@@ -6501,6 +6503,7 @@ Object {
           "FARGATE",
         ],
         "RuntimePlatform": Object {
+          "CpuArchitecture": "ARM64",
           "OperatingSystemFamily": "LINUX",
         },
         "TaskRoleArn": Object {
@@ -7156,6 +7159,7 @@ Object {
           "FARGATE",
         ],
         "RuntimePlatform": Object {
+          "CpuArchitecture": "ARM64",
           "OperatingSystemFamily": "LINUX",
         },
         "TaskRoleArn": Object {
@@ -7725,6 +7729,7 @@ Object {
           "FARGATE",
         ],
         "RuntimePlatform": Object {
+          "CpuArchitecture": "ARM64",
           "OperatingSystemFamily": "LINUX",
         },
         "TaskRoleArn": Object {
@@ -8223,6 +8228,7 @@ Object {
           "FARGATE",
         ],
         "RuntimePlatform": Object {
+          "CpuArchitecture": "ARM64",
           "OperatingSystemFamily": "LINUX",
         },
         "TaskRoleArn": Object {
@@ -9125,6 +9131,7 @@ Object {
           "FARGATE",
         ],
         "RuntimePlatform": Object {
+          "CpuArchitecture": "X86_64",
           "OperatingSystemFamily": "LINUX",
         },
         "TaskRoleArn": Object {
