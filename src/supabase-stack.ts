@@ -109,7 +109,7 @@ export class SupabaseStack extends FargateStack {
 
     const namespaceName = new cdk.CfnParameter(this, 'NamespaceName', {
       type: 'String',
-      default: 'supabase.local',
+      default: 'supabase.internal',
       description: 'Namespace for ECS Service Connect',
     });
 
@@ -119,10 +119,12 @@ export class SupabaseStack extends FargateStack {
     const cluster = new ecs.Cluster(this, 'Cluster', {
       enableFargateCapacityProviders: true,
       containerInsights: false,
+      defaultCloudMapNamespace: {
+        name: namespaceName.valueAsString,
+        useForServiceConnect: true,
+      },
       vpc,
     });
-
-    const namespace = cluster.addDefaultCloudMapNamespace({ name: namespaceName.valueAsString });
 
     const smtp = new Smtp(this, 'Smtp');
 
@@ -401,14 +403,18 @@ export class SupabaseStack extends FargateStack {
       rule: new events.Rule(this, 'NewServiceCreated', {
         description: 'Supabase - New service created (for Service Connect)',
         eventPattern: {
-          source: ['aws.servicediscovery'],
+          source: ['aws.ecs'],
           detailType: ['AWS API Call via CloudTrail'],
           detail: {
             eventName: ['CreateService'],
             responseElements: {
               service: {
-                namespaceId: [namespace.namespaceId],
-                type: ['HTTP'],
+                clusterArn: [cluster.clusterArn],
+                deployments: {
+                  serviceConnectResources: {
+                    discoveryName: [{ exists: true }],
+                  },
+                },
               },
             },
           },

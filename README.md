@@ -53,7 +53,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
   - GraphQL is supported using [PostGraphile](https://www.graphile.org/postgraphile/), because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
 - Service Discovery & Service Mesh
   - [ECS Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) is used.
-    - Each component is discovered as `***.supabase.local` by default.
+    - Each component is discovered as `***.supabase.internal` by default.
 - Database (PostgreSQL)
   - [Aurora Serverless v2](https://aws.amazon.com/rds/aurora/serverless/) is used.
   - DB password is automatically rotated every 30 days.
