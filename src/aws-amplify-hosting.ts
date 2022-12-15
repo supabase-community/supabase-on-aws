@@ -62,11 +62,7 @@ export class AmplifyHosting extends Construct {
             },
             postBuild: {
               commands: [
-                `ln -s ${appRoot}/server.js .next/standalone/server.js`,
-                `cp -r public .next/standalone/${appRoot}/public`,
-                `cp -r .next/static .next/standalone/${appRoot}/.next/static`,
-                `cp .env .env.production .next/standalone/${appRoot}`,
-                `ln -s /tmp .next/standalone/${appRoot}/.next/cache`,
+                'cp .env .env.production .next/standalone/',
               ],
             },
           },
@@ -91,9 +87,6 @@ export class AmplifyHosting extends Construct {
       environmentVariables,
     });
     (this.app.node.defaultChild as cdk.CfnResource).addPropertyOverride('Platform', 'WEB_COMPUTE');
-
-    const outputFileTracingRoot = appRoot.split('/').map(x => x = '..').join('/') + '/';
-    this.app.addEnvironment('NEXT_PRIVATE_OUTPUT_TRACE_ROOT', outputFileTracingRoot);
 
     this.app.addEnvironment('AMPLIFY_MONOREPO_APP_ROOT', appRoot);
     this.app.addEnvironment('AMPLIFY_DIFF_DEPLOY', 'false');

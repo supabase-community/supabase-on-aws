@@ -9213,11 +9213,7 @@ applications:
             - npm prune --omit=dev
         postBuild:
           commands:
-            - ln -s studio/server.js .next/standalone/server.js
-            - cp -r public .next/standalone/studio/public
-            - cp -r .next/static .next/standalone/studio/.next/static
-            - cp .env .env.production .next/standalone/studio
-            - ln -s /tmp .next/standalone/studio/.next/cache
+            - cp .env .env.production .next/standalone/
       artifacts:
         baseDirectory: .next
         files:
@@ -9319,10 +9315,6 @@ applications:
                 "Value",
               ],
             },
-          },
-          Object {
-            "Name": "NEXT_PRIVATE_OUTPUT_TRACE_ROOT",
-            "Value": "../",
           },
           Object {
             "Name": "AMPLIFY_MONOREPO_APP_ROOT",
