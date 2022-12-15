@@ -98,7 +98,7 @@ export class SupabaseStack extends FargateStack {
     });
     const storageImageUri = new cdk.CfnParameter(this, 'StorageImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/storage-api:v0.25.1',
+      default: 'public.ecr.aws/supabase/storage-api:v0.26.1',
       description: 'https://gallery.ecr.aws/supabase/storage-api',
     });
     const postgresMetaImageUri = new cdk.CfnParameter(this, 'PostgresMetaImageUri', {
@@ -335,7 +335,7 @@ export class SupabaseStack extends FargateStack {
           TENANT_ID: 'stub',
           IS_MULTITENANT: 'false',
           STORAGE_BACKEND: 's3',
-          REGION: bucket.env.region,
+          REGION: cdk.Aws.REGION,
           GLOBAL_S3_BUCKET: bucket.bucketName,
         },
         secrets: {
