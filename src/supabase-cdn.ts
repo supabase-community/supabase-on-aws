@@ -1,7 +1,14 @@
+import * as apigw from '@aws-cdk/aws-apigatewayv2-alpha';
+import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import * as cdk from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import { LoadBalancerV2Origin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 import { WebAcl } from './aws-waf-for-cloudfront';
 
@@ -49,8 +56,8 @@ export class SupabaseCdn extends Construct {
       comment: 'Policy for Supabase API',
       minTtl: cdk.Duration.seconds(0),
       maxTtl: cdk.Duration.seconds(600),
-      defaultTtl: cdk.Duration.seconds(2),
-      headerBehavior: cf.CacheHeaderBehavior.allowList('Authorization', 'Host'),
+      defaultTtl: cdk.Duration.seconds(1),
+      headerBehavior: cf.CacheHeaderBehavior.allowList('apikey', 'authorization', 'host'),
       queryStringBehavior: cf.CacheQueryStringBehavior.all(),
       enableAcceptEncodingGzip: true,
       enableAcceptEncodingBrotli: true,
@@ -74,9 +81,12 @@ export class SupabaseCdn extends Construct {
       responseHeadersPolicy,
     };
 
-    const staticContentBehavior: cf.BehaviorOptions = {
-      ...this.defaultBehaviorOptions,
+    const publicContentBehavior: cf.BehaviorOptions = {
+      viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD,
       cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
+      originRequestPolicy: cf.OriginRequestPolicy.ALL_VIEWER,
+      responseHeadersPolicy,
       origin,
     };
 
@@ -90,14 +100,7 @@ export class SupabaseCdn extends Construct {
         origin,
       },
       additionalBehaviors: {
-        '*.css': staticContentBehavior,
-        '*.png': staticContentBehavior,
-        '*.jpg': staticContentBehavior,
-        '*.jpeg': staticContentBehavior,
-        '*.svg': staticContentBehavior,
-        '*.woff': staticContentBehavior,
-        '*.woff2': staticContentBehavior,
-        '*.js': staticContentBehavior,
+        'storage/v1/object/public/*': publicContentBehavior,
       },
       errorResponses: [
         { httpStatus: 500, ttl: cdk.Duration.seconds(10) },
@@ -107,6 +110,7 @@ export class SupabaseCdn extends Construct {
         { httpStatus: 504, ttl: cdk.Duration.seconds(10) },
       ],
     });
+
   }
 
   //addBehavior(props: BehaviorProps) {
@@ -115,4 +119,69 @@ export class SupabaseCdn extends Construct {
   //    : new LoadBalancerV2Origin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY });
   //  this.distribution.addBehavior(props.pathPattern, origin, this.defaultBehaviorOptions);
   //}
+
+  addCacheManager() {
+    return new CacheManager(this, 'CacheManager', { distribution: this.distribution });
+  }
 };
+
+interface CacheManagerProps {
+  distribution: cf.IDistribution;
+}
+
+class CacheManager extends Construct {
+  url: string;
+
+  constructor(scope: Construct, id: string, props: CacheManagerProps) {
+    super(scope, id);
+
+    const distribution = props.distribution;
+
+    const queue = new sqs.Queue(this, 'Queue');
+
+    const apiFunction = new NodejsFunction(this, 'ApiFunction', {
+      description: `${this.node.path}/ApiFunction`,
+      entry: './src/functions/cdn-cache-manager/api.ts',
+      bundling: {
+        externalModules: ['@aws-sdk/*'],
+      },
+      runtime: lambda.Runtime.NODEJS_18_X,
+      architecture: lambda.Architecture.ARM_64,
+      environment: {
+        QUEUE_URL: queue.queueUrl,
+      },
+      tracing: lambda.Tracing.ACTIVE,
+    });
+    queue.grantSendMessages(apiFunction);
+
+    const queueConsumer = new NodejsFunction(this, 'QueueConsumer', {
+      description: `${this.node.path}/QueueConsumer`,
+      entry: './src/functions/cdn-cache-manager/queue-consumer.ts',
+      bundling: {
+        externalModules: ['@aws-sdk/*'],
+      },
+      runtime: lambda.Runtime.NODEJS_18_X,
+      architecture: lambda.Architecture.ARM_64,
+      environment: {
+        DISTRIBUTION_ID: distribution.distributionId,
+      },
+      initialPolicy: [
+        new iam.PolicyStatement({
+          actions: ['cloudfront:CreateInvalidation'],
+          resources: [`arn:aws:cloudfront::${cdk.Aws.ACCOUNT_ID}:distribution/${distribution.distributionId}`],
+        }),
+      ],
+      events: [
+        new SqsEventSource(queue, { batchSize: 100, maxBatchingWindow: cdk.Duration.seconds(5) }),
+      ],
+      tracing: lambda.Tracing.ACTIVE,
+    });
+
+    const api = new apigw.HttpApi(this, 'Api', {
+      apiName: this.node.path.replace(/\//g, '') + 'Api',
+      defaultIntegration: new HttpLambdaIntegration('Function', apiFunction),
+    });
+
+    this.url = api.url!;
+  }
+}

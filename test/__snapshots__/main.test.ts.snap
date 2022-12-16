@@ -1280,7 +1280,7 @@ Object {
       "Type": "String",
     },
     "StorageImageUri": Object {
-      "Default": "public.ecr.aws/supabase/storage-api:v0.25.1",
+      "Default": "public.ecr.aws/supabase/storage-api:v0.26.1",
       "Description": "https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
     },
@@ -2950,11 +2950,358 @@ Object {
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Delete",
     },
+    "CdnCacheManagerApi61CD317D": Object {
+      "Properties": Object {
+        "Name": "SupabaseCdnCacheManagerApi",
+        "ProtocolType": "HTTP",
+      },
+      "Type": "AWS::ApiGatewayV2::Api",
+    },
+    "CdnCacheManagerApiDefaultRouteBD85B774": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Ref": "CdnCacheManagerApi61CD317D",
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "$default",
+        "Target": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "integrations/",
+              Object {
+                "Ref": "CdnCacheManagerApiDefaultRouteFunction628BE32B",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "CdnCacheManagerApiDefaultRouteFunction628BE32B": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Ref": "CdnCacheManagerApi61CD317D",
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerApiFunction8F3CC846",
+            "Arn",
+          ],
+        },
+        "PayloadFormatVersion": "2.0",
+      },
+      "Type": "AWS::ApiGatewayV2::Integration",
+    },
+    "CdnCacheManagerApiDefaultRouteFunctionPermissionF8438DCF": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerApiFunction8F3CC846",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              Object {
+                "Ref": "CdnCacheManagerApi61CD317D",
+              },
+              "/*/*",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "CdnCacheManagerApiDefaultStage559673B5": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Ref": "CdnCacheManagerApi61CD317D",
+        },
+        "AutoDeploy": true,
+        "StageName": "$default",
+      },
+      "Type": "AWS::ApiGatewayV2::Stage",
+    },
+    "CdnCacheManagerApiFunction8F3CC846": Object {
+      "DependsOn": Array [
+        "CdnCacheManagerApiFunctionServiceRoleDefaultPolicy74947A18",
+        "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
+      ],
+      "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "3cce62c5ed4670e1b2c71a33a484e5cee9f3549056a99ba76143214948ce5fd4.zip",
+        },
+        "Description": "Supabase/Cdn/CacheManager/ApiFunction",
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "QUEUE_URL": Object {
+              "Ref": "CdnCacheManagerQueue786D7FA2",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "TracingConfig": Object {
+          "Mode": "Active",
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CdnCacheManagerApiFunctionServiceRoleDefaultPolicy74947A18": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": Array [
+                "sqs:SendMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "CdnCacheManagerQueue786D7FA2",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CdnCacheManagerApiFunctionServiceRoleDefaultPolicy74947A18",
+        "Roles": Array [
+          Object {
+            "Ref": "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CdnCacheManagerQueue786D7FA2": Object {
+      "DeletionPolicy": "Delete",
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "CdnCacheManagerQueueConsumerA50B36C1": Object {
+      "DependsOn": Array [
+        "CdnCacheManagerQueueConsumerServiceRoleDefaultPolicy2DE8002E",
+        "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
+      ],
+      "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "fe895c2e7288e4c8c7546da489275aeac4d3599cd9eff1446e1e7a99a289e927.zip",
+        },
+        "Description": "Supabase/Cdn/CacheManager/QueueConsumer",
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "DISTRIBUTION_ID": Object {
+              "Ref": "CdnDistribution149FA6C8",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "TracingConfig": Object {
+          "Mode": "Active",
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CdnCacheManagerQueueConsumerServiceRole273BAAFA": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CdnCacheManagerQueueConsumerServiceRoleDefaultPolicy2DE8002E": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "cloudfront:CreateInvalidation",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:cloudfront::",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":distribution/",
+                    Object {
+                      "Ref": "CdnDistribution149FA6C8",
+                    },
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": Array [
+                "sqs:ReceiveMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:GetQueueUrl",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "CdnCacheManagerQueue786D7FA2",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CdnCacheManagerQueueConsumerServiceRoleDefaultPolicy2DE8002E",
+        "Roles": Array [
+          Object {
+            "Ref": "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CdnCacheManagerQueueConsumerSqsEventSourceSupabaseCdnCacheManagerQueue31D5861E48E96905": Object {
+      "Properties": Object {
+        "BatchSize": 100,
+        "EventSourceArn": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerQueue786D7FA2",
+            "Arn",
+          ],
+        },
+        "FunctionName": Object {
+          "Ref": "CdnCacheManagerQueueConsumerA50B36C1",
+        },
+        "MaximumBatchingWindowInSeconds": 5,
+      },
+      "Type": "AWS::Lambda::EventSourceMapping",
+    },
     "CdnCachePolicy957D7474": Object {
       "Properties": Object {
         "CachePolicyConfig": Object {
           "Comment": "Policy for Supabase API",
-          "DefaultTTL": 2,
+          "DefaultTTL": 1,
           "MaxTTL": 600,
           "MinTTL": 0,
           "Name": Object {
@@ -2980,8 +3327,9 @@ Object {
             "HeadersConfig": Object {
               "HeaderBehavior": "whitelist",
               "Headers": Array [
-                "Authorization",
-                "Host",
+                "apikey",
+                "authorization",
+                "host",
               ],
             },
             "QueryStringsConfig": Object {
@@ -3000,156 +3348,11 @@ Object {
               "AllowedMethods": Array [
                 "GET",
                 "HEAD",
-                "OPTIONS",
-                "PUT",
-                "PATCH",
-                "POST",
-                "DELETE",
               ],
               "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
               "Compress": true,
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
-              "PathPattern": "*.css",
-              "ResponseHeadersPolicyId": Object {
-                "Ref": "CdnResponseHeadersPolicy36E4B823",
-              },
-              "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
-              "ViewerProtocolPolicy": "redirect-to-https",
-            },
-            Object {
-              "AllowedMethods": Array [
-                "GET",
-                "HEAD",
-                "OPTIONS",
-                "PUT",
-                "PATCH",
-                "POST",
-                "DELETE",
-              ],
-              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
-              "Compress": true,
-              "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
-              "PathPattern": "*.png",
-              "ResponseHeadersPolicyId": Object {
-                "Ref": "CdnResponseHeadersPolicy36E4B823",
-              },
-              "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
-              "ViewerProtocolPolicy": "redirect-to-https",
-            },
-            Object {
-              "AllowedMethods": Array [
-                "GET",
-                "HEAD",
-                "OPTIONS",
-                "PUT",
-                "PATCH",
-                "POST",
-                "DELETE",
-              ],
-              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
-              "Compress": true,
-              "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
-              "PathPattern": "*.jpg",
-              "ResponseHeadersPolicyId": Object {
-                "Ref": "CdnResponseHeadersPolicy36E4B823",
-              },
-              "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
-              "ViewerProtocolPolicy": "redirect-to-https",
-            },
-            Object {
-              "AllowedMethods": Array [
-                "GET",
-                "HEAD",
-                "OPTIONS",
-                "PUT",
-                "PATCH",
-                "POST",
-                "DELETE",
-              ],
-              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
-              "Compress": true,
-              "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
-              "PathPattern": "*.jpeg",
-              "ResponseHeadersPolicyId": Object {
-                "Ref": "CdnResponseHeadersPolicy36E4B823",
-              },
-              "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
-              "ViewerProtocolPolicy": "redirect-to-https",
-            },
-            Object {
-              "AllowedMethods": Array [
-                "GET",
-                "HEAD",
-                "OPTIONS",
-                "PUT",
-                "PATCH",
-                "POST",
-                "DELETE",
-              ],
-              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
-              "Compress": true,
-              "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
-              "PathPattern": "*.svg",
-              "ResponseHeadersPolicyId": Object {
-                "Ref": "CdnResponseHeadersPolicy36E4B823",
-              },
-              "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
-              "ViewerProtocolPolicy": "redirect-to-https",
-            },
-            Object {
-              "AllowedMethods": Array [
-                "GET",
-                "HEAD",
-                "OPTIONS",
-                "PUT",
-                "PATCH",
-                "POST",
-                "DELETE",
-              ],
-              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
-              "Compress": true,
-              "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
-              "PathPattern": "*.woff",
-              "ResponseHeadersPolicyId": Object {
-                "Ref": "CdnResponseHeadersPolicy36E4B823",
-              },
-              "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
-              "ViewerProtocolPolicy": "redirect-to-https",
-            },
-            Object {
-              "AllowedMethods": Array [
-                "GET",
-                "HEAD",
-                "OPTIONS",
-                "PUT",
-                "PATCH",
-                "POST",
-                "DELETE",
-              ],
-              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
-              "Compress": true,
-              "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
-              "PathPattern": "*.woff2",
-              "ResponseHeadersPolicyId": Object {
-                "Ref": "CdnResponseHeadersPolicy36E4B823",
-              },
-              "TargetOriginId": "SupabaseCdnDistributionOrigin1C1F18041",
-              "ViewerProtocolPolicy": "redirect-to-https",
-            },
-            Object {
-              "AllowedMethods": Array [
-                "GET",
-                "HEAD",
-                "OPTIONS",
-                "PUT",
-                "PATCH",
-                "POST",
-                "DELETE",
-              ],
-              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
-              "Compress": true,
-              "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
-              "PathPattern": "*.js",
+              "PathPattern": "storage/v1/object/public/*",
               "ResponseHeadersPolicyId": Object {
                 "Ref": "CdnResponseHeadersPolicy36E4B823",
               },
@@ -4303,7 +4506,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "1a1cc9e51df679729eca0e76b0fd76c050e0a3101cc363db2c4d809053a2b98e.zip",
+          "S3Key": "45b1f0daee9c2bf059b2c5bb6613b1b4db8c42fc790895756fa822a2b0de522d.zip",
         },
         "Description": "Supabase - Database init function",
         "Environment": Object {
@@ -4721,7 +4924,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "a02e0f19d129a67d4af43a0b61aacb3e42e5ed8ccfb7be28431e557d44fb7e29.zip",
+          "S3Key": "f5d98e0eb2c0f44d898910e4aeb89b5d55514aac10d644ce996e505112ada463.zip",
         },
         "Description": "Supabase - Sync DB secret to parameter store",
         "Environment": Object {
@@ -5690,7 +5893,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "8b9f9856277034e502ae7c42e713c617b43660546f718ea24ad4893df46eec17.zip",
+          "S3Key": "32170b7bd19a2da5f973cae347287a1ad2e9d557e6ffd44d30ba180c31931123.zip",
         },
         "Description": Object {
           "Fn::Join": Array [
@@ -8393,7 +8596,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/1fb44e4bee62acbba73ae9969e7cec75290c64337058193a12e1e631035bf2cd.json",
+              "/84e28f799fac6586e9ed52d4c9e952deca5c9dab4e6aeb42c2dc5426ceb8579d.json",
             ],
           ],
         },
@@ -8639,6 +8842,33 @@ Object {
                 "Value": Object {
                   "Ref": "Bucket83908E77",
                 },
+              },
+              Object {
+                "Name": "WEBHOOK_URL",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "https://",
+                      Object {
+                        "Ref": "CdnCacheManagerApi61CD317D",
+                      },
+                      ".execute-api.",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ".",
+                      Object {
+                        "Ref": "AWS::URLSuffix",
+                      },
+                      "/",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "ENABLE_QUEUE_EVENTS",
+                "Value": "true",
               },
             ],
             "Essential": true,

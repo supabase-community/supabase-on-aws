@@ -95,6 +95,18 @@
       "type": "runtime"
     },
     {
+      "name": "@aws-lambda-powertools/logger",
+      "type": "runtime"
+    },
+    {
+      "name": "@aws-lambda-powertools/tracer",
+      "type": "runtime"
+    },
+    {
+      "name": "@aws-sdk/client-cloudfront",
+      "type": "runtime"
+    },
+    {
       "name": "@aws-sdk/client-ecs",
       "type": "runtime"
     },
@@ -104,6 +116,10 @@
     },
     {
       "name": "@aws-sdk/client-ses",
+      "type": "runtime"
+    },
+    {
+      "name": "@aws-sdk/client-sqs",
       "type": "runtime"
     },
     {

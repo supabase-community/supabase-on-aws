@@ -323,6 +323,8 @@ export class SupabaseStack extends FargateStack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
+    const cacheManager = cdn.addCacheManager();
+
     const storage = new AutoScalingFargateService(this, 'Storage', {
       cluster,
       taskImageOptions: {
@@ -337,6 +339,9 @@ export class SupabaseStack extends FargateStack {
           STORAGE_BACKEND: 's3',
           REGION: cdk.Aws.REGION,
           GLOBAL_S3_BUCKET: bucket.bucketName,
+          // Webhook for Smart CDN
+          WEBHOOK_URL: cacheManager.url,
+          ENABLE_QUEUE_EVENTS: 'true',
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
