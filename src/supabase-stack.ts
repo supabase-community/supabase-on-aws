@@ -101,6 +101,11 @@ export class SupabaseStack extends FargateStack {
       default: 'public.ecr.aws/supabase/storage-api:v0.26.1',
       description: 'https://gallery.ecr.aws/supabase/storage-api',
     });
+    const imgproxyImageUri = new cdk.CfnParameter(this, 'ImgproxyImageUri', {
+      type: 'String',
+      default: 'public.ecr.aws/supabase/imgproxy:v1.0.4',
+      description: 'https://gallery.ecr.aws/supabase/imgproxy',
+    });
     const postgresMetaImageUri = new cdk.CfnParameter(this, 'PostgresMetaImageUri', {
       type: 'String',
       default: 'public.ecr.aws/supabase/postgres-meta:v0.52.1',
