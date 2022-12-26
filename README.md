@@ -72,6 +72,79 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
 | 2xlarge | 8192 | 16384 |
 | 4xlarge | 16384 | 32768 |
 
+#### IAM Policy
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "CloudFormation",
+            "Effect": "Allow",
+            "Action": "cloudformation:*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "Supabase",
+            "Effect": "Allow",
+            "Action": [
+                "application-autoscaling:*",
+                "ec2:*",
+                "ecs:*",
+                "elasticloadbalancing:*",
+                "events:*",
+                "iam:*",
+                "lambda:*",
+                "logs:*",
+                "s3:*",
+                "secretsmanager:*",
+                "servicediscovery:*",
+                "ses:*",
+                "ssm:*",
+                "states:*",
+                "rds:*",
+                "route53:*",
+
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CDN",
+            "Effect": "Allow",
+            "Action": [
+                "cloudfront:*",
+                "wafv2:Get*",
+                "wafv2:List*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CacheManager",
+            "Effect": "Allow",
+            "Action": [
+                "apigateway:*",
+                "lambda:*",
+                "logs:*",
+                "sqs:*",
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "SupabaseStudio",
+            "Effect": "Allow",
+            "Action": [
+                "amplify:*",
+                "codecommit:*",
+                "lambda:*",
+                "logs:*",
+                "sns:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
 ## Deploy via CDK
 
 This cdk project has many resources for CloudFormation. **It is highly recomended to remove these resources for CloudFormation to use it as CDK**.
