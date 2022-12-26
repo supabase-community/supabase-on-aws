@@ -52,7 +52,7 @@ export class BaseFargateService extends Construct {
     const containerPort = taskImageOptions.containerPort;
     const cpuArchitecture = (props.cpuArchitecture == 'X86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
     const enableServiceConnect = (typeof props.enableServiceConnect == 'undefined') ? true : props.enableServiceConnect;
-    const enableCloudMap = (typeof props.enableCloudMap == 'undefined') ? false : props.enableCloudMap;
+    const enableCloudMap = (typeof props.enableCloudMap == 'undefined') ? true : props.enableCloudMap;
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
       runtimePlatform: {
@@ -91,11 +91,9 @@ export class BaseFargateService extends Construct {
 
     if (enableServiceConnect) {
       this.service.enableServiceConnect({
-        //namespace: cluster.defaultCloudMapNamespace?.namespaceArn,
         services: [{
           portMappingName: 'http',
           discoveryName: serviceName,
-          dnsName: serviceName,
         }],
         logDriver,
       });
@@ -117,7 +115,7 @@ export class BaseFargateService extends Construct {
       securityGroups: this.service.connections.securityGroups,
     });
 
-    this.endpoint = `http://${serviceName}:${containerPort}`;
+    this.endpoint = `http://${serviceName}.${cluster.defaultCloudMapNamespace?.namespaceName}:${containerPort}`;
   }
 
   addTargetGroup(props?: TargetGroupProps) {

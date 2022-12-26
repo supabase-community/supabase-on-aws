@@ -424,29 +424,6 @@ export class SupabaseStack extends FargateStack {
     meta.connectDatabase(db);
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
-    // for ECS Service Connect
-    forceDeployJob.addTrigger({
-      rule: new events.Rule(this, 'NewServiceCreated', {
-        description: 'Supabase - New service created (for Service Connect)',
-        eventPattern: {
-          source: ['aws.ecs'],
-          detailType: ['AWS API Call via CloudTrail'],
-          detail: {
-            eventName: ['CreateService'],
-            responseElements: {
-              service: {
-                clusterArn: [cluster.clusterArn],
-                deployments: {
-                  serviceConnectResources: {
-                    discoveryName: [{ exists: true }],
-                  },
-                },
-              },
-            },
-          },
-        },
-      }),
-    });
     // for DB secret rotation
     forceDeployJob.addTrigger({
       rule: db.secretRotationSucceeded,
