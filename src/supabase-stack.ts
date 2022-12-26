@@ -325,6 +325,19 @@ export class SupabaseStack extends FargateStack {
 
     const cacheManager = cdn.addCacheManager();
 
+    const imgproxy = new AutoScalingFargateService(this, 'Imgproxy', {
+      cluster,
+      taskImageOptions: {
+        image: ecs.ContainerImage.fromRegistry(imgproxyImageUri.valueAsString),
+        containerPort: 5001,
+        environment: {
+          IMGPROXY_BIND: ':5001',
+          IMGPROXY_LOCAL_FILESYSTEM_ROOT: '/',
+          IMGPROXY_USE_ETAG: 'true',
+        },
+      },
+    });
+
     const storage = new AutoScalingFargateService(this, 'Storage', {
       cluster,
       taskImageOptions: {
@@ -342,6 +355,8 @@ export class SupabaseStack extends FargateStack {
           // Webhook for Smart CDN
           WEBHOOK_URL: cacheManager.url,
           ENABLE_QUEUE_EVENTS: 'true',
+          // Image resizing
+          IMGPROXY_URL: imgproxy.endpoint,
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
@@ -394,6 +409,7 @@ export class SupabaseStack extends FargateStack {
 
     auth.connections.allowToDefaultPort(rest);
     storage.connections.allowToDefaultPort(rest);
+    storage.connections.allowToDefaultPort(imgproxy);
 
     auth.connectDatabase(db);
     rest.connectDatabase(db);
@@ -576,6 +592,9 @@ export class SupabaseStack extends FargateStack {
             storage.cfnParameters.taskSize.logicalId,
             storage.cfnParameters.minTaskCount.logicalId,
             storage.cfnParameters.maxTaskCount.logicalId,
+            imgproxy.cfnParameters.taskSize.logicalId,
+            imgproxy.cfnParameters.minTaskCount.logicalId,
+            imgproxy.cfnParameters.maxTaskCount.logicalId,
           ],
         },
         {
@@ -602,6 +621,7 @@ export class SupabaseStack extends FargateStack {
         [restImageUri.logicalId]: { default: 'Rest API Image URI - PostgREST' },
         [realtimeImageUri.logicalId]: { default: 'Realtime API Image URI' },
         [storageImageUri.logicalId]: { default: 'Storage API Image URI' },
+        [imgproxyImageUri.logicalId]: { default: 'Imgproxy Image URI' },
         [postgresMetaImageUri.logicalId]: { default: 'Postgres Meta API Image URI' },
 
         [db.cfnParameters.instanceClass.logicalId]: { default: 'DB Instance Class' },
@@ -635,6 +655,10 @@ export class SupabaseStack extends FargateStack {
         [storage.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
         [storage.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
         [storage.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
+
+        [imgproxy.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
+        [imgproxy.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
+        [imgproxy.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
 
         [meta.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
         [meta.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
