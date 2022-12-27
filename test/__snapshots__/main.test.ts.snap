@@ -296,6 +296,14 @@ Object {
         "0",
       ],
     },
+    "ImgproxyServiceDisabledE6934A15": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Ref": "ImgproxyMinTaskCount7B881431",
+        },
+        "0",
+      ],
+    },
     "KongServiceDisabled5CB631B8": Object {
       "Fn::Equals": Array [
         Object {
@@ -508,6 +516,7 @@ Object {
             "RestImageUri",
             "RealtimeImageUri",
             "StorageImageUri",
+            "ImgproxyImageUri",
             "PostgresMetaImageUri",
             "StudioBranch",
           ],
@@ -590,6 +599,9 @@ Object {
             "StorageTaskSizeB82D9CFB",
             "StorageMinTaskCount07E65703",
             "StorageMaxTaskCount372C6914",
+            "ImgproxyTaskSize5D0DD9F6",
+            "ImgproxyMinTaskCount7B881431",
+            "ImgproxyMaxTaskCount4DF8AF60",
           ],
         },
         Object {
@@ -698,6 +710,18 @@ Object {
           "default": "Minimum Fargate Task Count",
         },
         "GraphQLTaskSize228AD0D2": Object {
+          "default": "Fargate Task Size",
+        },
+        "ImgproxyImageUri": Object {
+          "default": "Imgproxy Image URI",
+        },
+        "ImgproxyMaxTaskCount4DF8AF60": Object {
+          "default": "Maximum Fargate Task Count",
+        },
+        "ImgproxyMinTaskCount7B881431": Object {
+          "default": "Minimum Fargate Task Count",
+        },
+        "ImgproxyTaskSize5D0DD9F6": Object {
           "default": "Fargate Task Size",
         },
         "JwtExpiryLimit": Object {
@@ -1086,6 +1110,37 @@ Object {
       "Description": "Fargare task size",
       "Type": "String",
     },
+    "ImgproxyImageUri": Object {
+      "Default": "public.ecr.aws/supabase/imgproxy:v1.0.4",
+      "Description": "https://gallery.ecr.aws/supabase/imgproxy",
+      "Type": "String",
+    },
+    "ImgproxyMaxTaskCount4DF8AF60": Object {
+      "Default": 20,
+      "Description": "Maximum fargate task count",
+      "MinValue": 0,
+      "Type": "Number",
+    },
+    "ImgproxyMinTaskCount7B881431": Object {
+      "Default": 1,
+      "Description": "Minimum fargate task count",
+      "MinValue": 0,
+      "Type": "Number",
+    },
+    "ImgproxyTaskSize5D0DD9F6": Object {
+      "AllowedValues": Array [
+        "micro",
+        "small",
+        "medium",
+        "large",
+        "xlarge",
+        "2xlarge",
+        "4xlarge",
+      ],
+      "Default": "micro",
+      "Description": "Fargare task size",
+      "Type": "String",
+    },
     "JwtExpiryLimit": Object {
       "Default": 3600,
       "Description": "How long tokens are valid for. Defaults to 3600 (1 hour), maximum 604,800 seconds (one week).",
@@ -1312,7 +1367,7 @@ Object {
     },
     "StudioBranch": Object {
       "Default": "0.22.08",
-      "Description": "https://github.com/supabase/supabase/tags",
+      "Description": "Branch or tag - https://github.com/supabase/supabase/tags",
       "Type": "String",
     },
   },
@@ -1370,6 +1425,40 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
+    },
+    "AuthFargateCloudmapService77173080": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "auth",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
     },
     "AuthFargateSecurityGroup512F6031": Object {
       "Properties": Object {
@@ -1481,7 +1570,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "auth",
                   "Port": 9999,
                 },
               ],
@@ -1490,6 +1578,18 @@ Object {
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 9999,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "AuthFargateCloudmapService77173080",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "AuthTaskDef5FB652ED",
         },
@@ -5371,6 +5471,40 @@ Object {
       },
       "Type": "AWS::IAM::Policy",
     },
+    "GraphQLFargateCloudmapService0FA0462B": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "graphql",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "GraphQLFargateSecurityGroupC37FE3F0": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/GraphQL/Fargate/SecurityGroup",
@@ -5481,7 +5615,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "graphql",
                   "Port": 5000,
                 },
               ],
@@ -5490,6 +5623,18 @@ Object {
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 5000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "GraphQLFargateCloudmapService0FA0462B",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "GraphQLTaskDefA9ADD420",
         },
@@ -5792,6 +5937,402 @@ Object {
       "Type": "AWS::IAM::Role",
     },
     "GraphQLTaskDefTaskRoleD651EBE2": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "ecs-tasks.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ImgproxyFargateCloudmapService08613C23": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "imgproxy",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "ImgproxyFargateSecurityGroup351243B1": Object {
+      "Properties": Object {
+        "GroupDescription": "Supabase/Imgproxy/Fargate/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "ImgproxyFargateSecurityGroupfromSupabaseStorageFargateSecurityGroup7BC158B850016E5711EC": Object {
+      "Properties": Object {
+        "Description": "from SupabaseStorageFargateSecurityGroup7BC158B8:5001",
+        "FromPort": 5001,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "ImgproxyFargateSecurityGroup351243B1",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "StorageFargateSecurityGroupC6388B3F",
+            "GroupId",
+          ],
+        },
+        "ToPort": 5001,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "ImgproxyFargateService24D0832F": Object {
+      "Properties": Object {
+        "Cluster": Object {
+          "Ref": "ClusterEB0386A7",
+        },
+        "DeploymentConfiguration": Object {
+          "DeploymentCircuitBreaker": Object {
+            "Enable": true,
+            "Rollback": true,
+          },
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 50,
+        },
+        "DeploymentController": Object {
+          "Type": "ECS",
+        },
+        "DesiredCount": Object {
+          "Fn::If": Array [
+            "ImgproxyServiceDisabledE6934A15",
+            0,
+            Object {
+              "Ref": "AWS::NoValue",
+            },
+          ],
+        },
+        "EnableECSManagedTags": true,
+        "LaunchType": "FARGATE",
+        "NetworkConfiguration": Object {
+          "AwsvpcConfiguration": Object {
+            "AssignPublicIp": "DISABLED",
+            "SecurityGroups": Array [
+              Object {
+                "Fn::GetAtt": Array [
+                  "ImgproxyFargateSecurityGroup351243B1",
+                  "GroupId",
+                ],
+              },
+            ],
+            "Subnets": Array [
+              Object {
+                "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
+              },
+              Object {
+                "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A",
+              },
+            ],
+          },
+        },
+        "PropagateTags": "SERVICE",
+        "ServiceConnectConfiguration": Object {
+          "Enabled": true,
+          "LogConfiguration": Object {
+            "LogDriver": "awslogs",
+            "Options": Object {
+              "awslogs-group": Object {
+                "Ref": "ImgproxyLogs00A67BBB",
+              },
+              "awslogs-region": Object {
+                "Ref": "AWS::Region",
+              },
+              "awslogs-stream-prefix": "ecs",
+            },
+          },
+          "Namespace": Object {
+            "Ref": "NamespaceName",
+          },
+          "Services": Array [
+            Object {
+              "ClientAliases": Array [
+                Object {
+                  "Port": 5001,
+                },
+              ],
+              "DiscoveryName": "imgproxy",
+              "PortName": "http",
+            },
+          ],
+        },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 5001,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "ImgproxyFargateCloudmapService08613C23",
+                "Arn",
+              ],
+            },
+          },
+        ],
+        "TaskDefinition": Object {
+          "Ref": "ImgproxyTaskDef33BF8CEA",
+        },
+      },
+      "Type": "AWS::ECS::Service",
+    },
+    "ImgproxyFargateTaskCountTarget118ADA80": Object {
+      "Properties": Object {
+        "MaxCapacity": Object {
+          "Ref": "ImgproxyMaxTaskCount4DF8AF60",
+        },
+        "MinCapacity": Object {
+          "Ref": "ImgproxyMinTaskCount7B881431",
+        },
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "ImgproxyFargateService24D0832F",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "ImgproxyFargateTaskCountTargetScaleOnCpuEAA25A97": Object {
+      "Properties": Object {
+        "PolicyName": "SupabaseImgproxyFargateTaskCountTargetScaleOnCpuBAA80E1C",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "ImgproxyFargateTaskCountTarget118ADA80",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 50,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+    },
+    "ImgproxyLogs00A67BBB": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "RetentionInDays": 30,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "ImgproxyTaskDef33BF8CEA": Object {
+      "Properties": Object {
+        "ContainerDefinitions": Array [
+          Object {
+            "Environment": Array [
+              Object {
+                "Name": "IMGPROXY_BIND",
+                "Value": ":5001",
+              },
+              Object {
+                "Name": "IMGPROXY_LOCAL_FILESYSTEM_ROOT",
+                "Value": "/",
+              },
+              Object {
+                "Name": "IMGPROXY_USE_ETAG",
+                "Value": "true",
+              },
+            ],
+            "Essential": true,
+            "Image": Object {
+              "Ref": "ImgproxyImageUri",
+            },
+            "LogConfiguration": Object {
+              "LogDriver": "awslogs",
+              "Options": Object {
+                "awslogs-group": Object {
+                  "Ref": "ImgproxyLogs00A67BBB",
+                },
+                "awslogs-region": Object {
+                  "Ref": "AWS::Region",
+                },
+                "awslogs-stream-prefix": "ecs",
+              },
+            },
+            "Name": "app",
+            "PortMappings": Array [
+              Object {
+                "ContainerPort": 5001,
+                "Name": "http",
+                "Protocol": "tcp",
+              },
+            ],
+            "Ulimits": Array [
+              Object {
+                "HardLimit": 65536,
+                "Name": "nofile",
+                "SoftLimit": 65536,
+              },
+            ],
+          },
+        ],
+        "Cpu": Object {
+          "Fn::FindInMap": Array [
+            "TaskSize",
+            Object {
+              "Ref": "ImgproxyTaskSize5D0DD9F6",
+            },
+            "cpu",
+          ],
+        },
+        "ExecutionRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "ImgproxyTaskDefExecutionRoleE676FD35",
+            "Arn",
+          ],
+        },
+        "Family": "SupabaseImgproxyTaskDef08EEF13B",
+        "Memory": Object {
+          "Fn::FindInMap": Array [
+            "TaskSize",
+            Object {
+              "Ref": "ImgproxyTaskSize5D0DD9F6",
+            },
+            "memory",
+          ],
+        },
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": Array [
+          "FARGATE",
+        ],
+        "RuntimePlatform": Object {
+          "CpuArchitecture": "ARM64",
+          "OperatingSystemFamily": "LINUX",
+        },
+        "TaskRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "ImgproxyTaskDefTaskRoleB88D5B6D",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ECS::TaskDefinition",
+    },
+    "ImgproxyTaskDefExecutionRoleDefaultPolicy28511DDA": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "ImgproxyLogs00A67BBB",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ImgproxyTaskDefExecutionRoleDefaultPolicy28511DDA",
+        "Roles": Array [
+          Object {
+            "Ref": "ImgproxyTaskDefExecutionRoleE676FD35",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "ImgproxyTaskDefExecutionRoleE676FD35": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "ecs-tasks.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ImgproxyTaskDefTaskRoleB88D5B6D": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -6143,6 +6684,40 @@ Object {
       "Type": "Custom::JsonWebToken",
       "UpdateReplacePolicy": "Delete",
     },
+    "KongFargateCloudmapService5994A750": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "kong",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "KongFargateSecurityGroup972A8F5C": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Kong/Fargate/SecurityGroup",
@@ -6284,7 +6859,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "kong",
                   "Port": 8000,
                 },
               ],
@@ -6293,6 +6867,18 @@ Object {
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 8000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "KongFargateCloudmapService5994A750",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "KongTaskDef115E456D",
         },
@@ -6416,27 +7002,93 @@ Object {
               },
               Object {
                 "Name": "SUPABASE_AUTH_URL",
-                "Value": "http://auth:9999/",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "http://auth.",
+                      Object {
+                        "Ref": "NamespaceName",
+                      },
+                      ":9999/",
+                    ],
+                  ],
+                },
               },
               Object {
                 "Name": "SUPABASE_REST_URL",
-                "Value": "http://rest:3000/",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "http://rest.",
+                      Object {
+                        "Ref": "NamespaceName",
+                      },
+                      ":3000/",
+                    ],
+                  ],
+                },
               },
               Object {
                 "Name": "SUPABASE_GRAPHQL_URL",
-                "Value": "http://graphql:5000/graphql",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "http://graphql.",
+                      Object {
+                        "Ref": "NamespaceName",
+                      },
+                      ":5000/graphql",
+                    ],
+                  ],
+                },
               },
               Object {
                 "Name": "SUPABASE_REALTIME_URL",
-                "Value": "http://realtime:4000/socket/",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "http://realtime.",
+                      Object {
+                        "Ref": "NamespaceName",
+                      },
+                      ":4000/socket/",
+                    ],
+                  ],
+                },
               },
               Object {
                 "Name": "SUPABASE_STORAGE_URL",
-                "Value": "http://storage:5000/",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "http://storage.",
+                      Object {
+                        "Ref": "NamespaceName",
+                      },
+                      ":5000/",
+                    ],
+                  ],
+                },
               },
               Object {
                 "Name": "SUPABASE_META_HOST",
-                "Value": "http://meta:8080/",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "http://meta.",
+                      Object {
+                        "Ref": "NamespaceName",
+                      },
+                      ":8080/",
+                    ],
+                  ],
+                },
               },
             ],
             "Essential": true,
@@ -6828,6 +7480,40 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
     },
+    "MetaFargateCloudmapService49FA2349": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "meta",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "MetaFargateSecurityGroup9D26952C": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Meta/Fargate/SecurityGroup",
@@ -6938,7 +7624,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "meta",
                   "Port": 8080,
                 },
               ],
@@ -6947,6 +7632,18 @@ Object {
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 8080,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "MetaFargateCloudmapService49FA2349",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "MetaTaskDef2C490DD3",
         },
@@ -7256,61 +7953,39 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "NewServiceCreatedEEF56E11": Object {
+    "RealtimeFargateCloudmapServiceECA0414A": Object {
       "Properties": Object {
-        "Description": "Supabase - New service created (for Service Connect)",
-        "EventPattern": Object {
-          "detail": Object {
-            "eventName": Array [
-              "CreateService",
-            ],
-            "responseElements": Object {
-              "service": Object {
-                "clusterArn": Array [
-                  Object {
-                    "Fn::GetAtt": Array [
-                      "ClusterEB0386A7",
-                      "Arn",
-                    ],
-                  },
-                ],
-                "deployments": Object {
-                  "serviceConnectResources": Object {
-                    "discoveryName": Array [
-                      Object {
-                        "exists": true,
-                      },
-                    ],
-                  },
-                },
-              },
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
             },
-          },
-          "detail-type": Array [
-            "AWS API Call via CloudTrail",
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
           ],
-          "source": Array [
-            "aws.ecs",
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "realtime",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
           ],
         },
-        "State": "ENABLED",
-        "Targets": Array [
-          Object {
-            "Arn": Object {
-              "Ref": "ForceDeployJobStateMachine528644B1",
-            },
-            "Id": "Target0",
-            "Input": "{}",
-            "RoleArn": Object {
-              "Fn::GetAtt": Array [
-                "ForceDeployJobStateMachineEventsRole3137AB10",
-                "Arn",
-              ],
-            },
-          },
-        ],
       },
-      "Type": "AWS::Events::Rule",
+      "Type": "AWS::ServiceDiscovery::Service",
     },
     "RealtimeFargateSecurityGroupC1A41CAF": Object {
       "Properties": Object {
@@ -7422,7 +8097,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "realtime",
                   "Port": 4000,
                 },
               ],
@@ -7431,6 +8105,18 @@ Object {
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 4000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "RealtimeFargateCloudmapServiceECA0414A",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "RealtimeTaskDef9E0DD838",
         },
@@ -7793,6 +8479,40 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "RestFargateCloudmapServiceEC842507": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "rest",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "RestFargateSecurityGroupEADE3F44": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Rest/Fargate/SecurityGroup",
@@ -7945,7 +8665,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "rest",
                   "Port": 3000,
                 },
               ],
@@ -7954,6 +8673,18 @@ Object {
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 3000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "RestFargateCloudmapServiceEC842507",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "RestTaskDef716BD951",
         },
@@ -8604,6 +9335,40 @@ Object {
       "Type": "AWS::CloudFormation::Stack",
       "UpdateReplacePolicy": "Delete",
     },
+    "StorageFargateCloudmapServiceB19C4F44": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "storage",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
     "StorageFargateSecurityGroupC6388B3F": Object {
       "Properties": Object {
         "GroupDescription": "Supabase/Storage/Fargate/SecurityGroup",
@@ -8714,7 +9479,6 @@ Object {
             Object {
               "ClientAliases": Array [
                 Object {
-                  "DnsName": "storage",
                   "Port": 5000,
                 },
               ],
@@ -8723,6 +9487,18 @@ Object {
             },
           ],
         },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 5000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "StorageFargateCloudmapServiceB19C4F44",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "TaskDefinition": Object {
           "Ref": "StorageTaskDef36011FFA",
         },
@@ -8809,7 +9585,18 @@ Object {
             "Environment": Array [
               Object {
                 "Name": "POSTGREST_URL",
-                "Value": "http://rest:3000",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "http://rest.",
+                      Object {
+                        "Ref": "NamespaceName",
+                      },
+                      ":3000",
+                    ],
+                  ],
+                },
               },
               Object {
                 "Name": "PGOPTIONS",
@@ -8869,6 +9656,21 @@ Object {
               Object {
                 "Name": "ENABLE_QUEUE_EVENTS",
                 "Value": "true",
+              },
+              Object {
+                "Name": "IMGPROXY_URL",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "http://imgproxy.",
+                      Object {
+                        "Ref": "NamespaceName",
+                      },
+                      ":5001",
+                    ],
+                  ],
+                },
               },
             ],
             "Essential": true,
@@ -9443,6 +10245,10 @@ applications:
             - npm prune --omit=dev
         postBuild:
           commands:
+            - shopt -s dotglob
+            - if [ -d .next/standalone/node_modules ]; then mv -n .next/standalone/node_modules/* .next/standalone/studio/node_modules/.; fi
+            - rm -rf .next/standalone/node_modules
+            - mv -f .next/standalone/studio/* .next/standalone/.
             - cp .env .env.production .next/standalone/
       artifacts:
         baseDirectory: .next
@@ -9547,6 +10353,10 @@ applications:
             },
           },
           Object {
+            "Name": "NEXT_PRIVATE_OUTPUT_TRACE_ROOT",
+            "Value": "../",
+          },
+          Object {
             "Name": "AMPLIFY_MONOREPO_APP_ROOT",
             "Value": "studio",
           },
@@ -9649,9 +10459,36 @@ applications:
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "fa874bccc5369eeb5b893ad201a129a5f4df7548191b3f2c9159cd3b340138b4.zip",
+          "S3Key": "ad1e3feacca3f9394acbacc9cc574dc94b1411a0c2b0ff3d65912db8935e9fab.zip",
         },
-        "Description": "Copy Git Repository",
+        "Description": "Clone to CodeCommit from remote repo (You can execute this function manually.)",
+        "Environment": Object {
+          "Variables": Object {
+            "SOURCE_BRANCH": Object {
+              "Ref": "StudioBranch",
+            },
+            "SOURCE_REPO": "https://github.com/supabase/supabase.git",
+            "TARGET_BRANCH": "main",
+            "TARGET_REPO": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "codecommit::",
+                  Object {
+                    "Ref": "AWS::Region",
+                  },
+                  "://",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "StudioRepo63377C05",
+                      "Name",
+                    ],
+                  },
+                ],
+              ],
+            },
+          },
+        },
         "EphemeralStorage": Object {
           "Size": 2048,
         },
@@ -9859,25 +10696,6 @@ applications:
           "Ref": "StudioBranch",
         },
         "SourceRepo": "https://github.com/supabase/supabase.git",
-        "TargetBranch": "main",
-        "TargetRepo": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "codecommit::",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              "://",
-              Object {
-                "Fn::GetAtt": Array [
-                  "StudioRepo63377C05",
-                  "Name",
-                ],
-              },
-            ],
-          ],
-        },
       },
       "Type": "Custom::RepoImportJob",
       "UpdateReplacePolicy": "Delete",

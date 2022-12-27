@@ -32,7 +32,7 @@ export class AmplifyHosting extends Construct {
 
     const repository = new Repository(this, 'Repo', { repositoryName, description: `${this.node.path}/Repo` });
 
-    const repoImportJob = repository.importFromUrl('main', sourceRepo, sourceBranch);
+    const repoImportJob = repository.importFromUrl(sourceRepo, sourceBranch);
 
     const amplifySSRLoggingRole = new iam.Role(this, 'AmplifySSRLoggingRole', {
       description: 'The service role that will be used by AWS Amplify for SSR app logging.',
@@ -62,6 +62,10 @@ export class AmplifyHosting extends Construct {
             },
             postBuild: {
               commands: [
+                'shopt -s dotglob',
+                `if [ -d .next/standalone/node_modules ]; then mv -n .next/standalone/node_modules/* .next/standalone/${appRoot}/node_modules/.; fi`,
+                'rm -rf .next/standalone/node_modules',
+                `mv -f .next/standalone/${appRoot}/* .next/standalone/.`,
                 'cp .env .env.production .next/standalone/',
               ],
             },
@@ -87,6 +91,9 @@ export class AmplifyHosting extends Construct {
       environmentVariables,
     });
     (this.app.node.defaultChild as cdk.CfnResource).addPropertyOverride('Platform', 'WEB_COMPUTE');
+
+    const outputFileTracingRoot = appRoot.split('/').map(x => x = '..').join('/') + '/';
+    this.app.addEnvironment('NEXT_PRIVATE_OUTPUT_TRACE_ROOT', outputFileTracingRoot);
 
     this.app.addEnvironment('AMPLIFY_MONOREPO_APP_ROOT', appRoot);
     this.app.addEnvironment('AMPLIFY_DIFF_DEPLOY', 'false');
@@ -136,13 +143,14 @@ export class AmplifyHosting extends Construct {
 }
 
 export class Repository extends codecommit.Repository {
+  readonly importFunction: lambda.Function;
   readonly importProvider: cr.Provider;
 
   constructor(scope: Construct, id: string, props: codecommit.RepositoryProps) {
     super(scope, id, props);
 
-    const importFunction = new lambda.Function(this, 'ImportFunction', {
-      description: 'Copy Git Repository',
+    this.importFunction = new lambda.Function(this, 'ImportFunction', {
+      description: 'Clone to CodeCommit from remote repo (You can execute this function manually.)',
       runtime: lambda.Runtime.PYTHON_3_9,
       code: lambda.Code.fromAsset('./src/functions/copy-git-repo', {
         bundling: {
@@ -167,21 +175,26 @@ export class Repository extends codecommit.Repository {
       memorySize: 2048,
       ephemeralStorageSize: cdk.Size.gibibytes(2),
       timeout: cdk.Duration.minutes(3),
+      environment: {
+        TARGET_REPO: this.repositoryCloneUrlGrc,
+      },
     });
-    this.grantPullPush(importFunction);
+    this.grantPullPush(this.importFunction);
 
-    this.importProvider = new cr.Provider(this, 'ImportProvider', { onEventHandler: importFunction });
+    this.importProvider = new cr.Provider(this, 'ImportProvider', { onEventHandler: this.importFunction });
   }
 
-  importFromUrl(targetBranch: string, sourceRepoUrlHttp: string, sourceBranch: string) {
+  importFromUrl(sourceRepoUrlHttp: string, sourceBranch: string, targetBranch: string = 'main') {
+    this.importFunction.addEnvironment('SOURCE_REPO', sourceRepoUrlHttp);
+    this.importFunction.addEnvironment('SOURCE_BRANCH', sourceBranch);
+    this.importFunction.addEnvironment('TARGET_BRANCH', targetBranch);
+
     return new cdk.CustomResource(this, targetBranch, {
       resourceType: 'Custom::RepoImportJob',
       serviceToken: this.importProvider.serviceToken,
       properties: {
         SourceRepo: sourceRepoUrlHttp,
         SourceBranch: sourceBranch,
-        TargetRepo: this.repositoryCloneUrlGrc,
-        TargetBranch: targetBranch,
       },
     });
   }

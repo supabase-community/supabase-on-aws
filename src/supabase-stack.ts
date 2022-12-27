@@ -448,7 +448,7 @@ export class SupabaseStack extends FargateStack {
     const studioBranch = new cdk.CfnParameter(this, 'StudioBranch', {
       type: 'String',
       default: '0.22.08',
-      description: 'https://github.com/supabase/supabase/tags',
+      description: 'Branch or tag - https://github.com/supabase/supabase/tags',
     });
 
     new AmplifyHosting(this, 'Studio', {
@@ -458,7 +458,10 @@ export class SupabaseStack extends FargateStack {
       environmentVariables: {
         STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
         POSTGRES_PASSWORD: db.secret.secretValueFromJson('password').toString(),
+        //DEFAULT_ORGANIZATION: 'Default Organization',
+        //DEFAULT_PROJECT: 'Default Project',
         SUPABASE_URL: `${apiExternalUrl}`,
+        //SUPABASE_PUBLIC_URL: `${apiExternalUrl}`,
         SUPABASE_REST_URL: `${apiExternalUrl}/rest/v1/`,
         SUPABASE_ANON_KEY: anonKey.value,
         SUPABASE_SERVICE_KEY: serviceRoleKey.value,
@@ -508,6 +511,7 @@ export class SupabaseStack extends FargateStack {
             restImageUri.logicalId,
             realtimeImageUri.logicalId,
             storageImageUri.logicalId,
+            imgproxyImageUri.logicalId,
             postgresMetaImageUri.logicalId,
             studioBranch.logicalId,
           ],

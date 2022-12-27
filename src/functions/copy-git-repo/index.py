@@ -4,6 +4,11 @@ import subprocess
 
 CLONE_DIR = '/tmp/src-repo'
 
+TARGET_REPO = os.environ['TARGET_REPO']
+TARGET_BRANCH = os.environ['TARGET_BRANCH']
+SOURCE_REPO = os.environ['SOURCE_REPO']
+SOURCE_BRANCH = os.environ['SOURCE_BRANCH']
+
 PATH = os.environ['PATH']
 LD_LIBRARY_PATH = os.environ['LD_LIBRARY_PATH']
 AWS_REGION = os.environ['AWS_REGION']
@@ -43,16 +48,15 @@ def exec(command: List[str], cwd: str = '/tmp') -> str:
     return stdout
 
 def handler(event: dict, context: Any) -> dict:
-  request_type: str = event['RequestType']
-  source_repo: str = event['ResourceProperties']['SourceRepo']
-  source_branch: str = event['ResourceProperties'].get('SourceBranch', 'main')
-  target_repo: str = event['ResourceProperties']['TargetRepo']
-  target_branch: str = event['ResourceProperties'].get('TargetBranch', 'main')
+  props: dict = event.get('ResourceProperties', {})
+  source_repo: str = props.get('SourceRepo', SOURCE_REPO)
+  source_branch: str = props.get('SourceBranch', SOURCE_BRANCH)
+  request_type: str = event.get('RequestType', 'ManualExecution')
   if request_type != 'Delete':
     exec(['rm', '-rf', CLONE_DIR])
     exec(['git', 'clone', '--depth', '1', '-b', source_branch, source_repo, CLONE_DIR])
     exec(['git', 'fetch', '--unshallow'], CLONE_DIR)
     exec(['git', 'checkout', '-b', 'local_tmp'], CLONE_DIR)
-    exec(['git', 'remote', 'add', 'dest', target_repo], CLONE_DIR)
-    exec(['git', 'push', '--force', 'dest', f'local_tmp:{target_branch}'], CLONE_DIR)
+    exec(['git', 'remote', 'add', 'dest', TARGET_REPO], CLONE_DIR)
+    exec(['git', 'push', '--force', 'dest', f'local_tmp:{TARGET_BRANCH}'], CLONE_DIR)
   return {}

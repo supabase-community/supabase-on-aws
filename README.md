@@ -72,7 +72,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
 | 2xlarge | 8192 | 16384 |
 | 4xlarge | 16384 | 32768 |
 
-#### IAM Policy
+#### IAM Policy to create CloudFormation Stack
 
 ```json
 {
