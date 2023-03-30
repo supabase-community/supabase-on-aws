@@ -154,7 +154,7 @@ export class Repository extends codecommit.Repository {
       runtime: lambda.Runtime.PYTHON_3_9,
       code: lambda.Code.fromAsset('./src/functions/copy-git-repo', {
         bundling: {
-          image: lambda.Runtime.PYTHON_3_9.bundlingImage,
+          image: cdk.DockerImage.fromRegistry('public.ecr.aws/sam/build-python3.9:latest-x86_64'),
           command: [
             '/bin/bash', '-c', [
               'mkdir -p /var/task/local/{bin,lib}',
