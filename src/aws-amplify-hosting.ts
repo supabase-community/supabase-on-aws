@@ -158,7 +158,6 @@ export class Repository extends codecommit.Repository {
           command: [
             '/bin/bash', '-c', [
               'mkdir -p /var/task/local/{bin,lib}',
-              'yum install -y git',
               'cp /usr/bin/git /usr/libexec/git-core/git-remote-https /usr/libexec/git-core/git-remote-http /var/task/local/bin',
               'ldd /usr/bin/git | awk \'NF == 4 { system("cp " $3 " /var/task/local/lib/") }\'',
               'ldd /usr/libexec/git-core/git-remote-https | awk \'NF == 4 { system("cp " $3 " /var/task/local/lib/") }\'',
