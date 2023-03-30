@@ -16,6 +16,7 @@ import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
 
 export class FargateStack extends cdk.Stack {
+  /** ECS Fargate task size mappings */
   readonly taskSizeMapping: cdk.CfnMapping;
 
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
@@ -36,6 +37,8 @@ export class FargateStack extends cdk.Stack {
 }
 
 export class SupabaseStack extends FargateStack {
+
+  /** Supabase Construct */
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
     super(scope, id, props);
 

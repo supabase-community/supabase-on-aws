@@ -28,6 +28,7 @@ export class SupabaseCdn extends Construct {
     webAclArn: cdk.CfnParameter;
   };
 
+  /** Construct for CloudFront and WAF */
   constructor(scope: Construct, id: string, props: SupabaseCdnProps) {
     super(scope, id);
 

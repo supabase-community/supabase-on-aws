@@ -33,6 +33,7 @@ export class SupabaseDatabase extends Construct {
     instanceCount: cdk.CfnParameter;
   };
 
+  /** PosthreSQL cluster with aurora-postgresql engine */
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
     super(scope, id);
 
@@ -107,6 +108,7 @@ export class SupabaseDatabase extends Construct {
       maxCapacity: this.cfnParameters.maxCapacity.valueAsNumber,
     };
 
+    // Replace instance class in the DB cluster
     const updateDBInstance = (index: number, parentCondition?: cdk.CfnCondition) => {
       const expression = (typeof parentCondition == 'undefined')
         ? cdk.Fn.conditionEquals(this.cfnParameters.instanceCount, index)
@@ -123,7 +125,7 @@ export class SupabaseDatabase extends Construct {
 
     this.secret = this.cluster.secret!;
 
-    // Sync to SSM Parameter Store for database_url ---------------------------------------
+    // Sync to SSM Parameter Store for database_url
     const username = this.secret.secretValueFromJson('username').toString();
     const password = this.secret.secretValueFromJson('password').toString();
     const dbname = this.secret.secretValueFromJson('dbname').toString();
@@ -192,8 +194,8 @@ export class SupabaseDatabase extends Construct {
       },
       targets: [new targets.LambdaFunction(syncSecretFunction)],
     });
-    // Sync to SSM Parameter Store for database_url ---------------------------------------
 
+    // Password rotation
     const rotationSecurityGroup = new ec2.SecurityGroup(this, 'RotationSecurityGroup', { vpc });
     this.secret.addRotationSchedule('Rotation', {
       automaticallyAfter: cdk.Duration.days(30),
@@ -206,6 +208,7 @@ export class SupabaseDatabase extends Construct {
     });
     this.cluster.connections.allowDefaultPortFrom(rotationSecurityGroup, 'Lambda to rotate secrets');
 
+    /** Custom resource function for database initialization */
     const initFunction = new NodejsFunction(this, 'InitFunction', {
       description: 'Supabase - Database init function',
       entry: './src/functions/db-init/index.ts',
@@ -233,8 +236,10 @@ export class SupabaseDatabase extends Construct {
     this.cluster.connections.allowDefaultPortFrom(initFunction);
     this.secret.grantRead(initFunction);
 
+    /** Custom resource provider for database initialization */
     const initProvider = new cr.Provider(this, 'InitProvider', { onEventHandler: initFunction });
 
+    /** Modify schema and initial data */
     const init = new cdk.CustomResource(this, 'InitData', {
       serviceToken: initProvider.serviceToken,
       resourceType: 'Custom::SupabaseInitData',
