@@ -160,7 +160,7 @@ jobs:
 
       - name: cdk synth
         if: env.GIT_DIFF
-        run: $(npm bin)/cdk synth --no-version-reporting
+        run: npm run synth --no-version-reporting
 
       - name: remove old template
         if: env.GIT_DIFF
