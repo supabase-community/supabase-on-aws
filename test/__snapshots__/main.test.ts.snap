@@ -374,6 +374,9 @@ Object {
       "ap-south-1": Object {
         "states": "states.ap-south-1.amazonaws.com",
       },
+      "ap-south-2": Object {
+        "states": "states.ap-south-2.amazonaws.com",
+      },
       "ap-southeast-1": Object {
         "states": "states.ap-southeast-1.amazonaws.com",
       },
@@ -394,6 +397,9 @@ Object {
       },
       "eu-central-1": Object {
         "states": "states.eu-central-1.amazonaws.com",
+      },
+      "eu-central-2": Object {
+        "states": "states.eu-central-2.amazonaws.com",
       },
       "eu-north-1": Object {
         "states": "states.eu-north-1.amazonaws.com",
@@ -1381,7 +1387,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "e845402ce43b66fc6f20df4a239f20f8662eb6c7f920b94cf6542dd0e64ce0f7.zip",
+          "S3Key": "bb459fac5f6b4b052aac9803443226d161a5cfe96f4648b21f9e4912c698bf30.zip",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -3593,7 +3599,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/4e754b744506947730dab9f8381dfe9fb3cd8c2b3399979dd185dae1d4b699c4.json",
+              "/08344cdaa6f76c2ea9a5c1db152d6f158cb793ec3a7adde0ec8e0b3212447bd6.json",
             ],
           ],
         },
@@ -4606,7 +4612,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "d0d86ac5e8de299a074aae1d2befd409ee1fd6601719bb80421ec93cf0f3a391.zip",
+          "S3Key": "27567f000fd9f4e2048b416b793333d2f059ccc5dbda4a14d7ab90240f734c45.zip",
         },
         "Description": "Supabase - Database init function",
         "Environment": Object {
@@ -4757,7 +4763,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
+          "S3Key": "903be65b9594a9f17d7120273620367e7830b6d087fc9591f31dc5a080049e46.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/InitProvider)",
         "Environment": Object {
@@ -5024,7 +5030,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "46cb22674a0133d9783e8d76788baa1cc119e0254097f04c26d84b874617f495.zip",
+          "S3Key": "f876411630cdd2398b95fc682c9109d30e500a842bddb63369a7823f434445ab.zip",
         },
         "Description": "Supabase - Sync DB secret to parameter store",
         "Environment": Object {
@@ -5319,6 +5325,7 @@ Object {
       "Type": "AWS::SSM::Parameter",
     },
     "ForceDeployJobStateMachine528644B1": Object {
+      "DeletionPolicy": "Delete",
       "DependsOn": Array [
         "ForceDeployJobStateMachineRoleDefaultPolicyD8B5C2E1",
         "ForceDeployJobStateMachineRoleB8306D93",
@@ -5356,6 +5363,7 @@ Object {
         },
       },
       "Type": "AWS::StepFunctions::StateMachine",
+      "UpdateReplacePolicy": "Delete",
     },
     "ForceDeployJobStateMachineEventsRole3137AB10": Object {
       "Properties": Object {
@@ -6434,7 +6442,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "db5a5dee36c17b16cf18da872381baa5dbf682aebf1601fddbef8d99e3765661.zip",
+          "S3Key": "49a4da4521fed06d10ad6c9d54a5e5db2b59a697400681dbb6a326d6cbcef94f.zip",
         },
         "Description": Object {
           "Fn::Join": Array [
@@ -6533,7 +6541,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
+          "S3Key": "903be65b9594a9f17d7120273620367e7830b6d087fc9591f31dc5a080049e46.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/JwtSecret/GenerateTokenProvider)",
         "Environment": Object {
@@ -9073,7 +9081,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
+          "S3Key": "903be65b9594a9f17d7120273620367e7830b6d087fc9591f31dc5a080049e46.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/GenPasswordProvider)",
         "Environment": Object {
@@ -9327,7 +9335,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/f1912e4deddb05f75be1bc822bf8cee1d38dc99ebcae012e9064f9f54801a507.json",
+              "/91587c42bbee3518fbcb18565d4664e04d179529a458105aa5f25720c6ccde7a.json",
             ],
           ],
         },
@@ -10582,7 +10590,7 @@ applications:
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "6ff23d2800aac27308e31c227529dc13854507c3b2598d2433fcf82604fa054d.zip",
+          "S3Key": "903be65b9594a9f17d7120273620367e7830b6d087fc9591f31dc5a080049e46.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Studio/Repo/ImportProvider)",
         "Environment": Object {
