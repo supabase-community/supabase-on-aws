@@ -214,7 +214,7 @@ export class SupabaseDatabase extends Construct {
       description: 'Supabase - Database init function',
       entry: path.resolve(__dirname, 'functions/db-init/index.ts'),
       bundling: {
-        assetHash: cdk.FileSystem.fingerprint(path.resolve(__dirname, 'functions/db-init')),
+        assetHash: cdk.FileSystem.fingerprint(path.resolve(__dirname, 'functions/db-init/')),
         nodeModules: [
           '@databases/pg',
         ],
@@ -226,7 +226,7 @@ export class SupabaseDatabase extends Construct {
             return [];
           },
           afterBundling: (inputDir, outputDir) => {
-            return [`cp ${inputDir}/src/functions/db-init/*.sql ${outputDir}`];
+            return [`cp -p ${inputDir}/src/functions/db-init/*.sql ${outputDir}`];
           },
         },
       },
