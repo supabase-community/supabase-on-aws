@@ -3,6 +3,7 @@
 /test-reports/
 junit.xml
 /coverage/
+permissions-backup.acl
 /.mergify.yml
 /test/
 /tsconfig.dev.json
