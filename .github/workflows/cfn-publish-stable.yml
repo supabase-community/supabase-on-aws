@@ -9,14 +9,14 @@ env:
 
 jobs:
   stable:
-    name: Stable Templates
+    name: Stable CFn templates
     runs-on: ubuntu-latest
     permissions:
       id-token: write # needed to interact with GitHub's OIDC Token endpoint.
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get the version tag
         run: echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
@@ -24,7 +24,7 @@ jobs:
       - name: node.js setup
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
       - name: Install dependencies
         run: yarn install --check-files
@@ -36,7 +36,7 @@ jobs:
           aws-region: us-west-2
 
       - name: cdk synth
-        run: $(npm bin)/cdk synth --no-version-reporting
+        run: npm run synth --no-version-reporting
         env:
           BSS_FILE_ASSET_PREFIX: stable/
 
@@ -52,14 +52,14 @@ jobs:
         run: npx cdk-assets publish --path cdk.out/Supabase.assets.json --verbose
 
   version:
-    name: Version Templates
+    name: Versioning CFn templates
     runs-on: ubuntu-latest
     permissions:
       id-token: write # needed to interact with GitHub's OIDC Token endpoint.
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get the version tag
         run: echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
@@ -67,7 +67,7 @@ jobs:
       - name: node.js setup
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
       - name: Install dependencies
         run: yarn install --check-files
@@ -79,7 +79,7 @@ jobs:
           aws-region: us-west-2
 
       - name: cdk synth
-        run: $(npm bin)/cdk synth --no-version-reporting
+        run: npm run synth synth --no-version-reporting
         env:
           BSS_FILE_ASSET_PREFIX: ${{ env.TAG }}/
 
