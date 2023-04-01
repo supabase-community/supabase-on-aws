@@ -1,4 +1,4 @@
-name: stable-publish
+name: cfn-publish-stable
 on:
   push:
     tags:
