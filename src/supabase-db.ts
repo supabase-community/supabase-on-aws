@@ -214,7 +214,7 @@ export class SupabaseDatabase extends Construct {
       description: 'Supabase - Database init function',
       entry: path.resolve(__dirname, 'functions/db-init/index.ts'),
       bundling: {
-        assetHash: cdk.FileSystem.fingerprint(path.resolve(__dirname, 'functions/db-init/index.ts')),
+        forceDockerBundling: false,
         nodeModules: [
           '@databases/pg',
         ],

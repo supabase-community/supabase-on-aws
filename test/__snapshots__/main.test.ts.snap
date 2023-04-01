@@ -4449,7 +4449,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "0a021569131124321b6fea92a6f97cfa7ca76e0006f19bd2bb4543493c71db71.zip",
+          "S3Key": "27567f000fd9f4e2048b416b793333d2f059ccc5dbda4a14d7ab90240f734c45.zip",
         },
         "Description": "Supabase - Database init function",
         "Environment": Object {
