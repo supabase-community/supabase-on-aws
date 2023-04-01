@@ -20,7 +20,7 @@ interface SupabaseDatabaseProps {
 export class SupabaseDatabase extends Construct {
   cluster: rds.DatabaseCluster;
   secret: secretsmanager.ISecret;
-  secretRotationSucceeded: events.Rule;
+  //secretRotationSucceeded: events.Rule;
   url: {
     writer: ssm.StringParameter;
     writerAuth: ssm.StringParameter;
@@ -151,62 +151,62 @@ export class SupabaseDatabase extends Construct {
       }),
     };
 
-    const syncSecretFunction = new NodejsFunction(this, 'SyncSecretFunction', {
-      description: 'Supabase - Sync DB secret to parameter store',
-      entry: 'src/functions/db-secret-sync.ts',
-      runtime: lambda.Runtime.NODEJS_18_X,
-      architecture: lambda.Architecture.ARM_64,
-      environment: {
-        WRITER_PARAMETER_NAME: this.url.writer.parameterName,
-        READER_PARAMETER_NAME: this.url.reader.parameterName,
-      },
-      initialPolicy: [
-        new iam.PolicyStatement({
-          sid: 'PutParameter',
-          actions: [
-            'ssm:PutParameter',
-            'ssm:GetParametersByPath',
-            'ssm:GetParameters',
-            'ssm:GetParameter',
-          ],
-          resources: [
-            this.url.writer.parameterArn,
-            this.url.writer.parameterArn + '/*',
-            this.url.reader.parameterArn,
-            this.url.reader.parameterArn + '/*',
-          ],
-        }),
-      ],
-    });
-    this.secret.grantRead(syncSecretFunction);
+    //const syncSecretFunction = new NodejsFunction(this, 'SyncSecretFunction', {
+    //  description: 'Supabase - Sync DB secret to parameter store',
+    //  entry: 'src/functions/db-secret-sync.ts',
+    //  runtime: lambda.Runtime.NODEJS_18_X,
+    //  architecture: lambda.Architecture.ARM_64,
+    //  environment: {
+    //    WRITER_PARAMETER_NAME: this.url.writer.parameterName,
+    //    READER_PARAMETER_NAME: this.url.reader.parameterName,
+    //  },
+    //  initialPolicy: [
+    //    new iam.PolicyStatement({
+    //      sid: 'PutParameter',
+    //      actions: [
+    //        'ssm:PutParameter',
+    //        'ssm:GetParametersByPath',
+    //        'ssm:GetParameters',
+    //        'ssm:GetParameter',
+    //      ],
+    //      resources: [
+    //        this.url.writer.parameterArn,
+    //        this.url.writer.parameterArn + '/*',
+    //        this.url.reader.parameterArn,
+    //        this.url.reader.parameterArn + '/*',
+    //      ],
+    //    }),
+    //  ],
+    //});
+    //this.secret.grantRead(syncSecretFunction);
 
-    this.secretRotationSucceeded = new events.Rule(this, 'SecretRotationSucceeded', {
-      description: `Supabase - ${id} secret rotation succeeded`,
-      eventPattern: {
-        source: ['aws.secretsmanager'],
-        detailType: ['AWS Service Event via CloudTrail'],
-        detail: {
-          eventName: ['RotationSucceeded'],
-          additionalEventData: {
-            SecretId: [this.secret.secretArn],
-          },
-        },
-      },
-      targets: [new targets.LambdaFunction(syncSecretFunction)],
-    });
+    //this.secretRotationSucceeded = new events.Rule(this, 'SecretRotationSucceeded', {
+    //  description: `Supabase - ${id} secret rotation succeeded`,
+    //  eventPattern: {
+    //    source: ['aws.secretsmanager'],
+    //    detailType: ['AWS Service Event via CloudTrail'],
+    //    detail: {
+    //      eventName: ['RotationSucceeded'],
+    //      additionalEventData: {
+    //        SecretId: [this.secret.secretArn],
+    //      },
+    //    },
+    //  },
+    //  targets: [new targets.LambdaFunction(syncSecretFunction)],
+    //});
 
     // Password rotation
-    const rotationSecurityGroup = new ec2.SecurityGroup(this, 'RotationSecurityGroup', { vpc });
-    this.secret.addRotationSchedule('Rotation', {
-      automaticallyAfter: cdk.Duration.days(30),
-      hostedRotation: secretsmanager.HostedRotation.postgreSqlSingleUser({
-        functionName: `${this.secret.secretName}RotationFunction`,
-        excludeCharacters,
-        securityGroups: [rotationSecurityGroup],
-        vpc,
-      }),
-    });
-    this.cluster.connections.allowDefaultPortFrom(rotationSecurityGroup, 'Lambda to rotate secrets');
+    //const rotationSecurityGroup = new ec2.SecurityGroup(this, 'RotationSecurityGroup', { vpc });
+    //this.secret.addRotationSchedule('Rotation', {
+    //  automaticallyAfter: cdk.Duration.days(30),
+    //  hostedRotation: secretsmanager.HostedRotation.postgreSqlSingleUser({
+    //    functionName: `${this.secret.secretName}RotationFunction`,
+    //    excludeCharacters,
+    //    securityGroups: [rotationSecurityGroup],
+    //    vpc,
+    //  }),
+    //});
+    //this.cluster.connections.allowDefaultPortFrom(rotationSecurityGroup, 'Lambda to rotate secrets');
 
     /** Custom resource function for database initialization */
     const initFunction = new NodejsFunction(this, 'InitFunction', {
