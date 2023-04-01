@@ -3705,7 +3705,7 @@ Object {
             Array [
               "{{resolve:secretsmanager:",
               Object {
-                "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD6b2eb8af71bef5c6813259b78dc271d3",
+                "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD307c1d46040699635693200afdd4b7d4",
               },
               ":SecretString:password::}}",
             ],
@@ -4153,7 +4153,7 @@ Object {
     "DatabaseClusterSecretAttachmentDC8466C0": Object {
       "Properties": Object {
         "SecretId": Object {
-          "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD6b2eb8af71bef5c6813259b78dc271d3",
+          "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD307c1d46040699635693200afdd4b7d4",
         },
         "TargetId": Object {
           "Ref": "DatabaseCluster5B53A178",
@@ -10258,7 +10258,7 @@ applications:
       "Type": "Custom::RepoImportJob",
       "UpdateReplacePolicy": "Delete",
     },
-    "SupabaseDatabaseClusterSecret2AA4A5CD6b2eb8af71bef5c6813259b78dc271d3": Object {
+    "SupabaseDatabaseClusterSecret2AA4A5CD307c1d46040699635693200afdd4b7d4": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Description": Object {
@@ -10273,7 +10273,7 @@ applications:
           ],
         },
         "GenerateSecretString": Object {
-          "ExcludeCharacters": "%+~\`#$&*()|[]{}:;<>?!'/@\\"\\\\=^",
+          "ExcludeCharacters": "%+~\`#$&*()|[]{}:;<>?!'/@\\"\\\\=^,",
           "GenerateStringKey": "password",
           "PasswordLength": 30,
           "SecretStringTemplate": "{\\"username\\":\\"supabase_admin\\"}",
