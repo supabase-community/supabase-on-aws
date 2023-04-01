@@ -56,7 +56,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
     - Each component is discovered as `***.supabase.internal` by default.
 - Database (PostgreSQL)
   - [Aurora Serverless v2](https://aws.amazon.com/rds/aurora/serverless/) is used.
-  - DB password is automatically rotated every 30 days.
+  - ~~DB password is automatically rotated every 30 days.~~
 - Supabase Studio
   - It is deployed on [Amplify Hosting](https://aws.amazon.com/amplify/hosting/) as a Next.js application.
 
