@@ -1,4 +1,4 @@
-name: publish
+name: ecr-publish
 on:
   push:
     branches:
