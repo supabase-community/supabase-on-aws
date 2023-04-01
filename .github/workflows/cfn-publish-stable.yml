@@ -79,7 +79,7 @@ jobs:
           aws-region: us-west-2
 
       - name: cdk synth
-        run: npm run synth synth --no-version-reporting
+        run: npm run synth --no-version-reporting
         env:
           BSS_FILE_ASSET_PREFIX: ${{ env.TAG }}/
 
