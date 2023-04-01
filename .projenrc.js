@@ -1,9 +1,10 @@
 const { awscdk } = require('projen');
 const project = new awscdk.AwsCdkTypeScriptApp({
+  projenVersion: '0.70.5',
   cdkVersion: '2.72.0',
   defaultReleaseBranch: 'main',
   name: 'supabase-on-aws',
-  // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
+  description: 'Self-hosted Supabase on AWS',
   deps: [
     '@aws-cdk/aws-amplify-alpha',
     '@aws-cdk/aws-apigatewayv2-alpha',
@@ -38,6 +39,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   gitignore: [
     'cdk.context.json',
   ],
+  buildWorkflow: false, // Todo: fix db-init function assets key
   depsUpgrade: false,
 });
 project.synth();

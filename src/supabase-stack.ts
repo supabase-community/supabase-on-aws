@@ -428,9 +428,9 @@ export class SupabaseStack extends FargateStack {
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
     // for DB secret rotation
-    forceDeployJob.addTrigger({
-      rule: db.secretRotationSucceeded,
-    });
+    //forceDeployJob.addTrigger({
+    //  rule: db.secretRotationSucceeded,
+    //});
     // for Auth provider settings changed
     forceDeployJob.addTrigger({
       input: { services: [auth.service.serviceArn] },

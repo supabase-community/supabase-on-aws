@@ -5,15 +5,16 @@ on:
       - main
   workflow_dispatch: {}
 
+env:
+  ECR_PUBLIC_ALIAS: u3p7q2r8
+
 jobs:
   kong:
-    name: Kong Docker Image
     runs-on: ubuntu-latest
     permissions:
       id-token: write # needed to interact with GitHub's OIDC Token endpoint.
       contents: read
     env:
-      ECR_PUBLIC_ALIAS: u3p7q2r8
       IMAGE_NAME: kong
     steps:
       - name: Checkout
@@ -47,16 +48,6 @@ jobs:
         with:
           registry-type: public
 
-      #- name: Extract metadata (tags, labels) for Docker
-      #  id: meta
-      #  uses: docker/metadata-action@v4
-      #  with:
-      #    images: ${{ env.ECR_PUBLIC_REGISTRY }}/${{ env.IMAGE_NAME }}
-      #    flavor: |
-      #      latest=true
-      #    tags: |
-      #      type=raw,value=lates
-
       - name: Build and push
         if: env.GIT_DIFF
         uses: docker/build-push-action@v3
@@ -68,13 +59,11 @@ jobs:
           tags: ${{ steps.login-ecr-public.outputs.registry }}/${{ env.ECR_PUBLIC_ALIAS }}/${{ env.IMAGE_NAME }}:latest
 
   postgraphile:
-    name: PostGraphile Docker Image
     runs-on: ubuntu-latest
     permissions:
       id-token: write # needed to interact with GitHub's OIDC Token endpoint.
       contents: read
     env:
-      ECR_PUBLIC_ALIAS: u3p7q2r8
       IMAGE_NAME: postgraphile
     steps:
       - name: Checkout
@@ -119,58 +108,3 @@ jobs:
           tags: |
             ${{ steps.login-ecr-public.outputs.registry }}/${{ env.ECR_PUBLIC_ALIAS }}/${{ env.IMAGE_NAME }}:latest
             ${{ steps.login-ecr-public.outputs.registry }}/${{ env.ECR_PUBLIC_ALIAS }}/${{ env.IMAGE_NAME }}:4
-
-  cloudformation:
-    name: CloudFormation Templates
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write # needed to interact with GitHub's OIDC Token endpoint.
-      contents: read
-    env:
-      BSS_FILE_ASSET_BUCKET_NAME: 'supabase-on-aws-${AWS::Region}'
-      BSS_FILE_ASSET_REGION_SET: us-east-1,us-west-2,eu-west-1,ap-northeast-1,ap-northeast-2,ap-northeast-3,ap-southeast-1,ap-southeast-2
-      BSS_FILE_ASSET_PREFIX: latest/
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - uses: technote-space/get-diff-action@v6
-        with:
-          PATTERNS: |
-            src/**/*
-            .projenrc.js
-            .github/workflows/publish.yml
-
-      - name: node.js setup
-        if: env.GIT_DIFF
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        if: env.GIT_DIFF
-        run: yarn install --check-files
-
-      - name: Configure AWS credentials
-        if: env.GIT_DIFF
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: ${{ secrets.CDK_PUBLISHING_ROLE }}
-          aws-region: us-west-2
-
-      - name: cdk synth
-        if: env.GIT_DIFF
-        run: npm run synth --no-version-reporting
-
-      - name: remove old template
-        if: env.GIT_DIFF
-        run: |
-          region_list=(${BSS_FILE_ASSET_REGION_SET//,/ })
-          for region in ${region_list[@]}; do
-              bucket_name=(${BSS_FILE_ASSET_BUCKET_NAME//\$\{AWS::Region\}/$region})
-              aws s3 rm s3://$bucket_name/${BSS_FILE_ASSET_PREFIX}Supabase.template.json
-          done
-
-      - name: Publish assets
-        if: env.GIT_DIFF
-        run: npx cdk-assets publish --path cdk.out/Supabase.assets.json --verbose
