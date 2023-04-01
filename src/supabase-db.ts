@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as events from 'aws-cdk-lib/aws-events';
@@ -211,7 +212,7 @@ export class SupabaseDatabase extends Construct {
     /** Custom resource function for database initialization */
     const initFunction = new NodejsFunction(this, 'InitFunction', {
       description: 'Supabase - Database init function',
-      entry: './src/functions/db-init/index.ts',
+      entry: path.resolve(__dirname, 'functions/db-init/index.ts'),
       bundling: {
         nodeModules: [
           '@databases/pg',
