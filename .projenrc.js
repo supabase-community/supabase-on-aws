@@ -39,6 +39,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   gitignore: [
     'cdk.context.json',
   ],
+  buildWorkflow: false, // Todo: fix db-init function assets key
   depsUpgrade: false,
 });
 project.synth();

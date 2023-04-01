@@ -35,8 +35,6 @@ cdk.context.json
 /test-reports/
 junit.xml
 /coverage/
-!/.github/workflows/build.yml
-!/.mergify.yml
 !/.github/pull_request_template.md
 !/test/
 !/tsconfig.json

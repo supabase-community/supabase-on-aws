@@ -214,7 +214,6 @@ export class SupabaseDatabase extends Construct {
       description: 'Supabase - Database init function',
       entry: path.resolve(__dirname, 'functions/db-init/index.ts'),
       bundling: {
-        assetHash: 'v1.0.0', // Todo: Modify dynamically
         nodeModules: [
           '@databases/pg',
         ],
