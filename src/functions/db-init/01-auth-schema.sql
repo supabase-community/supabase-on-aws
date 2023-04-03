@@ -143,3 +143,8 @@ ALTER FUNCTION "auth"."email" OWNER TO supabase_auth_admin;
 GRANT EXECUTE ON FUNCTION "auth"."uid"() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION "auth"."role"() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION "auth"."email"() TO PUBLIC;
+
+-- User `postgres` also should have access to the auth schema
+GRANT ALL PRIVILEGES ON SCHEMA auth TO postgres;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO postgres;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO postgres;
