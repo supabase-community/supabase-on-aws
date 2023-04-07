@@ -447,13 +447,14 @@ export class SupabaseStack extends FargateStack {
       }),
     });
 
-    // Supabase Studio
+    /** Supabase Studio Version */
     const studioBranch = new cdk.CfnParameter(this, 'StudioBranch', {
       type: 'String',
-      default: '0.22.08',
+      default: 'master',
       description: 'Branch or tag - https://github.com/supabase/supabase/tags',
     });
 
+    /** Supabase Studio */
     new AmplifyHosting(this, 'Studio', {
       sourceRepo: 'https://github.com/supabase/supabase.git',
       sourceBranch: studioBranch.valueAsString,
@@ -464,8 +465,7 @@ export class SupabaseStack extends FargateStack {
         //DEFAULT_ORGANIZATION: 'Default Organization',
         //DEFAULT_PROJECT: 'Default Project',
         SUPABASE_URL: `${apiExternalUrl}`,
-        //SUPABASE_PUBLIC_URL: `${apiExternalUrl}`,
-        SUPABASE_REST_URL: `${apiExternalUrl}/rest/v1/`,
+        SUPABASE_PUBLIC_URL: `${apiExternalUrl}`,
         SUPABASE_ANON_KEY: anonKey.value,
         SUPABASE_SERVICE_KEY: serviceRoleKey.value,
       },

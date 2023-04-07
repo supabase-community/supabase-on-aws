@@ -1372,7 +1372,7 @@ Object {
       "Type": "String",
     },
     "StudioBranch": Object {
-      "Default": "0.22.08",
+      "Default": "master",
       "Description": "Branch or tag - https://github.com/supabase/supabase/tags",
       "Type": "String",
     },
@@ -9787,27 +9787,57 @@ Object {
         "BasicAuthConfig": Object {
           "EnableBasicAuth": false,
         },
-        "BuildSpec": "version: 1
+        "BuildSpec": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "version: 1
 applications:
   - appRoot: studio
     frontend:
       phases:
         preBuild:
           commands:
-            - env | grep -e STUDIO_PG_META_URL -e POSTGRES_PASSWORD -e SUPABASE_URL -e SUPABASE_REST_URL -e SUPABASE_ANON_KEY -e SUPABASE_SERVICE_KEY >> .env.production
+            - env | grep -e STUDIO_PG_META_URL -e POSTGRES_PASSWORD -e SUPABASE_URL -e SUPABASE_PUBLIC_URL -e SUPABASE_ANON_KEY -e SUPABASE_SERVICE_KEY >> .env.production
             - env | grep -e NEXT_PUBLIC_ >> .env.production
-            - npm ci || npm install
+            - yum install -y rsync
+            - cd ../
+            - npx turbo@1.7.0 prune --scope=studio
+            - npm clean-install
         build:
           commands:
-            - npm run build
+            - npx turbo run build --scope=studio --include-dependencies --no-deps
             - npm prune --omit=dev
         postBuild:
           commands:
-            - shopt -s dotglob
-            - if [ -d .next/standalone/node_modules ]; then mv -n .next/standalone/node_modules/* .next/standalone/studio/node_modules/.; fi
-            - rm -rf .next/standalone/node_modules
-            - mv -f .next/standalone/studio/* .next/standalone/.
+            - cd studio
+            - rsync -av --ignore-existing .next/standalone/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "StudioRepo63377C05",
+                  "Name",
+                ],
+              },
+              "/studio/ .next/standalone/
+            - rsync -av --ignore-existing .next/standalone/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "StudioRepo63377C05",
+                  "Name",
+                ],
+              },
+              "/node_modules/ .next/standalone/node_modules/
+            - rm -rf .next/standalone/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "StudioRepo63377C05",
+                  "Name",
+                ],
+              },
+              "
             - cp .env .env.production .next/standalone/
+            - rsync -av --ignore-existing public/ .next/standalone/public/
+            - rsync -av --ignore-existing .next/static/ .next/standalone/.next/static/
       artifacts:
         baseDirectory: .next
         files:
@@ -9816,6 +9846,9 @@ applications:
         paths:
           - node_modules/**/*
 ",
+            ],
+          ],
+        },
         "CustomRules": Array [
           Object {
             "Source": "/<*>",
@@ -9875,7 +9908,7 @@ applications:
             },
           },
           Object {
-            "Name": "SUPABASE_REST_URL",
+            "Name": "SUPABASE_PUBLIC_URL",
             "Value": Object {
               "Fn::Join": Array [
                 "",
@@ -9887,7 +9920,6 @@ applications:
                       "DomainName",
                     ],
                   },
-                  "/rest/v1/",
                 ],
               ],
             },
@@ -9911,8 +9943,8 @@ applications:
             },
           },
           Object {
-            "Name": "NEXT_PRIVATE_OUTPUT_TRACE_ROOT",
-            "Value": "../",
+            "Name": "NODE_OPTIONS",
+            "Value": "--max-old-space-size=4096",
           },
           Object {
             "Name": "AMPLIFY_MONOREPO_APP_ROOT",

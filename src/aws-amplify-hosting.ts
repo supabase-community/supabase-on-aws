@@ -22,16 +22,21 @@ export class AmplifyHosting extends Construct {
   readonly prodBranch: amplify.Branch;
   readonly prodBranchUrl: string;
 
+  /** Next.js App Hosting */
   constructor(scope: Construct, id: string, props: AmplifyHostingProps) {
     super(scope, id);
 
     const { sourceRepo, sourceBranch, appRoot, environmentVariables = {}, liveUpdates } = props;
 
     const stackId = cdk.Fn.select(2, cdk.Fn.split('/', cdk.Aws.STACK_ID));
-    const repositoryName = `${this.node.path.replace(/\//g, '')}-${stackId}`;
 
-    const repository = new Repository(this, 'Repo', { repositoryName, description: `${this.node.path}/Repo` });
+    /** Source Repository for Amplify Hosting */
+    const repository = new Repository(this, 'Repo', {
+      repositoryName: `${this.node.path.replace(/\//g, '')}-${stackId}`,
+      description: `${this.node.path}/Repo`,
+    });
 
+    /** Import from GitHub to CodeComit */
     const repoImportJob = repository.importFromUrl(sourceRepo, sourceBranch);
 
     const amplifySSRLoggingRole = new iam.Role(this, 'AmplifySSRLoggingRole', {
@@ -51,22 +56,28 @@ export class AmplifyHosting extends Construct {
               commands: [
                 `env | grep ${envKeys.map(key => `-e ${key}`).join(' ')} >> .env.production`,
                 'env | grep -e NEXT_PUBLIC_ >> .env.production',
-                'npm ci || npm install',
+                'yum install -y rsync',
+                'cd ../',
+                'npx turbo@1.7.0 prune --scope=studio',
+                'npm clean-install',
               ],
             },
             build: {
               commands: [
-                'npm run build',
+                'npx turbo run build --scope=studio --include-dependencies --no-deps',
                 'npm prune --omit=dev',
               ],
             },
             postBuild: {
               commands: [
-                'shopt -s dotglob',
-                `if [ -d .next/standalone/node_modules ]; then mv -n .next/standalone/node_modules/* .next/standalone/${appRoot}/node_modules/.; fi`,
-                'rm -rf .next/standalone/node_modules',
-                `mv -f .next/standalone/${appRoot}/* .next/standalone/.`,
+                `cd ${appRoot}`,
+                `rsync -av --ignore-existing .next/standalone/${repository.repositoryName}/${appRoot}/ .next/standalone/`,
+                `rsync -av --ignore-existing .next/standalone/${repository.repositoryName}/node_modules/ .next/standalone/node_modules/`,
+                `rm -rf .next/standalone/${repository.repositoryName}`,
                 'cp .env .env.production .next/standalone/',
+                // https://nextjs.org/docs/advanced-features/output-file-tracing#automatically-copying-traced-files
+                'rsync -av --ignore-existing public/ .next/standalone/public/',
+                'rsync -av --ignore-existing .next/static/ .next/standalone/.next/static/',
               ],
             },
           },
@@ -92,9 +103,10 @@ export class AmplifyHosting extends Construct {
     });
     (this.app.node.defaultChild as cdk.CfnResource).addPropertyOverride('Platform', 'WEB_COMPUTE');
 
-    const outputFileTracingRoot = appRoot.split('/').map(x => x = '..').join('/') + '/';
-    this.app.addEnvironment('NEXT_PRIVATE_OUTPUT_TRACE_ROOT', outputFileTracingRoot);
+    //const outputFileTracingRoot = appRoot.split('/').map(x => x = '..').join('/') + '/';
+    //this.app.addEnvironment('NEXT_PRIVATE_OUTPUT_TRACE_ROOT', outputFileTracingRoot);
 
+    this.app.addEnvironment('NODE_OPTIONS', '--max-old-space-size=4096');
     this.app.addEnvironment('AMPLIFY_MONOREPO_APP_ROOT', appRoot);
     this.app.addEnvironment('AMPLIFY_DIFF_DEPLOY', 'false');
     this.app.addEnvironment('_LIVE_UPDATES', JSON.stringify(liveUpdates));
