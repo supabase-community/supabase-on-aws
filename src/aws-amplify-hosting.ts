@@ -28,12 +28,10 @@ export class AmplifyHosting extends Construct {
 
     const { sourceRepo, sourceBranch, appRoot, environmentVariables = {}, liveUpdates } = props;
 
-    const stackId = cdk.Fn.select(2, cdk.Fn.split('/', cdk.Aws.STACK_ID));
-
     /** Source Repository for Amplify Hosting */
-    const repository = new Repository(this, 'Repo', {
-      repositoryName: `${this.node.path.replace(/\//g, '')}-${stackId}`,
-      description: `${this.node.path}/Repo`,
+    const repository = new Repository(this, 'Repository', {
+      repositoryName: cdk.Aws.STACK_NAME,
+      description: `${this.node.path}/Repository`,
     });
 
     /** Import from GitHub to CodeComit */
@@ -183,9 +181,9 @@ export class Repository extends codecommit.Repository {
         },
       }),
       handler: 'index.handler',
-      memorySize: 2048,
-      ephemeralStorageSize: cdk.Size.gibibytes(2),
-      timeout: cdk.Duration.minutes(3),
+      memorySize: 3072,
+      ephemeralStorageSize: cdk.Size.gibibytes(3),
+      timeout: cdk.Duration.minutes(5),
       environment: {
         TARGET_REPO: this.repositoryCloneUrlGrc,
       },
