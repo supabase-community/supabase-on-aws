@@ -1387,7 +1387,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "bb459fac5f6b4b052aac9803443226d161a5cfe96f4648b21f9e4912c698bf30.zip",
+          "S3Key": "a9d3d4d1afa000946b9863b3e7578a5a5ad86d88274b3639938aa2baebf822ce.zip",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -3599,7 +3599,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/08344cdaa6f76c2ea9a5c1db152d6f158cb793ec3a7adde0ec8e0b3212447bd6.json",
+              "/69fb6ada7910f80d4834b5f5e57d8c2a3dca9acf0a3a8bb13d07c341897cdee3.json",
             ],
           ],
         },
@@ -4600,7 +4600,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "903be65b9594a9f17d7120273620367e7830b6d087fc9591f31dc5a080049e46.zip",
+          "S3Key": "1eabd374284db340b74179e3429008132f5b6b0b7b28d472d852807d7f5f9746.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/InitProvider)",
         "Environment": Object {
@@ -6091,7 +6091,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "903be65b9594a9f17d7120273620367e7830b6d087fc9591f31dc5a080049e46.zip",
+          "S3Key": "1eabd374284db340b74179e3429008132f5b6b0b7b28d472d852807d7f5f9746.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/JwtSecret/GenerateTokenProvider)",
         "Environment": Object {
@@ -8631,7 +8631,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "903be65b9594a9f17d7120273620367e7830b6d087fc9591f31dc5a080049e46.zip",
+          "S3Key": "1eabd374284db340b74179e3429008132f5b6b0b7b28d472d852807d7f5f9746.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/GenPasswordProvider)",
         "Environment": Object {
@@ -8885,7 +8885,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/91587c42bbee3518fbcb18565d4664e04d179529a458105aa5f25720c6ccde7a.json",
+              "/6472582ea1c9b551cee8af6c3d38073830fd6908949d1a9dcb23b119e3246337.json",
             ],
           ],
         },
@@ -9765,7 +9765,7 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "StudioRepo63377C05",
+                  "StudioRepositoryE0EFFBE2",
                   "Arn",
                 ],
               },
@@ -9814,7 +9814,7 @@ applications:
             - rsync -av --ignore-existing .next/standalone/",
               Object {
                 "Fn::GetAtt": Array [
-                  "StudioRepo63377C05",
+                  "StudioRepositoryE0EFFBE2",
                   "Name",
                 ],
               },
@@ -9822,7 +9822,7 @@ applications:
             - rsync -av --ignore-existing .next/standalone/",
               Object {
                 "Fn::GetAtt": Array [
-                  "StudioRepo63377C05",
+                  "StudioRepositoryE0EFFBE2",
                   "Name",
                 ],
               },
@@ -9830,7 +9830,7 @@ applications:
             - rm -rf .next/standalone/",
               Object {
                 "Fn::GetAtt": Array [
-                  "StudioRepo63377C05",
+                  "StudioRepositoryE0EFFBE2",
                   "Name",
                 ],
               },
@@ -9969,7 +9969,7 @@ applications:
         "Platform": "WEB_COMPUTE",
         "Repository": Object {
           "Fn::GetAtt": Array [
-            "StudioRepo63377C05",
+            "StudioRepositoryE0EFFBE2",
             "CloneUrlHttp",
           ],
         },
@@ -10012,37 +10012,19 @@ applications:
       },
       "Type": "AWS::Amplify::Branch",
     },
-    "StudioRepo63377C05": Object {
+    "StudioRepositoryE0EFFBE2": Object {
       "Properties": Object {
-        "RepositoryDescription": "Supabase/Studio/Repo",
+        "RepositoryDescription": "Supabase/Studio/Repository",
         "RepositoryName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "SupabaseStudio-",
-              Object {
-                "Fn::Select": Array [
-                  2,
-                  Object {
-                    "Fn::Split": Array [
-                      "/",
-                      Object {
-                        "Ref": "AWS::StackId",
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          ],
+          "Ref": "AWS::StackName",
         },
       },
       "Type": "AWS::CodeCommit::Repository",
     },
-    "StudioRepoImportFunctionDEF0C9F1": Object {
+    "StudioRepositoryImportFunctionF87C7D62": Object {
       "DependsOn": Array [
-        "StudioRepoImportFunctionServiceRoleDefaultPolicyA96D13C0",
-        "StudioRepoImportFunctionServiceRoleEFEC8085",
+        "StudioRepositoryImportFunctionServiceRoleDefaultPolicyA3265637",
+        "StudioRepositoryImportFunctionServiceRoleC6B8ED58",
       ],
       "Properties": Object {
         "Code": Object {
@@ -10070,7 +10052,7 @@ applications:
                   "://",
                   Object {
                     "Fn::GetAtt": Array [
-                      "StudioRepo63377C05",
+                      "StudioRepositoryE0EFFBE2",
                       "Name",
                     ],
                   },
@@ -10080,22 +10062,53 @@ applications:
           },
         },
         "EphemeralStorage": Object {
-          "Size": 2048,
+          "Size": 3072,
         },
         "Handler": "index.handler",
-        "MemorySize": 2048,
+        "MemorySize": 3072,
         "Role": Object {
           "Fn::GetAtt": Array [
-            "StudioRepoImportFunctionServiceRoleEFEC8085",
+            "StudioRepositoryImportFunctionServiceRoleC6B8ED58",
             "Arn",
           ],
         },
         "Runtime": "python3.9",
-        "Timeout": 180,
+        "Timeout": 300,
       },
       "Type": "AWS::Lambda::Function",
     },
-    "StudioRepoImportFunctionServiceRoleDefaultPolicyA96D13C0": Object {
+    "StudioRepositoryImportFunctionServiceRoleC6B8ED58": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "StudioRepositoryImportFunctionServiceRoleDefaultPolicyA3265637": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -10104,7 +10117,7 @@ applications:
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "StudioRepo63377C05",
+                  "StudioRepositoryE0EFFBE2",
                   "Arn",
                 ],
               },
@@ -10114,7 +10127,7 @@ applications:
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "StudioRepo63377C05",
+                  "StudioRepositoryE0EFFBE2",
                   "Arn",
                 ],
               },
@@ -10122,64 +10135,33 @@ applications:
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "StudioRepoImportFunctionServiceRoleDefaultPolicyA96D13C0",
+        "PolicyName": "StudioRepositoryImportFunctionServiceRoleDefaultPolicyA3265637",
         "Roles": Array [
           Object {
-            "Ref": "StudioRepoImportFunctionServiceRoleEFEC8085",
+            "Ref": "StudioRepositoryImportFunctionServiceRoleC6B8ED58",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "StudioRepoImportFunctionServiceRoleEFEC8085": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "StudioRepoImportProviderframeworkonEventB72B655D": Object {
+    "StudioRepositoryImportProviderframeworkonEventFED45CDF": Object {
       "DependsOn": Array [
-        "StudioRepoImportProviderframeworkonEventServiceRoleDefaultPolicy623B206F",
-        "StudioRepoImportProviderframeworkonEventServiceRole3B88B48B",
+        "StudioRepositoryImportProviderframeworkonEventServiceRoleDefaultPolicy0FB1A847",
+        "StudioRepositoryImportProviderframeworkonEventServiceRoleABEB03CC",
       ],
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "903be65b9594a9f17d7120273620367e7830b6d087fc9591f31dc5a080049e46.zip",
+          "S3Key": "1eabd374284db340b74179e3429008132f5b6b0b7b28d472d852807d7f5f9746.zip",
         },
-        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Studio/Repo/ImportProvider)",
+        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Studio/Repository/ImportProvider)",
         "Environment": Object {
           "Variables": Object {
             "USER_ON_EVENT_FUNCTION_ARN": Object {
               "Fn::GetAtt": Array [
-                "StudioRepoImportFunctionDEF0C9F1",
+                "StudioRepositoryImportFunctionF87C7D62",
                 "Arn",
               ],
             },
@@ -10188,7 +10170,7 @@ applications:
         "Handler": "framework.onEvent",
         "Role": Object {
           "Fn::GetAtt": Array [
-            "StudioRepoImportProviderframeworkonEventServiceRole3B88B48B",
+            "StudioRepositoryImportProviderframeworkonEventServiceRoleABEB03CC",
             "Arn",
           ],
         },
@@ -10197,7 +10179,7 @@ applications:
       },
       "Type": "AWS::Lambda::Function",
     },
-    "StudioRepoImportProviderframeworkonEventServiceRole3B88B48B": Object {
+    "StudioRepositoryImportProviderframeworkonEventServiceRoleABEB03CC": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -10228,7 +10210,7 @@ applications:
       },
       "Type": "AWS::IAM::Role",
     },
-    "StudioRepoImportProviderframeworkonEventServiceRoleDefaultPolicy623B206F": Object {
+    "StudioRepositoryImportProviderframeworkonEventServiceRoleDefaultPolicy0FB1A847": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -10238,7 +10220,7 @@ applications:
               "Resource": Array [
                 Object {
                   "Fn::GetAtt": Array [
-                    "StudioRepoImportFunctionDEF0C9F1",
+                    "StudioRepositoryImportFunctionF87C7D62",
                     "Arn",
                   ],
                 },
@@ -10248,7 +10230,7 @@ applications:
                     Array [
                       Object {
                         "Fn::GetAtt": Array [
-                          "StudioRepoImportFunctionDEF0C9F1",
+                          "StudioRepositoryImportFunctionF87C7D62",
                           "Arn",
                         ],
                       },
@@ -10261,16 +10243,16 @@ applications:
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "StudioRepoImportProviderframeworkonEventServiceRoleDefaultPolicy623B206F",
+        "PolicyName": "StudioRepositoryImportProviderframeworkonEventServiceRoleDefaultPolicy0FB1A847",
         "Roles": Array [
           Object {
-            "Ref": "StudioRepoImportProviderframeworkonEventServiceRole3B88B48B",
+            "Ref": "StudioRepositoryImportProviderframeworkonEventServiceRoleABEB03CC",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "StudioRepomain124B0D8A": Object {
+    "StudioRepositorymain62C45C74": Object {
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
         "StudioAppProdBranchED7568CB",
@@ -10278,7 +10260,7 @@ applications:
       "Properties": Object {
         "ServiceToken": Object {
           "Fn::GetAtt": Array [
-            "StudioRepoImportProviderframeworkonEventB72B655D",
+            "StudioRepositoryImportProviderframeworkonEventFED45CDF",
             "Arn",
           ],
         },
