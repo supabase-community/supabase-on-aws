@@ -86,32 +86,32 @@ export class SupabaseStack extends FargateStack {
 
     const authImageUri = new cdk.CfnParameter(this, 'AuthImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/gotrue:v2.37.2',
+      default: 'public.ecr.aws/supabase/gotrue:v2.60.2',
       description: 'https://gallery.ecr.aws/supabase/gotrue',
     });
     const restImageUri = new cdk.CfnParameter(this, 'RestImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/postgrest:v9.0.1.20220802',
+      default: 'public.ecr.aws/supabase/postgrest:v10.1.2',
       description: 'https://gallery.ecr.aws/supabase/postgrest',
     });
     const realtimeImageUri = new cdk.CfnParameter(this, 'RealtimeImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/realtime:v0.25.1',
+      default: 'public.ecr.aws/supabase/realtime:v2.12.2',
       description: 'https://gallery.ecr.aws/supabase/realtime',
     });
     const storageImageUri = new cdk.CfnParameter(this, 'StorageImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/storage-api:v0.26.1',
+      default: 'public.ecr.aws/supabase/storage-api:v0.37.3',
       description: 'https://gallery.ecr.aws/supabase/storage-api',
     });
     const imgproxyImageUri = new cdk.CfnParameter(this, 'ImgproxyImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/imgproxy:v1.0.4',
+      default: 'public.ecr.aws/supabase/imgproxy:v1.1.2',
       description: 'https://gallery.ecr.aws/supabase/imgproxy',
     });
     const postgresMetaImageUri = new cdk.CfnParameter(this, 'PostgresMetaImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/postgres-meta:v0.52.1',
+      default: 'public.ecr.aws/supabase/postgres-meta:v0.64.4',
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
@@ -301,25 +301,31 @@ export class SupabaseStack extends FargateStack {
         image: ecs.ContainerImage.fromRegistry(realtimeImageUri.valueAsString),
         containerPort: 4000,
         environment: {
-          DB_SSL: 'false',
           PORT: '4000',
-          REPLICATION_MODE: 'RLS',
-          REPLICATION_POLL_INTERVAL: '300', // for RLS
-          SUBSCRIPTION_SYNC_INTERVAL: '60000', // for RLS
-          SECURE_CHANNELS: 'true',
-          SLOT_NAME: 'realtime_rls',
-          TEMPORARY_SLOT: 'true',
-          MAX_REPLICATION_LAG_MB: '1000',
+          RLIMIT_NOFILE: '',
+          ENABLE_TAILSCALE: 'false',
+          DNS_NODES: "''",
+          ERL_AFLAGS: '-proto_dist inet_tcp',
+          FLY_ALLOC_ID: 'fly123',
+          FLY_APP_NAME: 'realtime',
+          DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime',
+          DB_USER: 'supabase_admin',
+          SECRET_KEY_BASE: 'UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq',
+          DB_ENC_KEY: 'supabaserealtime',
         },
         secrets: {
-          JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
+          API_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           DB_HOST: ecs.Secret.fromSecretsManager(db.secret, 'host'),
           DB_PORT: ecs.Secret.fromSecretsManager(db.secret, 'port'),
           DB_NAME: ecs.Secret.fromSecretsManager(db.secret, 'dbname'),
           DB_USER: ecs.Secret.fromSecretsManager(db.secret, 'username'),
           DB_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
         },
-        command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
+        command: [
+          'sh',
+          '-c',
+          "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server",
+        ],
       },
       minTaskCount: 1,
       maxTaskCount: 1,
@@ -390,12 +396,12 @@ export class SupabaseStack extends FargateStack {
         containerPort: 8080,
         environment: {
           PG_META_PORT: '8080',
+          PG_META_DB_USER: 'supabase_admin',
         },
         secrets: {
           PG_META_DB_HOST: ecs.Secret.fromSecretsManager(db.secret, 'host'),
           PG_META_DB_PORT: ecs.Secret.fromSecretsManager(db.secret, 'port'),
           PG_META_DB_NAME: ecs.Secret.fromSecretsManager(db.secret, 'dbname'),
-          PG_META_DB_USER: ecs.Secret.fromSecretsManager(db.secret, 'username'),
           PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
         },
       },

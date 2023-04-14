@@ -25,7 +25,6 @@ export class SupabaseDatabase extends Construct {
   url: {
     writer: ssm.StringParameter;
     writerAuth: ssm.StringParameter;
-    reader: ssm.StringParameter;
   };
   cfnParameters: {
     minCapacity: cdk.CfnParameter;
@@ -69,7 +68,7 @@ export class SupabaseDatabase extends Construct {
     };
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
-      version: rds.AuroraPostgresEngineVersion.VER_14_5,
+      version: rds.AuroraPostgresEngineVersion.VER_14_6,
     });
 
     const parameterGroup = new rds.ParameterGroup(this, 'ParameterGroup', {
@@ -100,7 +99,7 @@ export class SupabaseDatabase extends Construct {
         enablePerformanceInsights: true,
         vpc,
       },
-      credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', { excludeCharacters }),
+      credentials: rds.Credentials.fromGeneratedSecret('postgres', { excludeCharacters }),
       defaultDatabaseName: 'postgres',
     });
 
@@ -132,22 +131,16 @@ export class SupabaseDatabase extends Construct {
     const dbname = this.secret.secretValueFromJson('dbname').toString();
 
     this.url = {
-      writer: new ssm.StringParameter(this, 'WriterUrlParameter', {
-        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Writer`,
-        description: 'The standard connection PostgreSQL URI format.',
-        stringValue: `postgres://${username}:${password}@${this.cluster.clusterEndpoint.hostname}:${this.cluster.clusterEndpoint.port}/${dbname}`,
+      writer: new ssm.StringParameter(this, 'WriterRestUrlParameter', {
+        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Writer/Rest`,
+        description: 'The standard connection PostgreSQL URI for Rest.',
+        stringValue: `postgres://postgres:${password}@${this.cluster.clusterEndpoint.hostname}:${this.cluster.clusterEndpoint.port}/${dbname}`,
         simpleName: false,
       }),
       writerAuth: new ssm.StringParameter(this, 'WriterAuthUrlParameter', {
-        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Writer/auth`,
+        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Writer/Auth`,
         description: 'The standard connection PostgreSQL URI with search_path=auth',
-        stringValue: `postgres://${username}:${password}@${this.cluster.clusterEndpoint.hostname}:${this.cluster.clusterEndpoint.port}/${dbname}?search_path=auth`,
-        simpleName: false,
-      }),
-      reader: new ssm.StringParameter(this, 'ReaderUrlParameter', {
-        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Reader`,
-        description: 'The standard connection PostgreSQL URI format.',
-        stringValue: `postgres://${username}:${password}@${this.cluster.clusterReadEndpoint.hostname}:${this.cluster.clusterReadEndpoint.port}/${dbname}`,
+        stringValue: `postgres://supabase_auth_admin:${password}@${this.cluster.clusterEndpoint.hostname}:${this.cluster.clusterEndpoint.port}/${dbname}?search_path=auth`,
         simpleName: false,
       }),
     };
@@ -225,7 +218,7 @@ export class SupabaseDatabase extends Construct {
             return [];
           },
           afterBundling: (inputDir, outputDir) => {
-            return [`cp -p ${inputDir}/src/functions/db-init/*.sql ${outputDir}`];
+            return [`cp -rp ${inputDir}/lib/supabase-on-aws/functions/db-init/{init-scripts,migrations} ${outputDir}`];
           },
         },
       },

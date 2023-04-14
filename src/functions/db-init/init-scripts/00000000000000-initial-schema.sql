@@ -1,22 +1,34 @@
 -- Set up realtime
 create schema if not exists realtime;
--- create publication supabase_realtime; -- defaults to empty publication
+-- defaults to empty publication
 create publication supabase_realtime;
 
--- Supabase super admin
--- create user supabase_admin;
--- alter user  supabase_admin with superuser createdb createrole replication bypassrls;
-GRANT rds_replication TO supabase_admin;
+-- Supabase super admin (we immediately make this postgres a member of supabase_admin so we can set it up, need to revoke later)
+create user supabase_admin role postgres;
+-- Cannot grant superuser since user postgres is not a superuser in Amazon RDS/Aurora
+-- alter user supabase_admin with superuser createdb createrole replication bypassrls; 
+alter user supabase_admin with createdb createrole bypassrls;
 
-CREATE user postgres;
-ALTER user postgres WITH createdb createrole bypassrls;
+-- Supabase replication user (again, cannot grant replication in Amazon RDS/Aurora)
+-- create user supabase_replication_admin with login replication;
+create user supabase_replication_admin with login;
+
+ -- Added for Amazon RDS/Aurora
+GRANT rds_superuser TO supabase_admin;
+GRANT rds_replication TO supabase_admin;
 GRANT rds_replication TO postgres;
+GRANT rds_replication TO supabase_replication_admin;
+
+-- Supabase read-only user
+create role supabase_read_only_user with login bypassrls;
+grant pg_read_all_data to supabase_read_only_user;
 
 -- Extension namespacing
 create schema if not exists extensions;
 create extension if not exists "uuid-ossp"      with schema extensions;
 create extension if not exists pgcrypto         with schema extensions;
--- create extension if not exists pgjwt            with schema extensions; -- for Amazon RDS/Aurora
+-- Have to manually install pgjwt in Amazon RDS/Aurora (see other init files)
+-- create extension if not exists pgjwt            with schema extensions;
 
 -- Set up auth roles for the developer
 create role anon                nologin noinherit;
@@ -51,3 +63,5 @@ alter default privileges for user supabase_admin in schema public grant all
 -- Set short statement/query timeouts for API roles
 alter role anon set statement_timeout = '3s';
 alter role authenticated set statement_timeout = '8s';
+
+-- migrate:down

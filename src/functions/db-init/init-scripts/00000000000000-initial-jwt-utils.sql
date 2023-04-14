@@ -1,7 +1,8 @@
 create schema if not exists extensions;
 create extension if not exists pgcrypto with schema extensions;
 
--- from https://github.com/michelp/pgjwt/blob/master/pgjwt--0.1.0--0.1.1.sql
+-- Unfortunately, the pgjwt extension is not available in the AWS RDS. Therefore, we load it manually
+-- from https://github.com/michelp/pgjwt/blob/master/pgjwt--0.2.0.sql
 CREATE OR REPLACE FUNCTION extensions.url_encode(data bytea) RETURNS text LANGUAGE sql AS $$
     SELECT translate(encode(data, 'base64'), E'+/=\n', '-_');
 $$ IMMUTABLE;
@@ -49,8 +50,6 @@ SELECT
     extensions.algorithm_sign(signables.data, secret, algorithm) FROM signables;
 $$ IMMUTABLE;
 
-
--- from https://github.com/michelp/pgjwt/blob/master/pgjwt--0.1.1--0.2.0.sql
 CREATE OR REPLACE FUNCTION extensions.try_cast_double(inp text)
 RETURNS double precision AS $$
   BEGIN
