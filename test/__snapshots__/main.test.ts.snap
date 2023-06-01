@@ -1372,7 +1372,7 @@ Object {
       "Type": "String",
     },
     "StudioBranch": Object {
-      "Default": "master",
+      "Default": "v0.23.04",
       "Description": "Branch or tag - https://github.com/supabase/supabase/tags",
       "Type": "String",
     },
@@ -9953,10 +9953,6 @@ applications:
           Object {
             "Name": "AMPLIFY_DIFF_DEPLOY",
             "Value": "false",
-          },
-          Object {
-            "Name": "_LIVE_UPDATES",
-            "Value": "[{\\"pkg\\":\\"node\\",\\"type\\":\\"npm\\",\\"version\\":\\"16\\"},{\\"pkg\\":\\"next-version\\",\\"type\\":\\"internal\\",\\"version\\":\\"12\\"}]",
           },
         ],
         "IAMServiceRole": Object {
