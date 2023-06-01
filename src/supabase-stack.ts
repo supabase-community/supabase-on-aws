@@ -450,7 +450,7 @@ export class SupabaseStack extends FargateStack {
     /** Supabase Studio Version */
     const studioBranch = new cdk.CfnParameter(this, 'StudioBranch', {
       type: 'String',
-      default: 'master',
+      default: 'v0.23.04',
       description: 'Branch or tag - https://github.com/supabase/supabase/tags',
     });
 
@@ -469,10 +469,6 @@ export class SupabaseStack extends FargateStack {
         SUPABASE_ANON_KEY: anonKey.value,
         SUPABASE_SERVICE_KEY: serviceRoleKey.value,
       },
-      liveUpdates: [
-        { pkg: 'node', type: 'npm', version: '16' },
-        { pkg: 'next-version', type: 'internal', version: '12' },
-      ],
     });
 
     new cdk.CfnOutput(this, 'SupabaseUrl', {

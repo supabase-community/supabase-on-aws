@@ -14,7 +14,6 @@ interface AmplifyHostingProps {
   environmentVariables?: {
     [name: string]: string;
   };
-  liveUpdates: { pkg: string; type: 'nvm'|'npm'|'internal'; version: string }[];
 }
 
 export class AmplifyHosting extends Construct {
@@ -26,7 +25,7 @@ export class AmplifyHosting extends Construct {
   constructor(scope: Construct, id: string, props: AmplifyHostingProps) {
     super(scope, id);
 
-    const { sourceRepo, sourceBranch, appRoot, environmentVariables = {}, liveUpdates } = props;
+    const { sourceRepo, sourceBranch, appRoot, environmentVariables = {} } = props;
 
     /** Source Repository for Amplify Hosting */
     const repository = new Repository(this, 'Repository', {
@@ -107,7 +106,6 @@ export class AmplifyHosting extends Construct {
     this.app.addEnvironment('NODE_OPTIONS', '--max-old-space-size=4096');
     this.app.addEnvironment('AMPLIFY_MONOREPO_APP_ROOT', appRoot);
     this.app.addEnvironment('AMPLIFY_DIFF_DEPLOY', 'false');
-    this.app.addEnvironment('_LIVE_UPDATES', JSON.stringify(liveUpdates));
 
     this.app.addCustomRule({ source: '/<*>', target: '/index.html', status: amplify.RedirectStatus.NOT_FOUND_REWRITE });
 
