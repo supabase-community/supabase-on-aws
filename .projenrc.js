@@ -1,7 +1,7 @@
 const { awscdk } = require('projen');
 const project = new awscdk.AwsCdkTypeScriptApp({
   projenVersion: '0.70.5',
-  cdkVersion: '2.73.0',
+  cdkVersion: '2.81.0',
   defaultReleaseBranch: 'main',
   name: 'supabase-on-aws',
   description: 'Self-hosted Supabase on AWS',
