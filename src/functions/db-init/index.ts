@@ -41,9 +41,23 @@ const initialize = async (secretId: string, host: string) => {
   const db = createConnectionPool({ ...config, host });
   console.log('Connected to PostgreSQL database');
 
-  const files = listFile('./', '.sql');
+  const initFiles = listFile('./init-scripts/', '.sql');
 
-  for await (let file of files) {
+  for await (let file of initFiles) {
+    console.log(`${file} ----- start query`);
+    try {
+      const result = await db.query(sql.file(file));
+      console.info(result);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      console.log(`${file} ----- end query`);
+    }
+  }
+
+  const migrationsFiles = listFile('./migrations/', '.sql');
+
+  for await (let file of migrationsFiles) {
     console.log(`${file} ----- start query`);
     try {
       const result = await db.query(sql.file(file));

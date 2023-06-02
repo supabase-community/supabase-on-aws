@@ -225,7 +225,10 @@ export class SupabaseDatabase extends Construct {
             return [];
           },
           afterBundling: (inputDir, outputDir) => {
-            return [`cp -p ${inputDir}/src/functions/db-init/*.sql ${outputDir}`];
+            return [
+              `cp -rp ${inputDir}/src/functions/db-init/init-scripts/ ${outputDir}/init-scripts/`,
+              `cp -rp ${inputDir}/src/functions/db-init/migrations/ ${outputDir}/migrations/`,
+            ];
           },
         },
       },
