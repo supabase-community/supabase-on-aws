@@ -139,7 +139,7 @@ export class SupabaseStack extends FargateStack {
     const db = new SupabaseDatabase(this, 'Database', { vpc });
 
     /** Secret of supabase_admin user */
-    const supabaseAdminSecret = db.cluster.secret!;   
+    const supabaseAdminSecret = db.cluster.secret!;
     /** Secret of supabase_auth_admin user */
     const supabaseAuthAdminSecret = db.genUserPassword('supabase_auth_admin');
     /** Secret of supabase_storage_admin user */
@@ -346,6 +346,7 @@ export class SupabaseStack extends FargateStack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
+    /** API & Queue for Cache Manager */
     //const cacheManager = cdn.addCacheManager();
 
     /** Image Transformer for Storage */
@@ -386,7 +387,7 @@ export class SupabaseStack extends FargateStack {
           IMGPROXY_URL: imgproxy.endpoint,
           // Queue for Smart CDN
           //WEBHOOK_URL: cacheManager.url,
-          //ENABLE_QUEUE_EVENTS: 'true',
+          ENABLE_QUEUE_EVENTS: 'false',
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
@@ -403,6 +404,8 @@ export class SupabaseStack extends FargateStack {
       },
       cpuArchitecture: 'X86_64', // storage-api does not work on ARM64
     });
+
+    // Allow storage-api to read and write to the bucket
     bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
 
     /** A RESTful API for managing your Postgres. Fetch tables, add roles, and run queries */
@@ -431,6 +434,7 @@ export class SupabaseStack extends FargateStack {
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_STORAGE_URL', `${storage.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_META_HOST', `${meta.endpoint}/`);
 
+    // Allow kong-gateway to connect other services
     kong.connections.allowToDefaultPort(auth);
     kong.connections.allowToDefaultPort(rest);
     kong.connections.allowToDefaultPort(gql);
@@ -442,6 +446,7 @@ export class SupabaseStack extends FargateStack {
     storage.connections.allowToDefaultPort(rest);
     storage.connections.allowToDefaultPort(imgproxy);
 
+    // Allow some services to connect the database
     auth.connectDatabase(db);
     rest.connectDatabase(db);
     gql.connectDatabase(db);

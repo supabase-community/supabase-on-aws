@@ -123,35 +123,6 @@ export class SupabaseDatabase extends Construct {
     };
     updateDBInstance(16);
 
-    //const syncSecretFunction = new NodejsFunction(this, 'SyncSecretFunction', {
-    //  description: 'Supabase - Sync DB secret to parameter store',
-    //  entry: 'src/functions/db-secret-sync.ts',
-    //  runtime: lambda.Runtime.NODEJS_18_X,
-    //  architecture: lambda.Architecture.ARM_64,
-    //  environment: {
-    //    WRITER_PARAMETER_NAME: this.url.writer.parameterName,
-    //    READER_PARAMETER_NAME: this.url.reader.parameterName,
-    //  },
-    //  initialPolicy: [
-    //    new iam.PolicyStatement({
-    //      sid: 'PutParameter',
-    //      actions: [
-    //        'ssm:PutParameter',
-    //        'ssm:GetParametersByPath',
-    //        'ssm:GetParameters',
-    //        'ssm:GetParameter',
-    //      ],
-    //      resources: [
-    //        this.url.writer.parameterArn,
-    //        this.url.writer.parameterArn + '/*',
-    //        this.url.reader.parameterArn,
-    //        this.url.reader.parameterArn + '/*',
-    //      ],
-    //    }),
-    //  ],
-    //});
-    //this.secret.grantRead(syncSecretFunction);
-
     //this.secretRotationSucceeded = new events.Rule(this, 'SecretRotationSucceeded', {
     //  description: `Supabase - ${id} secret rotation succeeded`,
     //  eventPattern: {
@@ -205,12 +176,12 @@ export class SupabaseDatabase extends Construct {
       runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(60),
       environment: {
-        DB_SECRET_ARN: this.cluster.secret!.secretArn
+        DB_SECRET_ARN: this.cluster.secret!.secretArn,
       },
       vpc,
     });
 
-    // // Allow a function to connect to database
+    // Allow a function to connect to database
     this.cluster.connections.allowDefaultPortFrom(migrationFunction);
 
     // Allow a function to read db secret
@@ -241,9 +212,9 @@ export class SupabaseDatabase extends Construct {
       runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(10),
       environment: {
-        DB_SECRET_ARN: this.cluster.secret!.secretArn
+        DB_SECRET_ARN: this.cluster.secret!.secretArn,
       },
-      initialPolicy:[
+      initialPolicy: [
         new iam.PolicyStatement({
           actions: [
             'secretsmanager:GetSecretValue',
@@ -280,7 +251,7 @@ export class SupabaseDatabase extends Construct {
         secretStringTemplate: JSON.stringify({ username }),
         generateStringKey: 'password',
       },
-    })
+    });
 
     const resource = new cdk.CustomResource(user, 'Resource', {
       serviceToken: this.userPasswordProvider.serviceToken,
@@ -288,7 +259,6 @@ export class SupabaseDatabase extends Construct {
       properties: {
         Username: username,
         SecretId: secret.secretArn,
-        stub: 'demo',
       },
     });
 

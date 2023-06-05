@@ -61,7 +61,7 @@ export const handler: CdkCustomResourceHandler = async (event, _context) => {
   });
   console.log('Connected to PostgreSQL database');
 
-  let physicalResourceId: string|undefined
+  let physicalResourceId: string|undefined;
 
   switch (event.RequestType) {
     case 'Create': {
