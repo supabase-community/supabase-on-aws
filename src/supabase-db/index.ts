@@ -20,21 +20,18 @@ interface SupabaseDatabaseProps {
 
 export class SupabaseDatabase extends Construct {
   cluster: rds.DatabaseCluster;
-  secret: secretsmanager.ISecret;
-  //secretRotationSucceeded: events.Rule;
-  url: {
-    writer: ssm.StringParameter;
-    writerAuth: ssm.StringParameter;
-    reader: ssm.StringParameter;
-  };
   cfnParameters: {
     minCapacity: cdk.CfnParameter;
     maxCapacity: cdk.CfnParameter;
     instanceClass: cdk.CfnParameter;
     instanceCount: cdk.CfnParameter;
   };
+  /** Database migration */
+  migration: cdk.CustomResource;
+  /** Custom resource provider to generate user password */
+  userPasswordProvider: cr.Provider;
 
-  /** PosthreSQL cluster with aurora-postgresql engine */
+  /** Database with Roles managed by Supabase */
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
     super(scope, id);
 
@@ -69,14 +66,14 @@ export class SupabaseDatabase extends Construct {
     };
 
     const engine = rds.DatabaseClusterEngine.auroraPostgres({
-      version: rds.AuroraPostgresEngineVersion.VER_14_5,
+      version: rds.AuroraPostgresEngineVersion.VER_15_2,
     });
 
     const parameterGroup = new rds.ParameterGroup(this, 'ParameterGroup', {
       engine,
       description: 'Supabase parameter group for aurora-postgresql',
       parameters: {
-        'shared_preload_libraries': 'pg_stat_statements, pgaudit, pg_cron',
+        'shared_preload_libraries': 'pg_tle, pg_stat_statements, pgaudit, pg_cron',
         // Logical Replication - https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.Replication.Logical.html
         'rds.logical_replication': '1',
         'max_replication_slots': '20', // Default Aurora:20, Supabase:5
@@ -100,7 +97,9 @@ export class SupabaseDatabase extends Construct {
         enablePerformanceInsights: true,
         vpc,
       },
-      credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', { excludeCharacters }),
+      credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', {
+        secretName: `${cdk.Aws.STACK_NAME}-${id}-supabase_admin`,
+      }),
       defaultDatabaseName: 'postgres',
     });
 
@@ -123,34 +122,6 @@ export class SupabaseDatabase extends Construct {
       }
     };
     updateDBInstance(16);
-
-    this.secret = this.cluster.secret!;
-
-    // Sync to SSM Parameter Store for database_url
-    const username = this.secret.secretValueFromJson('username').toString();
-    const password = this.secret.secretValueFromJson('password').toString();
-    const dbname = this.secret.secretValueFromJson('dbname').toString();
-
-    this.url = {
-      writer: new ssm.StringParameter(this, 'WriterUrlParameter', {
-        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Writer`,
-        description: 'The standard connection PostgreSQL URI format.',
-        stringValue: `postgres://${username}:${password}@${this.cluster.clusterEndpoint.hostname}:${this.cluster.clusterEndpoint.port}/${dbname}`,
-        simpleName: false,
-      }),
-      writerAuth: new ssm.StringParameter(this, 'WriterAuthUrlParameter', {
-        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Writer/auth`,
-        description: 'The standard connection PostgreSQL URI with search_path=auth',
-        stringValue: `postgres://${username}:${password}@${this.cluster.clusterEndpoint.hostname}:${this.cluster.clusterEndpoint.port}/${dbname}?search_path=auth`,
-        simpleName: false,
-      }),
-      reader: new ssm.StringParameter(this, 'ReaderUrlParameter', {
-        parameterName: `/${cdk.Aws.STACK_NAME}/${id}/Url/Reader`,
-        description: 'The standard connection PostgreSQL URI format.',
-        stringValue: `postgres://${username}:${password}@${this.cluster.clusterReadEndpoint.hostname}:${this.cluster.clusterReadEndpoint.port}/${dbname}`,
-        simpleName: false,
-      }),
-    };
 
     //const syncSecretFunction = new NodejsFunction(this, 'SyncSecretFunction', {
     //  description: 'Supabase - Sync DB secret to parameter store',
@@ -209,10 +180,10 @@ export class SupabaseDatabase extends Construct {
     //});
     //this.cluster.connections.allowDefaultPortFrom(rotationSecurityGroup, 'Lambda to rotate secrets');
 
-    /** Custom resource function for database initialization */
-    const initFunction = new NodejsFunction(this, 'InitFunction', {
-      description: 'Supabase - Database init function',
-      entry: path.resolve(__dirname, 'functions/db-init/index.ts'),
+    /** Custom resource handler for database migration */
+    const migrationFunction = new NodejsFunction(this, 'MigrationFunction', {
+      description: 'Supabase - Database migration function',
+      entry: path.resolve(__dirname, 'cr-migrations-handler.ts'),
       bundling: {
         nodeModules: [
           '@databases/pg',
@@ -226,34 +197,105 @@ export class SupabaseDatabase extends Construct {
           },
           afterBundling: (inputDir, outputDir) => {
             return [
-              `cp -rp ${inputDir}/src/functions/db-init/init-scripts/ ${outputDir}/init-scripts/`,
-              `cp -rp ${inputDir}/src/functions/db-init/migrations/ ${outputDir}/migrations/`,
+              `cp -rp ${inputDir}/src/supabase-db/sql/ ${outputDir}/`,
             ];
           },
         },
       },
       runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(60),
+      environment: {
+        DB_SECRET_ARN: this.cluster.secret!.secretArn
+      },
       vpc,
     });
 
-    this.cluster.connections.allowDefaultPortFrom(initFunction);
-    this.secret.grantRead(initFunction);
+    // // Allow a function to connect to database
+    this.cluster.connections.allowDefaultPortFrom(migrationFunction);
 
-    /** Custom resource provider for database initialization */
-    const initProvider = new cr.Provider(this, 'InitProvider', { onEventHandler: initFunction });
+    // Allow a function to read db secret
+    this.cluster.secret?.grantRead(migrationFunction);
 
-    /** Modify schema and initial data */
-    const init = new cdk.CustomResource(this, 'InitData', {
-      serviceToken: initProvider.serviceToken,
-      resourceType: 'Custom::SupabaseInitData',
+    /** Custom resource provider for database migration */
+    const migrationProvider = new cr.Provider(this, 'MigrationProvider', { onEventHandler: migrationFunction });
+
+    /** Database migration */
+    this.migration = new cdk.CustomResource(this, 'Migration', {
+      serviceToken: migrationProvider.serviceToken,
+      resourceType: 'Custom::DatabaseMigration',
       properties: {
-        SecretId: this.secret.secretArn,
-        Hostname: this.cluster.clusterEndpoint.hostname,
-        Fingerprint: cdk.FileSystem.fingerprint('./src/functions/db-init'),
+        Fingerprint: cdk.FileSystem.fingerprint(path.resolve(__dirname, 'sql')),
       },
     });
-    init.node.addDependency(this.cluster.node.findChild('Instance1'));
 
+    // Migrations waits until instance is ready
+    this.migration.node.addDependency(this.cluster.node.findChild('Instance1'));
+
+    /** Custom resource handler to modify db user password */
+    const userPasswordFunction = new NodejsFunction(this, 'UserPasswordFunction', {
+      description: 'Supabase - DB user password function',
+      entry: path.resolve(__dirname, 'cr-user-password-handler.ts'),
+      bundling: {
+        nodeModules: ['@databases/pg'],
+      },
+      runtime: lambda.Runtime.NODEJS_18_X,
+      timeout: cdk.Duration.seconds(10),
+      environment: {
+        DB_SECRET_ARN: this.cluster.secret!.secretArn
+      },
+      initialPolicy:[
+        new iam.PolicyStatement({
+          actions: [
+            'secretsmanager:GetSecretValue',
+            'secretsmanager:PutSecretValue',
+          ],
+          resources: [`arn:aws:secretsmanager:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:secret:${cdk.Aws.STACK_NAME}-${id}-*`],
+        }),
+        new iam.PolicyStatement({
+          notActions: [
+            'secretsmanager:PutSecretValue',
+          ],
+          resources: [this.cluster.secret!.secretArn],
+        }),
+      ],
+      vpc,
+    });
+
+    // Allow a function to connect to database
+    this.cluster.connections.allowDefaultPortFrom(userPasswordFunction);
+
+    this.userPasswordProvider = new cr.Provider(this, 'UserPasswordProvider', { onEventHandler: userPasswordFunction });
   }
+
+  /** Generate and set password to database user */
+  genUserPassword(username: string) {
+    /** Scope */
+    const user = new Construct(this, username);
+
+    const secret = new secretsmanager.Secret(user, 'Secret', {
+      secretName: `${cdk.Aws.STACK_NAME}-${this.node.id}-${username}`,
+      description: `Supabase - Database User ${username}`,
+      generateSecretString: {
+        excludePunctuation: true,
+        secretStringTemplate: JSON.stringify({ username }),
+        generateStringKey: 'password',
+      },
+    })
+
+    const resource = new cdk.CustomResource(user, 'Resource', {
+      serviceToken: this.userPasswordProvider.serviceToken,
+      resourceType: 'Custom::DatabaseUserPassword',
+      properties: {
+        Username: username,
+        SecretId: secret.secretArn,
+        stub: 'demo',
+      },
+    });
+
+    // Wait for database migration
+    resource.node.addDependency(this.migration.node.defaultChild!);
+
+    return secret;
+  }
+
 }

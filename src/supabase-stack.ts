@@ -138,6 +138,17 @@ export class SupabaseStack extends FargateStack {
 
     const db = new SupabaseDatabase(this, 'Database', { vpc });
 
+    /** Secret of supabase_admin user */
+    const supabaseAdminSecret = db.cluster.secret!;   
+    /** Secret of supabase_auth_admin user */
+    const supabaseAuthAdminSecret = db.genUserPassword('supabase_auth_admin');
+    /** Secret of supabase_storage_admin user */
+    const supabaseStorageAdminSecret = db.genUserPassword('supabase_storage_admin');
+    /** Secret of authenticator user */
+    const authenticatorSecret = db.genUserPassword('authenticator');
+    /** Secret of postgres user */
+    const postgresSecret = db.genUserPassword('postgres');
+
     const jwtSecret = new JwtSecret(this, 'JwtSecret');
     const anonKey = jwtSecret.genApiKey('AnonKey', { roleName: 'anon', issuer: 'supabase', expiresIn: '10y' });
     const serviceRoleKey = jwtSecret.genApiKey('ServiceRoleKey', { roleName: 'service_role', issuer: 'supabase', expiresIn: '10y' });
@@ -150,6 +161,7 @@ export class SupabaseStack extends FargateStack {
     const cdn = new SupabaseCdn(this, 'Cdn', { origin: loadBalancer });
     const apiExternalUrl = `https://${cdn.distribution.domainName}`;
 
+    /** API Gateway for Supabase */
     const kong = new AutoScalingFargateService(this, 'Kong', {
       cluster,
       taskImageOptions: {
@@ -193,6 +205,7 @@ export class SupabaseStack extends FargateStack {
     });
     kong.connections.allowFrom(loadBalancer, Port.tcp(8100), 'ALB healthcheck');
 
+    /** GoTrue - Authentication and User Management by Supabase */
     const auth = new AutoScalingFargateService(this, 'Auth', {
       cluster,
       taskImageOptions: {
@@ -237,7 +250,7 @@ export class SupabaseStack extends FargateStack {
           GOTRUE_SMS_AUTOCONFIRM: 'true',
         },
         secrets: {
-          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writerAuth),
+          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSecretsManager(supabaseAuthAdminSecret, 'uri'),
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(smtp.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(smtp.secret, 'password'),
@@ -252,6 +265,7 @@ export class SupabaseStack extends FargateStack {
     });
     const authProviders = auth.addExternalAuthProviders(`${apiExternalUrl}/auth/v1/callback`, 3);
 
+    /** RESTful API for any PostgreSQL Database */
     const rest = new AutoScalingFargateService(this, 'Rest', {
       cluster,
       taskImageOptions: {
@@ -263,12 +277,13 @@ export class SupabaseStack extends FargateStack {
           PGRST_DB_USE_LEGACY_GUCS: 'false',
         },
         secrets: {
-          PGRST_DB_URI: ecs.Secret.fromSsmParameter(db.url.writer),
+          PGRST_DB_URI: ecs.Secret.fromSecretsManager(authenticatorSecret, 'uri'),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
         },
       },
     });
 
+    /** GraphQL API for any PostgreSQL Database */
     const gql = new AutoScalingFargateService(this, 'GraphQL', {
       cluster,
       taskImageOptions: {
@@ -287,14 +302,13 @@ export class SupabaseStack extends FargateStack {
           PG_IGNORE_RBAC: 'false',
         },
         secrets: {
-          DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writer),
+          DATABASE_URL: ecs.Secret.fromSecretsManager(authenticatorSecret, 'uri'),
           JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
         },
       },
-      minTaskCount: 0,
-      maxTaskCount: 0,
     });
 
+    /** Supabase Realtime */
     const realtime = new AutoScalingFargateService(this, 'Realtime', {
       cluster,
       taskImageOptions: {
@@ -313,11 +327,11 @@ export class SupabaseStack extends FargateStack {
         },
         secrets: {
           JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
-          DB_HOST: ecs.Secret.fromSecretsManager(db.secret, 'host'),
-          DB_PORT: ecs.Secret.fromSecretsManager(db.secret, 'port'),
-          DB_NAME: ecs.Secret.fromSecretsManager(db.secret, 'dbname'),
-          DB_USER: ecs.Secret.fromSecretsManager(db.secret, 'username'),
-          DB_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
+          DB_HOST: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'host'),
+          DB_PORT: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'port'),
+          DB_NAME: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'dbname'),
+          DB_USER: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'username'),
+          DB_PASSWORD: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'password'),
         },
         command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
       },
@@ -325,14 +339,16 @@ export class SupabaseStack extends FargateStack {
       maxTaskCount: 1,
     });
 
+    /** Supabase Storage Backend */
     const bucket = new s3.Bucket(this, 'Bucket', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
-    const cacheManager = cdn.addCacheManager();
+    //const cacheManager = cdn.addCacheManager();
 
+    /** Image Transformer for Storage */
     const imgproxy = new AutoScalingFargateService(this, 'Imgproxy', {
       cluster,
       taskImageOptions: {
@@ -342,10 +358,12 @@ export class SupabaseStack extends FargateStack {
           IMGPROXY_BIND: ':5001',
           IMGPROXY_LOCAL_FILESYSTEM_ROOT: '/',
           IMGPROXY_USE_ETAG: 'true',
+          IMGPROXY_ENABLE_WEBP_DETECTION: 'true',
         },
       },
     });
 
+    /** A S3 compatible object storage service that stores metadata in Postgres */
     const storage = new AutoScalingFargateService(this, 'Storage', {
       cluster,
       taskImageOptions: {
@@ -356,21 +374,25 @@ export class SupabaseStack extends FargateStack {
           PGOPTIONS: '-c search_path=storage,public',
           FILE_SIZE_LIMIT: '52428800',
           TENANT_ID: 'stub',
+          // Multitenant
           IS_MULTITENANT: 'false',
+          // Storage Backend
           STORAGE_BACKEND: 's3',
-          REGION: cdk.Aws.REGION,
           GLOBAL_S3_BUCKET: bucket.bucketName,
-          // Webhook for Smart CDN
-          WEBHOOK_URL: cacheManager.url,
-          ENABLE_QUEUE_EVENTS: 'true',
-          // Image resizing
+          // S3 Configuration
+          REGION: cdk.Aws.REGION,
+          // Image Transformation
+          ENABLE_IMAGE_TRANSFORMATION: 'true',
           IMGPROXY_URL: imgproxy.endpoint,
+          // Queue for Smart CDN
+          //WEBHOOK_URL: cacheManager.url,
+          //ENABLE_QUEUE_EVENTS: 'true',
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
           SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
-          DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writer),
+          DATABASE_URL: ecs.Secret.fromSecretsManager(supabaseStorageAdminSecret, 'uri'),
         },
         healthCheck: {
           command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/status || exit 1'],
@@ -383,6 +405,7 @@ export class SupabaseStack extends FargateStack {
     });
     bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
 
+    /** A RESTful API for managing your Postgres. Fetch tables, add roles, and run queries */
     const meta = new AutoScalingFargateService(this, 'Meta', {
       cluster,
       taskImageOptions: {
@@ -392,11 +415,11 @@ export class SupabaseStack extends FargateStack {
           PG_META_PORT: '8080',
         },
         secrets: {
-          PG_META_DB_HOST: ecs.Secret.fromSecretsManager(db.secret, 'host'),
-          PG_META_DB_PORT: ecs.Secret.fromSecretsManager(db.secret, 'port'),
-          PG_META_DB_NAME: ecs.Secret.fromSecretsManager(db.secret, 'dbname'),
-          PG_META_DB_USER: ecs.Secret.fromSecretsManager(db.secret, 'username'),
-          PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
+          PG_META_DB_HOST: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'host'),
+          PG_META_DB_PORT: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'port'),
+          PG_META_DB_NAME: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'dbname'),
+          PG_META_DB_USER: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'username'),
+          PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'password'),
         },
       },
     });
@@ -461,7 +484,7 @@ export class SupabaseStack extends FargateStack {
       appRoot: 'studio',
       environmentVariables: {
         STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
-        POSTGRES_PASSWORD: db.secret.secretValueFromJson('password').toString(),
+        POSTGRES_PASSWORD: supabaseAdminSecret.secretValueFromJson('password').toString(),
         //DEFAULT_ORGANIZATION: 'Default Organization',
         //DEFAULT_PROJECT: 'Default Project',
         SUPABASE_URL: `${apiExternalUrl}`,
@@ -577,6 +600,11 @@ export class SupabaseStack extends FargateStack {
             storage.cfnParameters.taskSize.logicalId,
             storage.cfnParameters.minTaskCount.logicalId,
             storage.cfnParameters.maxTaskCount.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Infrastructure Settings - Imgproxy' },
+          Parameters: [
             imgproxy.cfnParameters.taskSize.logicalId,
             imgproxy.cfnParameters.minTaskCount.logicalId,
             imgproxy.cfnParameters.maxTaskCount.logicalId,
