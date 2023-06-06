@@ -2442,12 +2442,16 @@ Object {
             "Essential": true,
             "HealthCheck": Object {
               "Command": Array [
-                "CMD-SHELL",
-                "wget --no-verbose --tries=1 --spider http://localhost:9999/health || exit 1",
+                "CMD",
+                "wget",
+                "--no-verbose",
+                "--tries=1",
+                "--spider",
+                "http://localhost:9999/health",
               ],
-              "Interval": 10,
+              "Interval": 5,
               "Retries": 3,
-              "Timeout": 10,
+              "Timeout": 5,
             },
             "Image": Object {
               "Ref": "AuthImageUri",
@@ -5360,8 +5364,12 @@ Object {
             "Essential": true,
             "HealthCheck": Object {
               "Command": Array [
-                "CMD-SHELL",
-                "wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1",
+                "CMD",
+                "wget",
+                "--no-verbose",
+                "--tries=1",
+                "--spider",
+                "http://localhost:5000/status",
               ],
               "Interval": 5,
               "Retries": 3,
@@ -5807,6 +5815,16 @@ Object {
               },
             ],
             "Essential": true,
+            "HealthCheck": Object {
+              "Command": Array [
+                "CMD",
+                "imgproxy",
+                "health",
+              ],
+              "Interval": 5,
+              "Retries": 3,
+              "Timeout": 5,
+            },
             "Image": Object {
               "Ref": "ImgproxyImageUri",
             },
@@ -7796,52 +7814,50 @@ Object {
         "ContainerDefinitions": Array [
           Object {
             "Command": Array [
-              "bash",
+              "sh",
               "-c",
-              "./prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start",
+              "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server",
             ],
             "Environment": Array [
               Object {
-                "Name": "DB_SSL",
+                "Name": "DB_AFTER_CONNECT_QUERY",
+                "Value": "SET search_path TO realtime",
+              },
+              Object {
+                "Name": "DB_ENC_KEY",
+                "Value": "supabaserealtime",
+              },
+              Object {
+                "Name": "FLY_ALLOC_ID",
+                "Value": "fly123",
+              },
+              Object {
+                "Name": "FLY_APP_NAME",
+                "Value": "realtime",
+              },
+              Object {
+                "Name": "SECRET_KEY_BASE",
+                "Value": "UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq",
+              },
+              Object {
+                "Name": "ERL_AFLAGS",
+                "Value": "-proto_dist inet_tcp",
+              },
+              Object {
+                "Name": "ENABLE_TAILSCALE",
                 "Value": "false",
               },
               Object {
-                "Name": "PORT",
-                "Value": "4000",
+                "Name": "DNS_NODES",
+                "Value": "''",
               },
               Object {
-                "Name": "REPLICATION_MODE",
-                "Value": "RLS",
-              },
-              Object {
-                "Name": "REPLICATION_POLL_INTERVAL",
-                "Value": "300",
-              },
-              Object {
-                "Name": "SUBSCRIPTION_SYNC_INTERVAL",
-                "Value": "60000",
-              },
-              Object {
-                "Name": "SECURE_CHANNELS",
-                "Value": "true",
-              },
-              Object {
-                "Name": "SLOT_NAME",
-                "Value": "realtime_rls",
-              },
-              Object {
-                "Name": "TEMPORARY_SLOT",
-                "Value": "true",
-              },
-              Object {
-                "Name": "MAX_REPLICATION_LAG_MB",
-                "Value": "1000",
+                "Name": "RLIMIT_NOFILE",
+                "Value": "",
               },
             ],
             "Essential": true,
-            "Image": Object {
-              "Ref": "RealtimeImageUri",
-            },
+            "Image": "public.ecr.aws/supabase/realtime:v2.5.1",
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
               "Options": Object {
@@ -7863,12 +7879,6 @@ Object {
               },
             ],
             "Secrets": Array [
-              Object {
-                "Name": "JWT_SECRET",
-                "ValueFrom": Object {
-                  "Ref": "JwtSecretB8834B39",
-                },
-              },
               Object {
                 "Name": "DB_HOST",
                 "ValueFrom": Object {
@@ -7893,20 +7903,6 @@ Object {
                         "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
                       },
                       ":port::",
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "DB_NAME",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-                      },
-                      ":dbname::",
                     ],
                   ],
                 },
@@ -7937,6 +7933,26 @@ Object {
                       ":password::",
                     ],
                   ],
+                },
+              },
+              Object {
+                "Name": "DB_NAME",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                      },
+                      ":dbname::",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "API_JWT_SECRET",
+                "ValueFrom": Object {
+                  "Ref": "JwtSecretB8834B39",
                 },
               },
             ],
@@ -8032,7 +8048,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "JwtSecretB8834B39",
+                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
               },
             },
             Object {
@@ -8042,7 +8058,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                "Ref": "JwtSecretB8834B39",
               },
             },
           ],
@@ -9218,12 +9234,16 @@ Object {
             "Essential": true,
             "HealthCheck": Object {
               "Command": Array [
-                "CMD-SHELL",
-                "wget --no-verbose --tries=1 --spider http://localhost:5000/status || exit 1",
+                "CMD",
+                "wget",
+                "--no-verbose",
+                "--tries=1",
+                "--spider",
+                "http://localhost:5000/status",
               ],
-              "Interval": 10,
+              "Interval": 5,
               "Retries": 3,
-              "Timeout": 10,
+              "Timeout": 5,
             },
             "Image": Object {
               "Ref": "StorageImageUri",
