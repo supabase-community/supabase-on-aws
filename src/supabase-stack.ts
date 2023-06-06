@@ -291,7 +291,7 @@ export class SupabaseStack extends FargateStack {
         //image: ecs.ContainerImage.fromAsset('./containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
         containerPort: 5000,
         healthCheck: {
-          command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1'],
+          command: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:5000/status'],
           interval: cdk.Duration.seconds(5),
           timeout: cdk.Duration.seconds(5),
           retries: 3,
@@ -308,32 +308,33 @@ export class SupabaseStack extends FargateStack {
       },
     });
 
-    /** Supabase Realtime */
+    /** Websocket API */
     const realtime = new AutoScalingFargateService(this, 'Realtime', {
       cluster,
       taskImageOptions: {
-        image: ecs.ContainerImage.fromRegistry(realtimeImageUri.valueAsString),
+        //image: ecs.ContainerImage.fromRegistry(realtimeImageUri.valueAsString),
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/supabase/realtime:v2.5.1'),
         containerPort: 4000,
         environment: {
-          DB_SSL: 'false',
-          PORT: '4000',
-          REPLICATION_MODE: 'RLS',
-          REPLICATION_POLL_INTERVAL: '300', // for RLS
-          SUBSCRIPTION_SYNC_INTERVAL: '60000', // for RLS
-          SECURE_CHANNELS: 'true',
-          SLOT_NAME: 'realtime_rls',
-          TEMPORARY_SLOT: 'true',
-          MAX_REPLICATION_LAG_MB: '1000',
+          DB_AFTER_CONNECT_QUERY: 'SET search_path TO realtime',
+          DB_ENC_KEY: 'supabaserealtime',
+          FLY_ALLOC_ID: 'fly123',
+          FLY_APP_NAME: 'realtime',
+          SECRET_KEY_BASE: 'UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq',
+          ERL_AFLAGS: '-proto_dist inet_tcp',
+          ENABLE_TAILSCALE: 'false',
+          DNS_NODES: "''",
+          RLIMIT_NOFILE: '', // nofile is already configured in Fargate
         },
         secrets: {
-          JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           DB_HOST: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'host'),
           DB_PORT: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'port'),
-          DB_NAME: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'dbname'),
           DB_USER: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'username'),
           DB_PASSWORD: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'password'),
+          DB_NAME: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'dbname'),
+          API_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
         },
-        command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
+        command: ['sh', '-c', "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server"],
       },
       minTaskCount: 1,
       maxTaskCount: 1,
