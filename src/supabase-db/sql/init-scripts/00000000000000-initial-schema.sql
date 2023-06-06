@@ -1,22 +1,29 @@
+-- migrate:up
+
 -- Set up realtime
-create schema if not exists realtime;
--- create publication supabase_realtime; -- defaults to empty publication
+-- defaults to empty publication
 create publication supabase_realtime;
 
 -- Supabase super admin
 -- create user supabase_admin;
 -- alter user  supabase_admin with superuser createdb createrole replication bypassrls;
-GRANT rds_replication TO supabase_admin;
+alter user supabase_admin with createdb createrole bypassrls;
+grant rds_replication to supabase_admin; -- for Aurora
 
-CREATE user postgres;
-ALTER user postgres WITH createdb createrole bypassrls;
-GRANT rds_replication TO postgres;
+-- Supabase replication user
+-- create user supabase_replication_admin with login replication;
+create user supabase_replication_admin with login;
+grant rds_replication to supabase_replication_admin; -- for Aurora
+
+-- Supabase read-only user
+create role supabase_read_only_user with login bypassrls;
+grant pg_read_all_data to supabase_read_only_user;
 
 -- Extension namespacing
 create schema if not exists extensions;
 create extension if not exists "uuid-ossp"      with schema extensions;
 create extension if not exists pgcrypto         with schema extensions;
--- create extension if not exists pgjwt            with schema extensions; -- for Amazon RDS/Aurora
+create extension if not exists pgjwt            with schema extensions;
 
 -- Set up auth roles for the developer
 create role anon                nologin noinherit;
@@ -51,3 +58,5 @@ alter default privileges for user supabase_admin in schema public grant all
 -- Set short statement/query timeouts for API roles
 alter role anon set statement_timeout = '3s';
 alter role authenticated set statement_timeout = '8s';
+
+-- migrate:down

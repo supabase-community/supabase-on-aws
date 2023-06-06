@@ -5,6 +5,7 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import { Smtp } from './amazon-ses-smtp';
 import { AmplifyHosting } from './aws-amplify-hosting';
@@ -86,12 +87,12 @@ export class SupabaseStack extends FargateStack {
 
     const authImageUri = new cdk.CfnParameter(this, 'AuthImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/gotrue:v2.37.2',
+      default: 'public.ecr.aws/supabase/gotrue:v2.69.2',
       description: 'https://gallery.ecr.aws/supabase/gotrue',
     });
     const restImageUri = new cdk.CfnParameter(this, 'RestImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/postgrest:v9.0.1.20220802',
+      default: 'public.ecr.aws/supabase/postgrest:v10.1.2',
       description: 'https://gallery.ecr.aws/supabase/postgrest',
     });
     const realtimeImageUri = new cdk.CfnParameter(this, 'RealtimeImageUri', {
@@ -101,17 +102,17 @@ export class SupabaseStack extends FargateStack {
     });
     const storageImageUri = new cdk.CfnParameter(this, 'StorageImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/storage-api:v0.26.1',
+      default: 'public.ecr.aws/supabase/storage-api:v0.40.1',
       description: 'https://gallery.ecr.aws/supabase/storage-api',
     });
     const imgproxyImageUri = new cdk.CfnParameter(this, 'ImgproxyImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/imgproxy:v1.0.4',
+      default: 'public.ecr.aws/supabase/imgproxy:v1.2.0',
       description: 'https://gallery.ecr.aws/supabase/imgproxy',
     });
     const postgresMetaImageUri = new cdk.CfnParameter(this, 'PostgresMetaImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/postgres-meta:v0.52.1',
+      default: 'public.ecr.aws/supabase/postgres-meta:v0.66.0',
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
@@ -138,6 +139,17 @@ export class SupabaseStack extends FargateStack {
 
     const db = new SupabaseDatabase(this, 'Database', { vpc });
 
+    /** Secret of supabase_admin user */
+    const supabaseAdminSecret = db.cluster.secret!;
+    /** Secret of supabase_auth_admin user */
+    const supabaseAuthAdminSecret = db.genUserPassword('supabase_auth_admin');
+    /** Secret of supabase_storage_admin user */
+    const supabaseStorageAdminSecret = db.genUserPassword('supabase_storage_admin');
+    /** Secret of authenticator user */
+    const authenticatorSecret = db.genUserPassword('authenticator');
+    /** Secret of postgres user */
+    const postgresSecret = db.genUserPassword('postgres');
+
     const jwtSecret = new JwtSecret(this, 'JwtSecret');
     const anonKey = jwtSecret.genApiKey('AnonKey', { roleName: 'anon', issuer: 'supabase', expiresIn: '10y' });
     const serviceRoleKey = jwtSecret.genApiKey('ServiceRoleKey', { roleName: 'service_role', issuer: 'supabase', expiresIn: '10y' });
@@ -150,12 +162,19 @@ export class SupabaseStack extends FargateStack {
     const cdn = new SupabaseCdn(this, 'Cdn', { origin: loadBalancer });
     const apiExternalUrl = `https://${cdn.distribution.domainName}`;
 
+    /** API Gateway for Supabase */
     const kong = new AutoScalingFargateService(this, 'Kong', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/kong:latest'),
         //image: ecs.ContainerImage.fromAsset('./containers/kong', { platform: Platform.LINUX_ARM64 }),
         containerPort: 8000,
+        healthCheck: {
+          command: ['CMD', 'kong', 'health'],
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(5),
+          retries: 3,
+        },
         environment: {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
           KONG_PLUGINS: 'request-transformer,cors,key-auth,acl,opentelemetry',
@@ -167,12 +186,6 @@ export class SupabaseStack extends FargateStack {
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
           SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
-        },
-        healthCheck: {
-          command: ['CMD', 'kong', 'health'],
-          interval: cdk.Duration.seconds(10),
-          timeout: cdk.Duration.seconds(10),
-          retries: 3,
         },
       },
     });
@@ -193,11 +206,18 @@ export class SupabaseStack extends FargateStack {
     });
     kong.connections.allowFrom(loadBalancer, Port.tcp(8100), 'ALB healthcheck');
 
+    /** GoTrue - Authentication and User Management by Supabase */
     const auth = new AutoScalingFargateService(this, 'Auth', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(authImageUri.valueAsString),
         containerPort: 9999,
+        healthCheck: {
+          command: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9999/health'],
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(5),
+          retries: 3,
+        },
         environment: {
           // Top-Level - https://github.com/supabase/gotrue#top-level
           GOTRUE_SITE_URL: siteUrl.valueAsString,
@@ -237,21 +257,16 @@ export class SupabaseStack extends FargateStack {
           GOTRUE_SMS_AUTOCONFIRM: 'true',
         },
         secrets: {
-          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writerAuth),
+          GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSecretsManager(supabaseAuthAdminSecret, 'uri'),
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(smtp.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(smtp.secret, 'password'),
-        },
-        healthCheck: {
-          command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:9999/health || exit 1'],
-          interval: cdk.Duration.seconds(10),
-          timeout: cdk.Duration.seconds(10),
-          retries: 3,
         },
       },
     });
     const authProviders = auth.addExternalAuthProviders(`${apiExternalUrl}/auth/v1/callback`, 3);
 
+    /** RESTful API for any PostgreSQL Database */
     const rest = new AutoScalingFargateService(this, 'Rest', {
       cluster,
       taskImageOptions: {
@@ -263,12 +278,13 @@ export class SupabaseStack extends FargateStack {
           PGRST_DB_USE_LEGACY_GUCS: 'false',
         },
         secrets: {
-          PGRST_DB_URI: ecs.Secret.fromSsmParameter(db.url.writer),
+          PGRST_DB_URI: ecs.Secret.fromSecretsManager(authenticatorSecret, 'uri'),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
         },
       },
     });
 
+    /** GraphQL API for any PostgreSQL Database */
     const gql = new AutoScalingFargateService(this, 'GraphQL', {
       cluster,
       taskImageOptions: {
@@ -276,7 +292,7 @@ export class SupabaseStack extends FargateStack {
         //image: ecs.ContainerImage.fromAsset('./containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
         containerPort: 5000,
         healthCheck: {
-          command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1'],
+          command: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:5000/health'],
           interval: cdk.Duration.seconds(5),
           timeout: cdk.Duration.seconds(5),
           retries: 3,
@@ -287,102 +303,129 @@ export class SupabaseStack extends FargateStack {
           PG_IGNORE_RBAC: 'false',
         },
         secrets: {
-          DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writer),
+          DATABASE_URL: ecs.Secret.fromSecretsManager(authenticatorSecret, 'uri'),
           JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
         },
       },
-      minTaskCount: 0,
-      maxTaskCount: 0,
     });
 
+    /**  Secret used by the server to sign cookies. Recommended: 64 characters. */
+    const cookieSigningSecret = new Secret(this, 'CookieSigningSecret', {
+      secretName: `${cdk.Aws.STACK_NAME}-Realtime-CookieSigning-Secret`,
+      description: 'Supabase - Cookie Signing Secret for Realtime',
+      generateSecretString: {
+        passwordLength: 64,
+        excludePunctuation: true,
+      },
+    });
+
+    /** Websocket API */
     const realtime = new AutoScalingFargateService(this, 'Realtime', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(realtimeImageUri.valueAsString),
         containerPort: 4000,
         environment: {
-          DB_SSL: 'false',
-          PORT: '4000',
-          REPLICATION_MODE: 'RLS',
-          REPLICATION_POLL_INTERVAL: '300', // for RLS
-          SUBSCRIPTION_SYNC_INTERVAL: '60000', // for RLS
-          SECURE_CHANNELS: 'true',
-          SLOT_NAME: 'realtime_rls',
-          TEMPORARY_SLOT: 'true',
-          MAX_REPLICATION_LAG_MB: '1000',
+          DB_AFTER_CONNECT_QUERY: 'SET search_path TO realtime',
+          DB_ENC_KEY: 'supabaserealtime',
+          FLY_ALLOC_ID: 'fly123',
+          FLY_APP_NAME: 'realtime',
+          ERL_AFLAGS: '-proto_dist inet_tcp',
+          ENABLE_TAILSCALE: 'false',
+          DNS_NODES: "''",
+          RLIMIT_NOFILE: '', // nofile is already configured in Fargate
         },
         secrets: {
-          JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
-          DB_HOST: ecs.Secret.fromSecretsManager(db.secret, 'host'),
-          DB_PORT: ecs.Secret.fromSecretsManager(db.secret, 'port'),
-          DB_NAME: ecs.Secret.fromSecretsManager(db.secret, 'dbname'),
-          DB_USER: ecs.Secret.fromSecretsManager(db.secret, 'username'),
-          DB_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
+          DB_HOST: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'host'),
+          DB_PORT: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'port'),
+          DB_USER: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'username'),
+          DB_PASSWORD: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'password'),
+          DB_NAME: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'dbname'),
+          API_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
+          SECRET_KEY_BASE: ecs.Secret.fromSecretsManager(cookieSigningSecret),
         },
-        command: ['bash', '-c', './prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start'],
+        command: ['sh', '-c', "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server"],
       },
       minTaskCount: 1,
       maxTaskCount: 1,
     });
 
+    /** Supabase Storage Backend */
     const bucket = new s3.Bucket(this, 'Bucket', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
-    const cacheManager = cdn.addCacheManager();
+    /** API & Queue for Cache Manager */
+    //const cacheManager = cdn.addCacheManager();
 
+    /** Image Transformer for Storage */
     const imgproxy = new AutoScalingFargateService(this, 'Imgproxy', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(imgproxyImageUri.valueAsString),
         containerPort: 5001,
+        healthCheck: {
+          command: ['CMD', 'imgproxy', 'health'],
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(5),
+          retries: 3,
+        },
         environment: {
           IMGPROXY_BIND: ':5001',
           IMGPROXY_LOCAL_FILESYSTEM_ROOT: '/',
           IMGPROXY_USE_ETAG: 'true',
+          IMGPROXY_ENABLE_WEBP_DETECTION: 'true',
         },
       },
     });
 
+    /** S3 compatible object storage API that stores metadata in Postgres */
     const storage = new AutoScalingFargateService(this, 'Storage', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(storageImageUri.valueAsString),
         containerPort: 5000,
+        healthCheck: {
+          command: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:5000/status'],
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(5),
+          retries: 3,
+        },
         environment: {
           POSTGREST_URL: `${rest.endpoint}`,
           PGOPTIONS: '-c search_path=storage,public',
           FILE_SIZE_LIMIT: '52428800',
           TENANT_ID: 'stub',
+          // Multitenant
           IS_MULTITENANT: 'false',
+          // Storage Backend
           STORAGE_BACKEND: 's3',
-          REGION: cdk.Aws.REGION,
           GLOBAL_S3_BUCKET: bucket.bucketName,
-          // Webhook for Smart CDN
-          WEBHOOK_URL: cacheManager.url,
-          ENABLE_QUEUE_EVENTS: 'true',
-          // Image resizing
+          // S3 Configuration
+          REGION: cdk.Aws.REGION,
+          // Image Transformation
+          ENABLE_IMAGE_TRANSFORMATION: 'true',
           IMGPROXY_URL: imgproxy.endpoint,
+          // Queue for Smart CDN
+          //WEBHOOK_URL: cacheManager.url,
+          ENABLE_QUEUE_EVENTS: 'false',
         },
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
           SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
-          DATABASE_URL: ecs.Secret.fromSsmParameter(db.url.writer),
-        },
-        healthCheck: {
-          command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/status || exit 1'],
-          interval: cdk.Duration.seconds(10),
-          timeout: cdk.Duration.seconds(10),
-          retries: 3,
+          DATABASE_URL: ecs.Secret.fromSecretsManager(supabaseStorageAdminSecret, 'uri'),
         },
       },
       cpuArchitecture: 'X86_64', // storage-api does not work on ARM64
     });
+
+    // Allow storage-api to read and write to the bucket
     bucket.grantReadWrite(storage.service.taskDefinition.taskRole);
 
+    /** A RESTful API for managing your Postgres. Fetch tables, add roles, and run queries */
     const meta = new AutoScalingFargateService(this, 'Meta', {
       cluster,
       taskImageOptions: {
@@ -392,11 +435,11 @@ export class SupabaseStack extends FargateStack {
           PG_META_PORT: '8080',
         },
         secrets: {
-          PG_META_DB_HOST: ecs.Secret.fromSecretsManager(db.secret, 'host'),
-          PG_META_DB_PORT: ecs.Secret.fromSecretsManager(db.secret, 'port'),
-          PG_META_DB_NAME: ecs.Secret.fromSecretsManager(db.secret, 'dbname'),
-          PG_META_DB_USER: ecs.Secret.fromSecretsManager(db.secret, 'username'),
-          PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(db.secret, 'password'),
+          PG_META_DB_HOST: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'host'),
+          PG_META_DB_PORT: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'port'),
+          PG_META_DB_NAME: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'dbname'),
+          PG_META_DB_USER: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'username'),
+          PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'password'),
         },
       },
     });
@@ -408,6 +451,7 @@ export class SupabaseStack extends FargateStack {
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_STORAGE_URL', `${storage.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_META_HOST', `${meta.endpoint}/`);
 
+    // Allow kong-gateway to connect other services
     kong.connections.allowToDefaultPort(auth);
     kong.connections.allowToDefaultPort(rest);
     kong.connections.allowToDefaultPort(gql);
@@ -419,6 +463,7 @@ export class SupabaseStack extends FargateStack {
     storage.connections.allowToDefaultPort(rest);
     storage.connections.allowToDefaultPort(imgproxy);
 
+    // Allow some services to connect the database
     auth.connectDatabase(db);
     rest.connectDatabase(db);
     gql.connectDatabase(db);
@@ -461,7 +506,7 @@ export class SupabaseStack extends FargateStack {
       appRoot: 'studio',
       environmentVariables: {
         STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
-        POSTGRES_PASSWORD: db.secret.secretValueFromJson('password').toString(),
+        POSTGRES_PASSWORD: supabaseAdminSecret.secretValueFromJson('password').toString(),
         //DEFAULT_ORGANIZATION: 'Default Organization',
         //DEFAULT_PROJECT: 'Default Project',
         SUPABASE_URL: `${apiExternalUrl}`,
@@ -577,6 +622,11 @@ export class SupabaseStack extends FargateStack {
             storage.cfnParameters.taskSize.logicalId,
             storage.cfnParameters.minTaskCount.logicalId,
             storage.cfnParameters.maxTaskCount.logicalId,
+          ],
+        },
+        {
+          Label: { default: 'Infrastructure Settings - Imgproxy' },
+          Parameters: [
             imgproxy.cfnParameters.taskSize.logicalId,
             imgproxy.cfnParameters.minTaskCount.logicalId,
             imgproxy.cfnParameters.maxTaskCount.logicalId,

@@ -355,6 +355,107 @@ Object {
   },
   "Description": "Self-hosted Supabase",
   "Mappings": Object {
+    "DefaultCrNodeVersionMap": Object {
+      "af-south-1": Object {
+        "value": "nodejs16.x",
+      },
+      "ap-east-1": Object {
+        "value": "nodejs16.x",
+      },
+      "ap-northeast-1": Object {
+        "value": "nodejs16.x",
+      },
+      "ap-northeast-2": Object {
+        "value": "nodejs16.x",
+      },
+      "ap-northeast-3": Object {
+        "value": "nodejs16.x",
+      },
+      "ap-south-1": Object {
+        "value": "nodejs16.x",
+      },
+      "ap-south-2": Object {
+        "value": "nodejs16.x",
+      },
+      "ap-southeast-1": Object {
+        "value": "nodejs16.x",
+      },
+      "ap-southeast-2": Object {
+        "value": "nodejs16.x",
+      },
+      "ap-southeast-3": Object {
+        "value": "nodejs16.x",
+      },
+      "ca-central-1": Object {
+        "value": "nodejs16.x",
+      },
+      "cn-north-1": Object {
+        "value": "nodejs16.x",
+      },
+      "cn-northwest-1": Object {
+        "value": "nodejs16.x",
+      },
+      "eu-central-1": Object {
+        "value": "nodejs16.x",
+      },
+      "eu-central-2": Object {
+        "value": "nodejs16.x",
+      },
+      "eu-north-1": Object {
+        "value": "nodejs16.x",
+      },
+      "eu-south-1": Object {
+        "value": "nodejs16.x",
+      },
+      "eu-south-2": Object {
+        "value": "nodejs16.x",
+      },
+      "eu-west-1": Object {
+        "value": "nodejs16.x",
+      },
+      "eu-west-2": Object {
+        "value": "nodejs16.x",
+      },
+      "eu-west-3": Object {
+        "value": "nodejs16.x",
+      },
+      "me-central-1": Object {
+        "value": "nodejs16.x",
+      },
+      "me-south-1": Object {
+        "value": "nodejs16.x",
+      },
+      "sa-east-1": Object {
+        "value": "nodejs16.x",
+      },
+      "us-east-1": Object {
+        "value": "nodejs16.x",
+      },
+      "us-east-2": Object {
+        "value": "nodejs16.x",
+      },
+      "us-gov-east-1": Object {
+        "value": "nodejs16.x",
+      },
+      "us-gov-west-1": Object {
+        "value": "nodejs16.x",
+      },
+      "us-iso-east-1": Object {
+        "value": "nodejs14.x",
+      },
+      "us-iso-west-1": Object {
+        "value": "nodejs14.x",
+      },
+      "us-isob-east-1": Object {
+        "value": "nodejs14.x",
+      },
+      "us-west-1": Object {
+        "value": "nodejs16.x",
+      },
+      "us-west-2": Object {
+        "value": "nodejs16.x",
+      },
+    },
     "ServiceprincipalMap": Object {
       "af-south-1": Object {
         "states": "states.af-south-1.amazonaws.com",
@@ -605,6 +706,13 @@ Object {
             "StorageTaskSizeB82D9CFB",
             "StorageMinTaskCount07E65703",
             "StorageMaxTaskCount372C6914",
+          ],
+        },
+        Object {
+          "Label": Object {
+            "default": "Infrastructure Settings - Imgproxy",
+          },
+          "Parameters": Array [
             "ImgproxyTaskSize5D0DD9F6",
             "ImgproxyMinTaskCount7B881431",
             "ImgproxyMaxTaskCount4DF8AF60",
@@ -899,7 +1007,7 @@ Object {
   },
   "Parameters": Object {
     "AuthImageUri": Object {
-      "Default": "public.ecr.aws/supabase/gotrue:v2.37.2",
+      "Default": "public.ecr.aws/supabase/gotrue:v2.69.2",
       "Description": "https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
     },
@@ -1091,13 +1199,13 @@ Object {
       "Type": "String",
     },
     "GraphQLMaxTaskCount62412A02": Object {
-      "Default": 0,
+      "Default": 20,
       "Description": "Maximum fargate task count",
       "MinValue": 0,
       "Type": "Number",
     },
     "GraphQLMinTaskCount0807D92D": Object {
-      "Default": 0,
+      "Default": 1,
       "Description": "Minimum fargate task count",
       "MinValue": 0,
       "Type": "Number",
@@ -1117,7 +1225,7 @@ Object {
       "Type": "String",
     },
     "ImgproxyImageUri": Object {
-      "Default": "public.ecr.aws/supabase/imgproxy:v1.0.4",
+      "Default": "public.ecr.aws/supabase/imgproxy:v1.2.0",
       "Description": "https://gallery.ecr.aws/supabase/imgproxy",
       "Type": "String",
     },
@@ -1219,7 +1327,7 @@ Object {
       "Type": "Number",
     },
     "PostgresMetaImageUri": Object {
-      "Default": "public.ecr.aws/supabase/postgres-meta:v0.52.1",
+      "Default": "public.ecr.aws/supabase/postgres-meta:v0.66.0",
       "Description": "https://gallery.ecr.aws/supabase/postgres-meta",
       "Type": "String",
     },
@@ -1260,7 +1368,7 @@ Object {
       "Type": "String",
     },
     "RestImageUri": Object {
-      "Default": "public.ecr.aws/supabase/postgrest:v9.0.1.20220802",
+      "Default": "public.ecr.aws/supabase/postgrest:v10.1.2",
       "Description": "https://gallery.ecr.aws/supabase/postgrest",
       "Type": "String",
     },
@@ -1341,7 +1449,7 @@ Object {
       "Type": "String",
     },
     "StorageImageUri": Object {
-      "Default": "public.ecr.aws/supabase/storage-api:v0.26.1",
+      "Default": "public.ecr.aws/supabase/storage-api:v0.40.1",
       "Description": "https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
     },
@@ -1387,7 +1495,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "a9d3d4d1afa000946b9863b3e7578a5a5ad86d88274b3639938aa2baebf822ce.zip",
+          "S3Key": "bb459fac5f6b4b052aac9803443226d161a5cfe96f4648b21f9e4912c698bf30.zip",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -1396,7 +1504,15 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": Object {
+          "Fn::FindInMap": Array [
+            "DefaultCrNodeVersionMap",
+            Object {
+              "Ref": "AWS::Region",
+            },
+            "value",
+          ],
+        },
         "Timeout": 120,
       },
       "Type": "AWS::Lambda::Function",
@@ -1431,241 +1547,6 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "AuthFargateCloudmapService77173080": Object {
-      "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "SRV",
-            },
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "auth",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
-      },
-      "Type": "AWS::ServiceDiscovery::Service",
-    },
-    "AuthFargateSecurityGroup512F6031": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/Auth/Fargate/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "AuthFargateSecurityGroupfromSupabaseKongFargateSecurityGroupB95937A29999C3F749F0": Object {
-      "Properties": Object {
-        "Description": "from SupabaseKongFargateSecurityGroupB95937A2:9999",
-        "FromPort": 9999,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "AuthFargateSecurityGroup512F6031",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
-            "GroupId",
-          ],
-        },
-        "ToPort": 9999,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "AuthFargateService0D491951": Object {
-      "DependsOn": Array [
-        "DatabaseClusterInstance1078CC457",
-      ],
-      "Properties": Object {
-        "Cluster": Object {
-          "Ref": "ClusterEB0386A7",
-        },
-        "DeploymentConfiguration": Object {
-          "DeploymentCircuitBreaker": Object {
-            "Enable": true,
-            "Rollback": true,
-          },
-          "MaximumPercent": 200,
-          "MinimumHealthyPercent": 50,
-        },
-        "DeploymentController": Object {
-          "Type": "ECS",
-        },
-        "DesiredCount": Object {
-          "Fn::If": Array [
-            "AuthServiceDisabledB6209B31",
-            0,
-            Object {
-              "Ref": "AWS::NoValue",
-            },
-          ],
-        },
-        "EnableECSManagedTags": true,
-        "LaunchType": "FARGATE",
-        "NetworkConfiguration": Object {
-          "AwsvpcConfiguration": Object {
-            "AssignPublicIp": "DISABLED",
-            "SecurityGroups": Array [
-              Object {
-                "Fn::GetAtt": Array [
-                  "AuthFargateSecurityGroup512F6031",
-                  "GroupId",
-                ],
-              },
-            ],
-            "Subnets": Array [
-              Object {
-                "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
-              },
-              Object {
-                "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A",
-              },
-            ],
-          },
-        },
-        "PropagateTags": "SERVICE",
-        "ServiceConnectConfiguration": Object {
-          "Enabled": true,
-          "LogConfiguration": Object {
-            "LogDriver": "awslogs",
-            "Options": Object {
-              "awslogs-group": Object {
-                "Ref": "AuthLogs940C0551",
-              },
-              "awslogs-region": Object {
-                "Ref": "AWS::Region",
-              },
-              "awslogs-stream-prefix": "ecs",
-            },
-          },
-          "Namespace": Object {
-            "Ref": "NamespaceName",
-          },
-          "Services": Array [
-            Object {
-              "ClientAliases": Array [
-                Object {
-                  "Port": 9999,
-                },
-              ],
-              "DiscoveryName": "auth",
-              "PortName": "http",
-            },
-          ],
-        },
-        "ServiceRegistries": Array [
-          Object {
-            "ContainerName": "app",
-            "ContainerPort": 9999,
-            "RegistryArn": Object {
-              "Fn::GetAtt": Array [
-                "AuthFargateCloudmapService77173080",
-                "Arn",
-              ],
-            },
-          },
-        ],
-        "TaskDefinition": Object {
-          "Ref": "AuthTaskDef5FB652ED",
-        },
-      },
-      "Type": "AWS::ECS::Service",
-    },
-    "AuthFargateTaskCountTarget3E614905": Object {
-      "Properties": Object {
-        "MaxCapacity": Object {
-          "Ref": "AuthMaxTaskCount9E585BDA",
-        },
-        "MinCapacity": Object {
-          "Ref": "AuthMinTaskCount998F20C4",
-        },
-        "ResourceId": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "service/",
-              Object {
-                "Ref": "ClusterEB0386A7",
-              },
-              "/",
-              Object {
-                "Fn::GetAtt": Array [
-                  "AuthFargateService0D491951",
-                  "Name",
-                ],
-              },
-            ],
-          ],
-        },
-        "RoleARN": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":iam::",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
-            ],
-          ],
-        },
-        "ScalableDimension": "ecs:service:DesiredCount",
-        "ServiceNamespace": "ecs",
-      },
-      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
-    },
-    "AuthFargateTaskCountTargetScaleOnCpu13FA76AD": Object {
-      "Properties": Object {
-        "PolicyName": "SupabaseAuthFargateTaskCountTargetScaleOnCpuC4150621",
-        "PolicyType": "TargetTrackingScaling",
-        "ScalingTargetId": Object {
-          "Ref": "AuthFargateTaskCountTarget3E614905",
-        },
-        "TargetTrackingScalingPolicyConfiguration": Object {
-          "PredefinedMetricSpecification": Object {
-            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
-          },
-          "ScaleInCooldown": 60,
-          "ScaleOutCooldown": 60,
-          "TargetValue": 50,
-        },
-      },
-      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
     },
     "AuthLogs940C0551": Object {
       "DeletionPolicy": "Delete",
@@ -1720,7 +1601,7 @@ Object {
                 Array [
                   "{\\"services\\":[\\"",
                   Object {
-                    "Ref": "AuthFargateService0D491951",
+                    "Ref": "AuthServiceBA690728",
                   },
                   "\\"]}",
                 ],
@@ -1964,6 +1845,241 @@ Object {
         },
       },
       "Type": "AWS::SSM::Parameter",
+    },
+    "AuthServiceBA690728": Object {
+      "DependsOn": Array [
+        "DatabaseClusterInstance1078CC457",
+      ],
+      "Properties": Object {
+        "Cluster": Object {
+          "Ref": "ClusterEB0386A7",
+        },
+        "DeploymentConfiguration": Object {
+          "DeploymentCircuitBreaker": Object {
+            "Enable": true,
+            "Rollback": true,
+          },
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 50,
+        },
+        "DeploymentController": Object {
+          "Type": "ECS",
+        },
+        "DesiredCount": Object {
+          "Fn::If": Array [
+            "AuthServiceDisabledB6209B31",
+            0,
+            Object {
+              "Ref": "AWS::NoValue",
+            },
+          ],
+        },
+        "EnableECSManagedTags": true,
+        "LaunchType": "FARGATE",
+        "NetworkConfiguration": Object {
+          "AwsvpcConfiguration": Object {
+            "AssignPublicIp": "DISABLED",
+            "SecurityGroups": Array [
+              Object {
+                "Fn::GetAtt": Array [
+                  "AuthServiceSecurityGroup6440464F",
+                  "GroupId",
+                ],
+              },
+            ],
+            "Subnets": Array [
+              Object {
+                "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
+              },
+              Object {
+                "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A",
+              },
+            ],
+          },
+        },
+        "PropagateTags": "SERVICE",
+        "ServiceConnectConfiguration": Object {
+          "Enabled": true,
+          "LogConfiguration": Object {
+            "LogDriver": "awslogs",
+            "Options": Object {
+              "awslogs-group": Object {
+                "Ref": "AuthLogs940C0551",
+              },
+              "awslogs-region": Object {
+                "Ref": "AWS::Region",
+              },
+              "awslogs-stream-prefix": "ecs",
+            },
+          },
+          "Namespace": Object {
+            "Ref": "NamespaceName",
+          },
+          "Services": Array [
+            Object {
+              "ClientAliases": Array [
+                Object {
+                  "Port": 9999,
+                },
+              ],
+              "DiscoveryName": "auth",
+              "PortName": "http",
+            },
+          ],
+        },
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 9999,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "AuthServiceCloudmapService57D92A65",
+                "Arn",
+              ],
+            },
+          },
+        ],
+        "TaskDefinition": Object {
+          "Ref": "AuthTaskDef5FB652ED",
+        },
+      },
+      "Type": "AWS::ECS::Service",
+    },
+    "AuthServiceCloudmapService57D92A65": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "auth",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "AuthServiceSecurityGroup6440464F": Object {
+      "Properties": Object {
+        "GroupDescription": "Supabase/Auth/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "AuthServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F99999367C437": Object {
+      "Properties": Object {
+        "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:9999",
+        "FromPort": 9999,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "AuthServiceSecurityGroup6440464F",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongServiceSecurityGroupE199EE6C",
+            "GroupId",
+          ],
+        },
+        "ToPort": 9999,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "AuthServiceTaskCountTarget07A8CCD2": Object {
+      "Properties": Object {
+        "MaxCapacity": Object {
+          "Ref": "AuthMaxTaskCount9E585BDA",
+        },
+        "MinCapacity": Object {
+          "Ref": "AuthMinTaskCount998F20C4",
+        },
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "AuthServiceBA690728",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "AuthServiceTaskCountTargetScaleOnCpu0847ACEC": Object {
+      "Properties": Object {
+        "PolicyName": "SupabaseAuthServiceTaskCountTargetScaleOnCpu253117F9",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "AuthServiceTaskCountTarget07A8CCD2",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 50,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
     },
     "AuthTaskDef5FB652ED": Object {
       "Properties": Object {
@@ -2326,12 +2442,16 @@ Object {
             "Essential": true,
             "HealthCheck": Object {
               "Command": Array [
-                "CMD-SHELL",
-                "wget --no-verbose --tries=1 --spider http://localhost:9999/health || exit 1",
+                "CMD",
+                "wget",
+                "--no-verbose",
+                "--tries=1",
+                "--spider",
+                "http://localhost:9999/health",
               ],
-              "Interval": 10,
+              "Interval": 5,
               "Retries": 3,
-              "Timeout": 10,
+              "Timeout": 5,
             },
             "Image": Object {
               "Ref": "AuthImageUri",
@@ -2363,22 +2483,10 @@ Object {
                   "Fn::Join": Array [
                     "",
                     Array [
-                      "arn:",
                       Object {
-                        "Ref": "AWS::Partition",
+                        "Ref": "DatabasesupabaseauthadminSecretC3287578",
                       },
-                      ":ssm:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":parameter",
-                      Object {
-                        "Ref": "DatabaseWriterAuthUrlParameter0D61EDD3",
-                      },
+                      ":uri::",
                     ],
                   ],
                 },
@@ -2763,34 +2871,12 @@ Object {
             },
             Object {
               "Action": Array [
-                "ssm:DescribeParameters",
-                "ssm:GetParameters",
-                "ssm:GetParameter",
-                "ssm:GetParameterHistory",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":ssm:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":parameter",
-                    Object {
-                      "Ref": "DatabaseWriterAuthUrlParameter0D61EDD3",
-                    },
-                  ],
-                ],
+                "Ref": "DatabasesupabaseauthadminSecretC3287578",
               },
             },
             Object {
@@ -3056,353 +3142,6 @@ Object {
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Delete",
     },
-    "CdnCacheManagerApi61CD317D": Object {
-      "Properties": Object {
-        "Name": "SupabaseCdnCacheManagerApi",
-        "ProtocolType": "HTTP",
-      },
-      "Type": "AWS::ApiGatewayV2::Api",
-    },
-    "CdnCacheManagerApiDefaultRouteBD85B774": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "CdnCacheManagerApi61CD317D",
-        },
-        "AuthorizationType": "NONE",
-        "RouteKey": "$default",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "CdnCacheManagerApiDefaultRouteFunction628BE32B",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "CdnCacheManagerApiDefaultRouteFunction628BE32B": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "CdnCacheManagerApi61CD317D",
-        },
-        "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": Object {
-          "Fn::GetAtt": Array [
-            "CdnCacheManagerApiFunction8F3CC846",
-            "Arn",
-          ],
-        },
-        "PayloadFormatVersion": "2.0",
-      },
-      "Type": "AWS::ApiGatewayV2::Integration",
-    },
-    "CdnCacheManagerApiDefaultRouteFunctionPermissionF8438DCF": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "CdnCacheManagerApiFunction8F3CC846",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "CdnCacheManagerApi61CD317D",
-              },
-              "/*/*",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "CdnCacheManagerApiDefaultStage559673B5": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "CdnCacheManagerApi61CD317D",
-        },
-        "AutoDeploy": true,
-        "StageName": "$default",
-      },
-      "Type": "AWS::ApiGatewayV2::Stage",
-    },
-    "CdnCacheManagerApiFunction8F3CC846": Object {
-      "DependsOn": Array [
-        "CdnCacheManagerApiFunctionServiceRoleDefaultPolicy74947A18",
-        "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
-      ],
-      "Properties": Object {
-        "Architectures": Array [
-          "arm64",
-        ],
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "3cce62c5ed4670e1b2c71a33a484e5cee9f3549056a99ba76143214948ce5fd4.zip",
-        },
-        "Description": "Supabase/Cdn/CacheManager/ApiFunction",
-        "Environment": Object {
-          "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "QUEUE_URL": Object {
-              "Ref": "CdnCacheManagerQueue786D7FA2",
-            },
-          },
-        },
-        "Handler": "index.handler",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs18.x",
-        "TracingConfig": Object {
-          "Mode": "Active",
-        },
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "CdnCacheManagerApiFunctionServiceRoleDefaultPolicy74947A18": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "xray:PutTraceSegments",
-                "xray:PutTelemetryRecords",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "sqs:SendMessage",
-                "sqs:GetQueueAttributes",
-                "sqs:GetQueueUrl",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "CdnCacheManagerQueue786D7FA2",
-                  "Arn",
-                ],
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "CdnCacheManagerApiFunctionServiceRoleDefaultPolicy74947A18",
-        "Roles": Array [
-          Object {
-            "Ref": "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "CdnCacheManagerQueue786D7FA2": Object {
-      "DeletionPolicy": "Delete",
-      "Type": "AWS::SQS::Queue",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "CdnCacheManagerQueueConsumerA50B36C1": Object {
-      "DependsOn": Array [
-        "CdnCacheManagerQueueConsumerServiceRoleDefaultPolicy2DE8002E",
-        "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
-      ],
-      "Properties": Object {
-        "Architectures": Array [
-          "arm64",
-        ],
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "fe895c2e7288e4c8c7546da489275aeac4d3599cd9eff1446e1e7a99a289e927.zip",
-        },
-        "Description": "Supabase/Cdn/CacheManager/QueueConsumer",
-        "Environment": Object {
-          "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "DISTRIBUTION_ID": Object {
-              "Ref": "CdnDistribution149FA6C8",
-            },
-          },
-        },
-        "Handler": "index.handler",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs18.x",
-        "TracingConfig": Object {
-          "Mode": "Active",
-        },
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "CdnCacheManagerQueueConsumerServiceRole273BAAFA": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "CdnCacheManagerQueueConsumerServiceRoleDefaultPolicy2DE8002E": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "cloudfront:CreateInvalidation",
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:aws:cloudfront::",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":distribution/",
-                    Object {
-                      "Ref": "CdnDistribution149FA6C8",
-                    },
-                  ],
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "xray:PutTraceSegments",
-                "xray:PutTelemetryRecords",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "sqs:ReceiveMessage",
-                "sqs:ChangeMessageVisibility",
-                "sqs:GetQueueUrl",
-                "sqs:DeleteMessage",
-                "sqs:GetQueueAttributes",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "CdnCacheManagerQueue786D7FA2",
-                  "Arn",
-                ],
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "CdnCacheManagerQueueConsumerServiceRoleDefaultPolicy2DE8002E",
-        "Roles": Array [
-          Object {
-            "Ref": "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "CdnCacheManagerQueueConsumerSqsEventSourceSupabaseCdnCacheManagerQueue31D5861E48E96905": Object {
-      "Properties": Object {
-        "BatchSize": 100,
-        "EventSourceArn": Object {
-          "Fn::GetAtt": Array [
-            "CdnCacheManagerQueue786D7FA2",
-            "Arn",
-          ],
-        },
-        "FunctionName": Object {
-          "Ref": "CdnCacheManagerQueueConsumerA50B36C1",
-        },
-        "MaximumBatchingWindowInSeconds": 5,
-      },
-      "Type": "AWS::Lambda::EventSourceMapping",
-    },
     "CdnCachePolicy957D7474": Object {
       "Properties": Object {
         "CachePolicyConfig": Object {
@@ -3599,7 +3338,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/69fb6ada7910f80d4834b5f5e57d8c2a3dca9acf0a3a8bb13d07c341897cdee3.json",
+              "/391252b994fa3420099062853e5215c915a83bdefdd1adc9396a6a8a0da973dc.json",
             ],
           ],
         },
@@ -3686,6 +3425,29 @@ Object {
       },
       "Type": "AWS::ECS::Cluster",
     },
+    "CookieSigningSecretE5797145": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": "Supabase - Cookie Signing Secret for Realtime",
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+          "PasswordLength": 64,
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-Realtime-CookieSigning-Secret",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
     "DatabaseCluster5B53A178": Object {
       "DeletionPolicy": "Snapshot",
       "Properties": Object {
@@ -3698,14 +3460,14 @@ Object {
         },
         "DatabaseName": "postgres",
         "Engine": "aurora-postgresql",
-        "EngineVersion": "14.5",
+        "EngineVersion": "15.2",
         "MasterUserPassword": Object {
           "Fn::Join": Array [
             "",
             Array [
               "{{resolve:secretsmanager:",
               Object {
-                "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD307c1d46040699635693200afdd4b7d4",
+                "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD3fdaad7efa858a3daf9490cf0a702aeb",
               },
               ":SecretString:password::}}",
             ],
@@ -4153,7 +3915,7 @@ Object {
     "DatabaseClusterSecretAttachmentDC8466C0": Object {
       "Properties": Object {
         "SecretId": Object {
-          "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD307c1d46040699635693200afdd4b7d4",
+          "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD3fdaad7efa858a3daf9490cf0a702aeb",
         },
         "TargetId": Object {
           "Ref": "DatabaseCluster5B53A178",
@@ -4178,9 +3940,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseAuthFargateSecurityGroup5DE52F13IndirectPort465139F0": Object {
+    "DatabaseClusterSecurityGroupfromSupabaseAuthServiceSecurityGroupC0652D23IndirectPort316A82A5": Object {
       "Properties": Object {
-        "Description": "from SupabaseAuthFargateSecurityGroup5DE52F13:{IndirectPort}",
+        "Description": "from SupabaseAuthServiceSecurityGroupC0652D23:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
             "DatabaseCluster5B53A178",
@@ -4196,7 +3958,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "AuthFargateSecurityGroup512F6031",
+            "AuthServiceSecurityGroup6440464F",
             "GroupId",
           ],
         },
@@ -4209,9 +3971,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseDatabaseInitFunctionSecurityGroupD770E594IndirectPortB0EEFD79": Object {
+    "DatabaseClusterSecurityGroupfromSupabaseDatabaseMigrationFunctionSecurityGroup2273CFF4IndirectPort7EBF4AAA": Object {
       "Properties": Object {
-        "Description": "from SupabaseDatabaseInitFunctionSecurityGroupD770E594:{IndirectPort}",
+        "Description": "from SupabaseDatabaseMigrationFunctionSecurityGroup2273CFF4:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
             "DatabaseCluster5B53A178",
@@ -4227,7 +3989,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseInitFunctionSecurityGroupAC823144",
+            "DatabaseMigrationFunctionSecurityGroup279B26A2",
             "GroupId",
           ],
         },
@@ -4240,9 +4002,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseGraphQLFargateSecurityGroupE5556D47IndirectPort363DE43A": Object {
+    "DatabaseClusterSecurityGroupfromSupabaseDatabaseUserPasswordFunctionSecurityGroup71503A07IndirectPort8134897C": Object {
       "Properties": Object {
-        "Description": "from SupabaseGraphQLFargateSecurityGroupE5556D47:{IndirectPort}",
+        "Description": "from SupabaseDatabaseUserPasswordFunctionSecurityGroup71503A07:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
             "DatabaseCluster5B53A178",
@@ -4258,7 +4020,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "GraphQLFargateSecurityGroupC37FE3F0",
+            "DatabaseUserPasswordFunctionSecurityGroup2C5B42FB",
             "GroupId",
           ],
         },
@@ -4271,9 +4033,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseMetaFargateSecurityGroup4C60F9F5IndirectPortB220DB8A": Object {
+    "DatabaseClusterSecurityGroupfromSupabaseGraphQLServiceSecurityGroup270E856EIndirectPort858A8D36": Object {
       "Properties": Object {
-        "Description": "from SupabaseMetaFargateSecurityGroup4C60F9F5:{IndirectPort}",
+        "Description": "from SupabaseGraphQLServiceSecurityGroup270E856E:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
             "DatabaseCluster5B53A178",
@@ -4289,7 +4051,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "MetaFargateSecurityGroup9D26952C",
+            "GraphQLServiceSecurityGroupBF0E344A",
             "GroupId",
           ],
         },
@@ -4302,9 +4064,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseRealtimeFargateSecurityGroup06CDE48FIndirectPortE96BEA4D": Object {
+    "DatabaseClusterSecurityGroupfromSupabaseMetaServiceSecurityGroup8C22DD35IndirectPort496372C3": Object {
       "Properties": Object {
-        "Description": "from SupabaseRealtimeFargateSecurityGroup06CDE48F:{IndirectPort}",
+        "Description": "from SupabaseMetaServiceSecurityGroup8C22DD35:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
             "DatabaseCluster5B53A178",
@@ -4320,7 +4082,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "RealtimeFargateSecurityGroupC1A41CAF",
+            "MetaServiceSecurityGroup0E39DF35",
             "GroupId",
           ],
         },
@@ -4333,9 +4095,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseRestFargateSecurityGroupBEED6704IndirectPortB0833D22": Object {
+    "DatabaseClusterSecurityGroupfromSupabaseRealtimeServiceSecurityGroup570992FEIndirectPort1FAA9E4F": Object {
       "Properties": Object {
-        "Description": "from SupabaseRestFargateSecurityGroupBEED6704:{IndirectPort}",
+        "Description": "from SupabaseRealtimeServiceSecurityGroup570992FE:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
             "DatabaseCluster5B53A178",
@@ -4351,7 +4113,7 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "RestFargateSecurityGroupEADE3F44",
+            "RealtimeServiceSecurityGroup8E245E7E",
             "GroupId",
           ],
         },
@@ -4364,9 +4126,9 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseStorageFargateSecurityGroup7BC158B8IndirectPort0B5D095B": Object {
+    "DatabaseClusterSecurityGroupfromSupabaseRestServiceSecurityGroupC3243DF3IndirectPort2D0B0423": Object {
       "Properties": Object {
-        "Description": "from SupabaseStorageFargateSecurityGroup7BC158B8:{IndirectPort}",
+        "Description": "from SupabaseRestServiceSecurityGroupC3243DF3:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
             "DatabaseCluster5B53A178",
@@ -4382,7 +4144,38 @@ Object {
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "StorageFargateSecurityGroupC6388B3F",
+            "RestServiceSecurityGroup0BAEA949",
+            "GroupId",
+          ],
+        },
+        "ToPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "DatabaseClusterSecurityGroupfromSupabaseStorageServiceSecurityGroupADF822D4IndirectPort3CE1B682": Object {
+      "Properties": Object {
+        "Description": "from SupabaseStorageServiceSecurityGroupADF822D4:{IndirectPort}",
+        "FromPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseClusterSecurityGroupFEF1426A",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "StorageServiceSecurityGroupF6280DC0",
             "GroupId",
           ],
         },
@@ -4409,36 +4202,27 @@ Object {
       },
       "Type": "AWS::RDS::DBSubnetGroup",
     },
-    "DatabaseInitData630DB036": Object {
+    "DatabaseMigration993F5B9C": Object {
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
         "DatabaseClusterInstance1078CC457",
       ],
       "Properties": Object {
-        "Fingerprint": "e3082f7ba108e3029c9de722d86474688546978b84d52804bcc032c3fead7ff2",
-        "Hostname": Object {
-          "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
-            "Endpoint.Address",
-          ],
-        },
-        "SecretId": Object {
-          "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-        },
+        "Fingerprint": "7b10178700d21f7333ddb5ff464006da7e19bf97517507f90bf079d950ea5a41",
         "ServiceToken": Object {
           "Fn::GetAtt": Array [
-            "DatabaseInitProviderframeworkonEventE5DC022A",
+            "DatabaseMigrationProviderframeworkonEvent48D76DDA",
             "Arn",
           ],
         },
       },
-      "Type": "Custom::SupabaseInitData",
+      "Type": "Custom::DatabaseMigration",
       "UpdateReplacePolicy": "Delete",
     },
-    "DatabaseInitFunctionC94D0413": Object {
+    "DatabaseMigrationFunction9CBE9EA5": Object {
       "DependsOn": Array [
-        "DatabaseInitFunctionServiceRoleDefaultPolicyE8E6FF4E",
-        "DatabaseInitFunctionServiceRole8CD61C4B",
+        "DatabaseMigrationFunctionServiceRoleDefaultPolicyBAA52D03",
+        "DatabaseMigrationFunctionServiceRoleE25C2000",
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
         "VPCPrivateSubnet1RouteTableAssociation347902D1",
         "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
@@ -4449,18 +4233,21 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "27567f000fd9f4e2048b416b793333d2f059ccc5dbda4a14d7ab90240f734c45.zip",
+          "S3Key": "cb40bf677a9605d5445f90e5653cb761898337e4664a55cabc0271458822eded.zip",
         },
-        "Description": "Supabase - Database init function",
+        "Description": "Supabase - Database migration function",
         "Environment": Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "DB_SECRET_ARN": Object {
+              "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+            },
           },
         },
         "Handler": "index.handler",
         "Role": Object {
           "Fn::GetAtt": Array [
-            "DatabaseInitFunctionServiceRole8CD61C4B",
+            "DatabaseMigrationFunctionServiceRoleE25C2000",
             "Arn",
           ],
         },
@@ -4470,7 +4257,7 @@ Object {
           "SecurityGroupIds": Array [
             Object {
               "Fn::GetAtt": Array [
-                "DatabaseInitFunctionSecurityGroupAC823144",
+                "DatabaseMigrationFunctionSecurityGroup279B26A2",
                 "GroupId",
               ],
             },
@@ -4487,7 +4274,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "DatabaseInitFunctionSecurityGroupAC823144": Object {
+    "DatabaseMigrationFunctionSecurityGroup279B26A2": Object {
       "DependsOn": Array [
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
         "VPCPrivateSubnet1RouteTableAssociation347902D1",
@@ -4495,7 +4282,7 @@ Object {
         "VPCPrivateSubnet2RouteTableAssociation0C73D413",
       ],
       "Properties": Object {
-        "GroupDescription": "Automatic security group for Lambda Function SupabaseDatabaseInitFunctionEFBA8E22",
+        "GroupDescription": "Automatic security group for Lambda Function SupabaseDatabaseMigrationFunction60EA2449",
         "SecurityGroupEgress": Array [
           Object {
             "CidrIp": "0.0.0.0/0",
@@ -4509,7 +4296,39 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "DatabaseInitFunctionServiceRole8CD61C4B": Object {
+    "DatabaseMigrationFunctionServiceRoleDefaultPolicyBAA52D03": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DatabaseMigrationFunctionServiceRoleDefaultPolicyBAA52D03",
+        "Roles": Array [
+          Object {
+            "Ref": "DatabaseMigrationFunctionServiceRoleE25C2000",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DatabaseMigrationFunctionServiceRoleE25C2000": Object {
       "DependsOn": Array [
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
         "VPCPrivateSubnet1RouteTableAssociation347902D1",
@@ -4558,56 +4377,24 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "DatabaseInitFunctionServiceRoleDefaultPolicyE8E6FF4E": Object {
+    "DatabaseMigrationProviderframeworkonEvent48D76DDA": Object {
       "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:DescribeSecret",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "DatabaseInitFunctionServiceRoleDefaultPolicyE8E6FF4E",
-        "Roles": Array [
-          Object {
-            "Ref": "DatabaseInitFunctionServiceRole8CD61C4B",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "DatabaseInitProviderframeworkonEventE5DC022A": Object {
-      "DependsOn": Array [
-        "DatabaseInitProviderframeworkonEventServiceRoleDefaultPolicy7FB834D6",
-        "DatabaseInitProviderframeworkonEventServiceRoleF32E57C9",
+        "DatabaseMigrationProviderframeworkonEventServiceRoleDefaultPolicyDFB3465C",
+        "DatabaseMigrationProviderframeworkonEventServiceRole5CABFD28",
       ],
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "1eabd374284db340b74179e3429008132f5b6b0b7b28d472d852807d7f5f9746.zip",
+          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
         },
-        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/InitProvider)",
+        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/MigrationProvider)",
         "Environment": Object {
           "Variables": Object {
             "USER_ON_EVENT_FUNCTION_ARN": Object {
               "Fn::GetAtt": Array [
-                "DatabaseInitFunctionC94D0413",
+                "DatabaseMigrationFunction9CBE9EA5",
                 "Arn",
               ],
             },
@@ -4616,7 +4403,7 @@ Object {
         "Handler": "framework.onEvent",
         "Role": Object {
           "Fn::GetAtt": Array [
-            "DatabaseInitProviderframeworkonEventServiceRoleF32E57C9",
+            "DatabaseMigrationProviderframeworkonEventServiceRole5CABFD28",
             "Arn",
           ],
         },
@@ -4625,49 +4412,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "DatabaseInitProviderframeworkonEventServiceRoleDefaultPolicy7FB834D6": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "lambda:InvokeFunction",
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "DatabaseInitFunctionC94D0413",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "DatabaseInitFunctionC94D0413",
-                          "Arn",
-                        ],
-                      },
-                      ":*",
-                    ],
-                  ],
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "DatabaseInitProviderframeworkonEventServiceRoleDefaultPolicy7FB834D6",
-        "Roles": Array [
-          Object {
-            "Ref": "DatabaseInitProviderframeworkonEventServiceRoleF32E57C9",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "DatabaseInitProviderframeworkonEventServiceRoleF32E57C9": Object {
+    "DatabaseMigrationProviderframeworkonEventServiceRole5CABFD28": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -4698,10 +4443,52 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "DatabaseMigrationProviderframeworkonEventServiceRoleDefaultPolicyDFB3465C": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "DatabaseMigrationFunction9CBE9EA5",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "DatabaseMigrationFunction9CBE9EA5",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DatabaseMigrationProviderframeworkonEventServiceRoleDefaultPolicyDFB3465C",
+        "Roles": Array [
+          Object {
+            "Ref": "DatabaseMigrationProviderframeworkonEventServiceRole5CABFD28",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "DatabaseParameterGroup2A921026": Object {
       "Properties": Object {
         "Description": "Supabase parameter group for aurora-postgresql",
-        "Family": "aurora-postgresql14",
+        "Family": "aurora-postgresql15",
         "Parameters": Object {
           "autovacuum_max_workers": "GREATEST({DBInstanceClassMemory/64371566592},2)",
           "max_logical_replication_workers": "4",
@@ -4710,169 +4497,476 @@ Object {
           "max_slot_wal_keep_size": "1024",
           "max_wal_senders": "20",
           "rds.logical_replication": "1",
-          "shared_preload_libraries": "pg_stat_statements, pgaudit, pg_cron",
+          "shared_preload_libraries": "pg_tle, pg_stat_statements, pgaudit, pg_cron",
         },
       },
       "Type": "AWS::RDS::DBClusterParameterGroup",
     },
-    "DatabaseReaderUrlParameter0C13E1C1": Object {
+    "DatabaseUserPasswordFunctionAFAC7436": Object {
+      "DependsOn": Array [
+        "DatabaseUserPasswordFunctionServiceRoleDefaultPolicy8E1C300C",
+        "DatabaseUserPasswordFunctionServiceRoleD208DCC1",
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
-        "Description": "The standard connection PostgreSQL URI format.",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/Database/Url/Reader",
-            ],
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "0facf62e98b9e41309a759dcee61e370003b40a5402e2f2c8f74308681c96fe3.zip",
+        },
+        "Description": "Supabase - DB user password function",
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "DB_SECRET_ARN": Object {
+              "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseUserPasswordFunctionServiceRoleD208DCC1",
+            "Arn",
           ],
         },
-        "Type": "String",
-        "Value": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "postgres://{{resolve:secretsmanager:",
-              Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-              ":SecretString:username::}}:{{resolve:secretsmanager:",
-              Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-              ":SecretString:password::}}@",
-              Object {
-                "Fn::GetAtt": Array [
-                  "DatabaseCluster5B53A178",
-                  "ReadEndpoint.Address",
-                ],
-              },
-              ":",
-              Object {
-                "Fn::GetAtt": Array [
-                  "DatabaseCluster5B53A178",
-                  "Endpoint.Port",
-                ],
-              },
-              "/{{resolve:secretsmanager:",
-              Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-              ":SecretString:dbname::}}",
-            ],
+        "Runtime": "nodejs18.x",
+        "Timeout": 10,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "DatabaseUserPasswordFunctionSecurityGroup2C5B42FB",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Array [
+            Object {
+              "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
+            },
+            Object {
+              "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A",
+            },
           ],
         },
       },
-      "Type": "AWS::SSM::Parameter",
+      "Type": "AWS::Lambda::Function",
     },
-    "DatabaseWriterAuthUrlParameter0D61EDD3": Object {
+    "DatabaseUserPasswordFunctionSecurityGroup2C5B42FB": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
-        "Description": "The standard connection PostgreSQL URI with search_path=auth",
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/",
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              "/Database/Url/Writer/auth",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "postgres://{{resolve:secretsmanager:",
-              Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-              ":SecretString:username::}}:{{resolve:secretsmanager:",
-              Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-              ":SecretString:password::}}@",
-              Object {
-                "Fn::GetAtt": Array [
-                  "DatabaseCluster5B53A178",
-                  "Endpoint.Address",
-                ],
-              },
-              ":",
-              Object {
-                "Fn::GetAtt": Array [
-                  "DatabaseCluster5B53A178",
-                  "Endpoint.Port",
-                ],
-              },
-              "/{{resolve:secretsmanager:",
-              Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-              ":SecretString:dbname::}}?search_path=auth",
-            ],
-          ],
+        "GroupDescription": "Automatic security group for Lambda Function SupabaseDatabaseUserPasswordFunction2F544B74",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
         },
       },
-      "Type": "AWS::SSM::Parameter",
+      "Type": "AWS::EC2::SecurityGroup",
     },
-    "DatabaseWriterUrlParameter9E7B47B6": Object {
+    "DatabaseUserPasswordFunctionServiceRoleD208DCC1": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
       "Properties": Object {
-        "Description": "The standard connection PostgreSQL URI format.",
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DatabaseUserPasswordFunctionServiceRoleDefaultPolicy8E1C300C": Object {
+      "DependsOn": Array [
+        "VPCPrivateSubnet1DefaultRouteAE1D6490",
+        "VPCPrivateSubnet1RouteTableAssociation347902D1",
+        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
+        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
+      ],
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:PutSecretValue",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:secretsmanager:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":secret:",
+                    Object {
+                      "Ref": "AWS::StackName",
+                    },
+                    "-Database-*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Effect": "Allow",
+              "NotAction": "secretsmanager:PutSecretValue",
+              "Resource": Object {
+                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DatabaseUserPasswordFunctionServiceRoleDefaultPolicy8E1C300C",
+        "Roles": Array [
+          Object {
+            "Ref": "DatabaseUserPasswordFunctionServiceRoleD208DCC1",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DatabaseUserPasswordProviderframeworkonEventB02AAC24": Object {
+      "DependsOn": Array [
+        "DatabaseUserPasswordProviderframeworkonEventServiceRoleDefaultPolicyAA1280B0",
+        "DatabaseUserPasswordProviderframeworkonEventServiceRole6ABBAA88",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/UserPasswordProvider)",
+        "Environment": Object {
+          "Variables": Object {
+            "USER_ON_EVENT_FUNCTION_ARN": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseUserPasswordFunctionAFAC7436",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "Handler": "framework.onEvent",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseUserPasswordProviderframeworkonEventServiceRole6ABBAA88",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "DatabaseUserPasswordProviderframeworkonEventServiceRole6ABBAA88": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DatabaseUserPasswordProviderframeworkonEventServiceRoleDefaultPolicyAA1280B0": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "DatabaseUserPasswordFunctionAFAC7436",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "DatabaseUserPasswordFunctionAFAC7436",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DatabaseUserPasswordProviderframeworkonEventServiceRoleDefaultPolicyAA1280B0",
+        "Roles": Array [
+          Object {
+            "Ref": "DatabaseUserPasswordProviderframeworkonEventServiceRole6ABBAA88",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "Databaseauthenticator35B4E8E9": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "SecretId": Object {
+          "Ref": "DatabaseauthenticatorSecret69FA14DE",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseUserPasswordProviderframeworkonEventB02AAC24",
+            "Arn",
+          ],
+        },
+        "Username": "authenticator",
+      },
+      "Type": "Custom::DatabaseUserPassword",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DatabaseauthenticatorSecret69FA14DE": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": "Supabase - Database User authenticator",
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+          "GenerateStringKey": "password",
+          "SecretStringTemplate": "{\\"username\\":\\"authenticator\\"}",
+        },
         "Name": Object {
           "Fn::Join": Array [
             "",
             Array [
-              "/",
               Object {
                 "Ref": "AWS::StackName",
               },
-              "/Database/Url/Writer",
-            ],
-          ],
-        },
-        "Type": "String",
-        "Value": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "postgres://{{resolve:secretsmanager:",
-              Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-              ":SecretString:username::}}:{{resolve:secretsmanager:",
-              Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-              ":SecretString:password::}}@",
-              Object {
-                "Fn::GetAtt": Array [
-                  "DatabaseCluster5B53A178",
-                  "Endpoint.Address",
-                ],
-              },
-              ":",
-              Object {
-                "Fn::GetAtt": Array [
-                  "DatabaseCluster5B53A178",
-                  "Endpoint.Port",
-                ],
-              },
-              "/{{resolve:secretsmanager:",
-              Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-              },
-              ":SecretString:dbname::}}",
+              "-Database-authenticator",
             ],
           ],
         },
       },
-      "Type": "AWS::SSM::Parameter",
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DatabasepostgresDCE7DA96": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "SecretId": Object {
+          "Ref": "DatabasepostgresSecret8E64AF98",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseUserPasswordProviderframeworkonEventB02AAC24",
+            "Arn",
+          ],
+        },
+        "Username": "postgres",
+      },
+      "Type": "Custom::DatabaseUserPassword",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DatabasepostgresSecret8E64AF98": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": "Supabase - Database User postgres",
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+          "GenerateStringKey": "password",
+          "SecretStringTemplate": "{\\"username\\":\\"postgres\\"}",
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-Database-postgres",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DatabasesupabaseauthadminF9154F88": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "SecretId": Object {
+          "Ref": "DatabasesupabaseauthadminSecretC3287578",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseUserPasswordProviderframeworkonEventB02AAC24",
+            "Arn",
+          ],
+        },
+        "Username": "supabase_auth_admin",
+      },
+      "Type": "Custom::DatabaseUserPassword",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DatabasesupabaseauthadminSecretC3287578": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": "Supabase - Database User supabase_auth_admin",
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+          "GenerateStringKey": "password",
+          "SecretStringTemplate": "{\\"username\\":\\"supabase_auth_admin\\"}",
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-Database-supabase_auth_admin",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DatabasesupabasestorageadminA3D9AA2C": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "SecretId": Object {
+          "Ref": "DatabasesupabasestorageadminSecret88C76AA3",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseUserPasswordProviderframeworkonEventB02AAC24",
+            "Arn",
+          ],
+        },
+        "Username": "supabase_storage_admin",
+      },
+      "Type": "Custom::DatabaseUserPassword",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DatabasesupabasestorageadminSecret88C76AA3": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": "Supabase - Database User supabase_storage_admin",
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+          "GenerateStringKey": "password",
+          "SecretStringTemplate": "{\\"username\\":\\"supabase_storage_admin\\"}",
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-Database-supabase_storage_admin",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
     },
     "ForceDeployJobStateMachine528644B1": Object {
       "DeletionPolicy": "Delete",
@@ -5029,78 +5123,15 @@ Object {
       },
       "Type": "AWS::IAM::Policy",
     },
-    "GraphQLFargateCloudmapService0FA0462B": Object {
+    "GraphQLLogsAACD57ED": Object {
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "SRV",
-            },
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "graphql",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
+        "RetentionInDays": 30,
       },
-      "Type": "AWS::ServiceDiscovery::Service",
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
-    "GraphQLFargateSecurityGroupC37FE3F0": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/GraphQL/Fargate/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "GraphQLFargateSecurityGroupfromSupabaseKongFargateSecurityGroupB95937A25000185C16B2": Object {
-      "Properties": Object {
-        "Description": "from SupabaseKongFargateSecurityGroupB95937A2:5000",
-        "FromPort": 5000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "GraphQLFargateSecurityGroupC37FE3F0",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
-            "GroupId",
-          ],
-        },
-        "ToPort": 5000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "GraphQLFargateService28D3AC46": Object {
+    "GraphQLServiceAFEB0D4A": Object {
       "DependsOn": Array [
         "DatabaseClusterInstance1078CC457",
       ],
@@ -5136,7 +5167,7 @@ Object {
             "SecurityGroups": Array [
               Object {
                 "Fn::GetAtt": Array [
-                  "GraphQLFargateSecurityGroupC37FE3F0",
+                  "GraphQLServiceSecurityGroupBF0E344A",
                   "GroupId",
                 ],
               },
@@ -5187,7 +5218,7 @@ Object {
             "ContainerPort": 5000,
             "RegistryArn": Object {
               "Fn::GetAtt": Array [
-                "GraphQLFargateCloudmapService0FA0462B",
+                "GraphQLServiceCloudmapService68643605",
                 "Arn",
               ],
             },
@@ -5199,7 +5230,78 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
-    "GraphQLFargateTaskCountTargetFBC4BAED": Object {
+    "GraphQLServiceCloudmapService68643605": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "graphql",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "GraphQLServiceSecurityGroupBF0E344A": Object {
+      "Properties": Object {
+        "GroupDescription": "Supabase/GraphQL/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "GraphQLServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F5000EA605FE7": Object {
+      "Properties": Object {
+        "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:5000",
+        "FromPort": 5000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "GraphQLServiceSecurityGroupBF0E344A",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongServiceSecurityGroupE199EE6C",
+            "GroupId",
+          ],
+        },
+        "ToPort": 5000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "GraphQLServiceTaskCountTargetD74EBB91": Object {
       "Properties": Object {
         "MaxCapacity": Object {
           "Ref": "GraphQLMaxTaskCount62412A02",
@@ -5218,7 +5320,7 @@ Object {
               "/",
               Object {
                 "Fn::GetAtt": Array [
-                  "GraphQLFargateService28D3AC46",
+                  "GraphQLServiceAFEB0D4A",
                   "Name",
                 ],
               },
@@ -5246,12 +5348,12 @@ Object {
       },
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
-    "GraphQLFargateTaskCountTargetScaleOnCpu71E2D51C": Object {
+    "GraphQLServiceTaskCountTargetScaleOnCpu65C9F8E9": Object {
       "Properties": Object {
-        "PolicyName": "SupabaseGraphQLFargateTaskCountTargetScaleOnCpuD8AB1A59",
+        "PolicyName": "SupabaseGraphQLServiceTaskCountTargetScaleOnCpuE8FC1CFC",
         "PolicyType": "TargetTrackingScaling",
         "ScalingTargetId": Object {
-          "Ref": "GraphQLFargateTaskCountTargetFBC4BAED",
+          "Ref": "GraphQLServiceTaskCountTargetD74EBB91",
         },
         "TargetTrackingScalingPolicyConfiguration": Object {
           "PredefinedMetricSpecification": Object {
@@ -5263,14 +5365,6 @@ Object {
         },
       },
       "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-    },
-    "GraphQLLogsAACD57ED": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "RetentionInDays": 30,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
     },
     "GraphQLTaskDefA9ADD420": Object {
       "Properties": Object {
@@ -5293,8 +5387,12 @@ Object {
             "Essential": true,
             "HealthCheck": Object {
               "Command": Array [
-                "CMD-SHELL",
-                "wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1",
+                "CMD",
+                "wget",
+                "--no-verbose",
+                "--tries=1",
+                "--spider",
+                "http://localhost:5000/health",
               ],
               "Interval": 5,
               "Retries": 3,
@@ -5328,22 +5426,10 @@ Object {
                   "Fn::Join": Array [
                     "",
                     Array [
-                      "arn:",
                       Object {
-                        "Ref": "AWS::Partition",
+                        "Ref": "DatabaseauthenticatorSecret69FA14DE",
                       },
-                      ":ssm:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":parameter",
-                      Object {
-                        "Ref": "DatabaseWriterUrlParameter9E7B47B6",
-                      },
+                      ":uri::",
                     ],
                   ],
                 },
@@ -5425,34 +5511,12 @@ Object {
             },
             Object {
               "Action": Array [
-                "ssm:DescribeParameters",
-                "ssm:GetParameters",
-                "ssm:GetParameter",
-                "ssm:GetParameterHistory",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":ssm:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":parameter",
-                    Object {
-                      "Ref": "DatabaseWriterUrlParameter9E7B47B6",
-                    },
-                  ],
-                ],
+                "Ref": "DatabaseauthenticatorSecret69FA14DE",
               },
             },
             Object {
@@ -5511,78 +5575,15 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "ImgproxyFargateCloudmapService08613C23": Object {
+    "ImgproxyLogs00A67BBB": Object {
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "SRV",
-            },
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "imgproxy",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
+        "RetentionInDays": 30,
       },
-      "Type": "AWS::ServiceDiscovery::Service",
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
-    "ImgproxyFargateSecurityGroup351243B1": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/Imgproxy/Fargate/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "ImgproxyFargateSecurityGroupfromSupabaseStorageFargateSecurityGroup7BC158B850016E5711EC": Object {
-      "Properties": Object {
-        "Description": "from SupabaseStorageFargateSecurityGroup7BC158B8:5001",
-        "FromPort": 5001,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "ImgproxyFargateSecurityGroup351243B1",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "StorageFargateSecurityGroupC6388B3F",
-            "GroupId",
-          ],
-        },
-        "ToPort": 5001,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "ImgproxyFargateService24D0832F": Object {
+    "ImgproxyServiceC5851888": Object {
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
@@ -5615,7 +5616,7 @@ Object {
             "SecurityGroups": Array [
               Object {
                 "Fn::GetAtt": Array [
-                  "ImgproxyFargateSecurityGroup351243B1",
+                  "ImgproxyServiceSecurityGroupDD73DE99",
                   "GroupId",
                 ],
               },
@@ -5666,7 +5667,7 @@ Object {
             "ContainerPort": 5001,
             "RegistryArn": Object {
               "Fn::GetAtt": Array [
-                "ImgproxyFargateCloudmapService08613C23",
+                "ImgproxyServiceCloudmapService9C9565A1",
                 "Arn",
               ],
             },
@@ -5678,7 +5679,78 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
-    "ImgproxyFargateTaskCountTarget118ADA80": Object {
+    "ImgproxyServiceCloudmapService9C9565A1": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "imgproxy",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "ImgproxyServiceSecurityGroupDD73DE99": Object {
+      "Properties": Object {
+        "GroupDescription": "Supabase/Imgproxy/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "ImgproxyServiceSecurityGroupfromSupabaseStorageServiceSecurityGroupADF822D450011E6FA973": Object {
+      "Properties": Object {
+        "Description": "from SupabaseStorageServiceSecurityGroupADF822D4:5001",
+        "FromPort": 5001,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "ImgproxyServiceSecurityGroupDD73DE99",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "StorageServiceSecurityGroupF6280DC0",
+            "GroupId",
+          ],
+        },
+        "ToPort": 5001,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "ImgproxyServiceTaskCountTargetC19355BF": Object {
       "Properties": Object {
         "MaxCapacity": Object {
           "Ref": "ImgproxyMaxTaskCount4DF8AF60",
@@ -5697,7 +5769,7 @@ Object {
               "/",
               Object {
                 "Fn::GetAtt": Array [
-                  "ImgproxyFargateService24D0832F",
+                  "ImgproxyServiceC5851888",
                   "Name",
                 ],
               },
@@ -5725,12 +5797,12 @@ Object {
       },
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
-    "ImgproxyFargateTaskCountTargetScaleOnCpuEAA25A97": Object {
+    "ImgproxyServiceTaskCountTargetScaleOnCpuADE19FC6": Object {
       "Properties": Object {
-        "PolicyName": "SupabaseImgproxyFargateTaskCountTargetScaleOnCpuBAA80E1C",
+        "PolicyName": "SupabaseImgproxyServiceTaskCountTargetScaleOnCpu2F1B6C7E",
         "PolicyType": "TargetTrackingScaling",
         "ScalingTargetId": Object {
-          "Ref": "ImgproxyFargateTaskCountTarget118ADA80",
+          "Ref": "ImgproxyServiceTaskCountTargetC19355BF",
         },
         "TargetTrackingScalingPolicyConfiguration": Object {
           "PredefinedMetricSpecification": Object {
@@ -5742,14 +5814,6 @@ Object {
         },
       },
       "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-    },
-    "ImgproxyLogs00A67BBB": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "RetentionInDays": 30,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
     },
     "ImgproxyTaskDef33BF8CEA": Object {
       "Properties": Object {
@@ -5768,8 +5832,22 @@ Object {
                 "Name": "IMGPROXY_USE_ETAG",
                 "Value": "true",
               },
+              Object {
+                "Name": "IMGPROXY_ENABLE_WEBP_DETECTION",
+                "Value": "true",
+              },
             ],
             "Essential": true,
+            "HealthCheck": Object {
+              "Command": Array [
+                "CMD",
+                "imgproxy",
+                "health",
+              ],
+              "Interval": 5,
+              "Retries": 3,
+              "Timeout": 5,
+            },
             "Image": Object {
               "Ref": "ImgproxyImageUri",
             },
@@ -6091,7 +6169,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "1eabd374284db340b74179e3429008132f5b6b0b7b28d472d852807d7f5f9746.zip",
+          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/JwtSecret/GenerateTokenProvider)",
         "Environment": Object {
@@ -6242,99 +6320,15 @@ Object {
       "Type": "Custom::JsonWebToken",
       "UpdateReplacePolicy": "Delete",
     },
-    "KongFargateCloudmapService5994A750": Object {
+    "KongLogs4BD50491": Object {
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "SRV",
-            },
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "kong",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
+        "RetentionInDays": 30,
       },
-      "Type": "AWS::ServiceDiscovery::Service",
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
-    "KongFargateSecurityGroup972A8F5C": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/Kong/Fargate/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "KongFargateSecurityGroupfromSupabaseLoadBalancerSecurityGroupADDF6EB88000431006BA": Object {
-      "Properties": Object {
-        "Description": "Load balancer to target",
-        "FromPort": 8000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "LoadBalancerSecurityGroupA28D6DD7",
-            "GroupId",
-          ],
-        },
-        "ToPort": 8000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "KongFargateSecurityGroupfromSupabaseLoadBalancerSecurityGroupADDF6EB8810028DF33E8": Object {
-      "Properties": Object {
-        "Description": "ALB healthcheck",
-        "FromPort": 8100,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "LoadBalancerSecurityGroupA28D6DD7",
-            "GroupId",
-          ],
-        },
-        "ToPort": 8100,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "KongFargateServiceA23C8C36": Object {
+    "KongService33127C91": Object {
       "DependsOn": Array [
         "LoadBalancerListenerE1A099B9",
       ],
@@ -6380,7 +6374,7 @@ Object {
             "SecurityGroups": Array [
               Object {
                 "Fn::GetAtt": Array [
-                  "KongFargateSecurityGroup972A8F5C",
+                  "KongServiceSecurityGroupE199EE6C",
                   "GroupId",
                 ],
               },
@@ -6431,7 +6425,7 @@ Object {
             "ContainerPort": 8000,
             "RegistryArn": Object {
               "Fn::GetAtt": Array [
-                "KongFargateCloudmapService5994A750",
+                "KongServiceCloudmapService59ECFE3A",
                 "Arn",
               ],
             },
@@ -6443,7 +6437,99 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
-    "KongFargateTaskCountTarget5B86CAE2": Object {
+    "KongServiceCloudmapService59ECFE3A": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "kong",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "KongServiceSecurityGroupE199EE6C": Object {
+      "Properties": Object {
+        "GroupDescription": "Supabase/Kong/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "KongServiceSecurityGroupfromSupabaseLoadBalancerSecurityGroupADDF6EB880000F4CA2E4": Object {
+      "Properties": Object {
+        "Description": "Load balancer to target",
+        "FromPort": 8000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongServiceSecurityGroupE199EE6C",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "LoadBalancerSecurityGroupA28D6DD7",
+            "GroupId",
+          ],
+        },
+        "ToPort": 8000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "KongServiceSecurityGroupfromSupabaseLoadBalancerSecurityGroupADDF6EB881008D65C13D": Object {
+      "Properties": Object {
+        "Description": "ALB healthcheck",
+        "FromPort": 8100,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongServiceSecurityGroupE199EE6C",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "LoadBalancerSecurityGroupA28D6DD7",
+            "GroupId",
+          ],
+        },
+        "ToPort": 8100,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "KongServiceTaskCountTarget5CD21EEB": Object {
       "Properties": Object {
         "MaxCapacity": Object {
           "Ref": "KongMaxTaskCountA4145D65",
@@ -6462,7 +6548,7 @@ Object {
               "/",
               Object {
                 "Fn::GetAtt": Array [
-                  "KongFargateServiceA23C8C36",
+                  "KongService33127C91",
                   "Name",
                 ],
               },
@@ -6490,12 +6576,12 @@ Object {
       },
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
-    "KongFargateTaskCountTargetScaleOnCpu4A3E2B55": Object {
+    "KongServiceTaskCountTargetScaleOnCpuE9FBE5E2": Object {
       "Properties": Object {
-        "PolicyName": "SupabaseKongFargateTaskCountTargetScaleOnCpu9D84D638",
+        "PolicyName": "SupabaseKongServiceTaskCountTargetScaleOnCpu7C47F3C3",
         "PolicyType": "TargetTrackingScaling",
         "ScalingTargetId": Object {
-          "Ref": "KongFargateTaskCountTarget5B86CAE2",
+          "Ref": "KongServiceTaskCountTarget5CD21EEB",
         },
         "TargetTrackingScalingPolicyConfiguration": Object {
           "PredefinedMetricSpecification": Object {
@@ -6507,14 +6593,6 @@ Object {
         },
       },
       "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-    },
-    "KongLogs4BD50491": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "RetentionInDays": 30,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
     },
     "KongTargetGroupD0277B2A": Object {
       "Properties": Object {
@@ -6656,9 +6734,9 @@ Object {
                 "kong",
                 "health",
               ],
-              "Interval": 10,
+              "Interval": 5,
               "Retries": 3,
-              "Timeout": 10,
+              "Timeout": 5,
             },
             "Image": "public.ecr.aws/u3p7q2r8/kong:latest",
             "LogConfiguration": Object {
@@ -6996,12 +7074,12 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "LoadBalancerSecurityGrouptoSupabaseKongFargateSecurityGroupB95937A2800054036A7C": Object {
+    "LoadBalancerSecurityGrouptoSupabaseKongServiceSecurityGroupB3C4AC8F800011C84C57": Object {
       "Properties": Object {
         "Description": "Load balancer to target",
         "DestinationSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
+            "KongServiceSecurityGroupE199EE6C",
             "GroupId",
           ],
         },
@@ -7017,12 +7095,12 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
     },
-    "LoadBalancerSecurityGrouptoSupabaseKongFargateSecurityGroupB95937A28100C27D41FB": Object {
+    "LoadBalancerSecurityGrouptoSupabaseKongServiceSecurityGroupB3C4AC8F8100711401B1": Object {
       "Properties": Object {
         "Description": "ALB healthcheck",
         "DestinationSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
+            "KongServiceSecurityGroupE199EE6C",
             "GroupId",
           ],
         },
@@ -7038,78 +7116,15 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
     },
-    "MetaFargateCloudmapService49FA2349": Object {
+    "MetaLogs80FD71C7": Object {
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "SRV",
-            },
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "meta",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
+        "RetentionInDays": 30,
       },
-      "Type": "AWS::ServiceDiscovery::Service",
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
-    "MetaFargateSecurityGroup9D26952C": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/Meta/Fargate/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "MetaFargateSecurityGroupfromSupabaseKongFargateSecurityGroupB95937A280805A303D6E": Object {
-      "Properties": Object {
-        "Description": "from SupabaseKongFargateSecurityGroupB95937A2:8080",
-        "FromPort": 8080,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "MetaFargateSecurityGroup9D26952C",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
-            "GroupId",
-          ],
-        },
-        "ToPort": 8080,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "MetaFargateServiceF2E9C2CC": Object {
+    "MetaService2BE3A4CF": Object {
       "DependsOn": Array [
         "DatabaseClusterInstance1078CC457",
       ],
@@ -7145,7 +7160,7 @@ Object {
             "SecurityGroups": Array [
               Object {
                 "Fn::GetAtt": Array [
-                  "MetaFargateSecurityGroup9D26952C",
+                  "MetaServiceSecurityGroup0E39DF35",
                   "GroupId",
                 ],
               },
@@ -7196,7 +7211,7 @@ Object {
             "ContainerPort": 8080,
             "RegistryArn": Object {
               "Fn::GetAtt": Array [
-                "MetaFargateCloudmapService49FA2349",
+                "MetaServiceCloudmapService638956CC",
                 "Arn",
               ],
             },
@@ -7208,7 +7223,78 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
-    "MetaFargateTaskCountTargetAA0B984C": Object {
+    "MetaServiceCloudmapService638956CC": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "meta",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "MetaServiceSecurityGroup0E39DF35": Object {
+      "Properties": Object {
+        "GroupDescription": "Supabase/Meta/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "MetaServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F80805AD2C559": Object {
+      "Properties": Object {
+        "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:8080",
+        "FromPort": 8080,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "MetaServiceSecurityGroup0E39DF35",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongServiceSecurityGroupE199EE6C",
+            "GroupId",
+          ],
+        },
+        "ToPort": 8080,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "MetaServiceTaskCountTarget124C5BFA": Object {
       "Properties": Object {
         "MaxCapacity": Object {
           "Ref": "MetaMaxTaskCount2749DE86",
@@ -7227,7 +7313,7 @@ Object {
               "/",
               Object {
                 "Fn::GetAtt": Array [
-                  "MetaFargateServiceF2E9C2CC",
+                  "MetaService2BE3A4CF",
                   "Name",
                 ],
               },
@@ -7255,12 +7341,12 @@ Object {
       },
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
-    "MetaFargateTaskCountTargetScaleOnCpu8BCDFDD4": Object {
+    "MetaServiceTaskCountTargetScaleOnCpuBFDCF132": Object {
       "Properties": Object {
-        "PolicyName": "SupabaseMetaFargateTaskCountTargetScaleOnCpu74816CBC",
+        "PolicyName": "SupabaseMetaServiceTaskCountTargetScaleOnCpuB433E25D",
         "PolicyType": "TargetTrackingScaling",
         "ScalingTargetId": Object {
-          "Ref": "MetaFargateTaskCountTargetAA0B984C",
+          "Ref": "MetaServiceTaskCountTarget124C5BFA",
         },
         "TargetTrackingScalingPolicyConfiguration": Object {
           "PredefinedMetricSpecification": Object {
@@ -7272,14 +7358,6 @@ Object {
         },
       },
       "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-    },
-    "MetaLogs80FD71C7": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "RetentionInDays": 30,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
     },
     "MetaTaskDef2C490DD3": Object {
       "Properties": Object {
@@ -7511,78 +7589,15 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "RealtimeFargateCloudmapServiceECA0414A": Object {
+    "RealtimeLogs5C43159D": Object {
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "SRV",
-            },
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "realtime",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
+        "RetentionInDays": 30,
       },
-      "Type": "AWS::ServiceDiscovery::Service",
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
-    "RealtimeFargateSecurityGroupC1A41CAF": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/Realtime/Fargate/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "RealtimeFargateSecurityGroupfromSupabaseKongFargateSecurityGroupB95937A240004295BD18": Object {
-      "Properties": Object {
-        "Description": "from SupabaseKongFargateSecurityGroupB95937A2:4000",
-        "FromPort": 4000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "RealtimeFargateSecurityGroupC1A41CAF",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
-            "GroupId",
-          ],
-        },
-        "ToPort": 4000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "RealtimeFargateService9F99B0D0": Object {
+    "RealtimeServiceA39AF596": Object {
       "DependsOn": Array [
         "DatabaseClusterInstance1078CC457",
       ],
@@ -7618,7 +7633,7 @@ Object {
             "SecurityGroups": Array [
               Object {
                 "Fn::GetAtt": Array [
-                  "RealtimeFargateSecurityGroupC1A41CAF",
+                  "RealtimeServiceSecurityGroup8E245E7E",
                   "GroupId",
                 ],
               },
@@ -7669,7 +7684,7 @@ Object {
             "ContainerPort": 4000,
             "RegistryArn": Object {
               "Fn::GetAtt": Array [
-                "RealtimeFargateCloudmapServiceECA0414A",
+                "RealtimeServiceCloudmapServiceBBBA4A23",
                 "Arn",
               ],
             },
@@ -7681,7 +7696,78 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
-    "RealtimeFargateTaskCountTargetCB8D8004": Object {
+    "RealtimeServiceCloudmapServiceBBBA4A23": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "realtime",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "RealtimeServiceSecurityGroup8E245E7E": Object {
+      "Properties": Object {
+        "GroupDescription": "Supabase/Realtime/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "RealtimeServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F40007D995F01": Object {
+      "Properties": Object {
+        "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:4000",
+        "FromPort": 4000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "RealtimeServiceSecurityGroup8E245E7E",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongServiceSecurityGroupE199EE6C",
+            "GroupId",
+          ],
+        },
+        "ToPort": 4000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "RealtimeServiceTaskCountTarget89349CD4": Object {
       "Properties": Object {
         "MaxCapacity": Object {
           "Ref": "RealtimeMaxTaskCountE72E1120",
@@ -7700,7 +7786,7 @@ Object {
               "/",
               Object {
                 "Fn::GetAtt": Array [
-                  "RealtimeFargateService9F99B0D0",
+                  "RealtimeServiceA39AF596",
                   "Name",
                 ],
               },
@@ -7728,12 +7814,12 @@ Object {
       },
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
-    "RealtimeFargateTaskCountTargetScaleOnCpu9094D641": Object {
+    "RealtimeServiceTaskCountTargetScaleOnCpu764115FF": Object {
       "Properties": Object {
-        "PolicyName": "SupabaseRealtimeFargateTaskCountTargetScaleOnCpu4D264B1A",
+        "PolicyName": "SupabaseRealtimeServiceTaskCountTargetScaleOnCpu2482C1E2",
         "PolicyType": "TargetTrackingScaling",
         "ScalingTargetId": Object {
-          "Ref": "RealtimeFargateTaskCountTargetCB8D8004",
+          "Ref": "RealtimeServiceTaskCountTarget89349CD4",
         },
         "TargetTrackingScalingPolicyConfiguration": Object {
           "PredefinedMetricSpecification": Object {
@@ -7746,59 +7832,47 @@ Object {
       },
       "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
     },
-    "RealtimeLogs5C43159D": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "RetentionInDays": 30,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
-    },
     "RealtimeTaskDef9E0DD838": Object {
       "Properties": Object {
         "ContainerDefinitions": Array [
           Object {
             "Command": Array [
-              "bash",
+              "sh",
               "-c",
-              "./prod/rel/realtime/bin/realtime eval Realtime.Release.migrate && ./prod/rel/realtime/bin/realtime start",
+              "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server",
             ],
             "Environment": Array [
               Object {
-                "Name": "DB_SSL",
+                "Name": "DB_AFTER_CONNECT_QUERY",
+                "Value": "SET search_path TO realtime",
+              },
+              Object {
+                "Name": "DB_ENC_KEY",
+                "Value": "supabaserealtime",
+              },
+              Object {
+                "Name": "FLY_ALLOC_ID",
+                "Value": "fly123",
+              },
+              Object {
+                "Name": "FLY_APP_NAME",
+                "Value": "realtime",
+              },
+              Object {
+                "Name": "ERL_AFLAGS",
+                "Value": "-proto_dist inet_tcp",
+              },
+              Object {
+                "Name": "ENABLE_TAILSCALE",
                 "Value": "false",
               },
               Object {
-                "Name": "PORT",
-                "Value": "4000",
+                "Name": "DNS_NODES",
+                "Value": "''",
               },
               Object {
-                "Name": "REPLICATION_MODE",
-                "Value": "RLS",
-              },
-              Object {
-                "Name": "REPLICATION_POLL_INTERVAL",
-                "Value": "300",
-              },
-              Object {
-                "Name": "SUBSCRIPTION_SYNC_INTERVAL",
-                "Value": "60000",
-              },
-              Object {
-                "Name": "SECURE_CHANNELS",
-                "Value": "true",
-              },
-              Object {
-                "Name": "SLOT_NAME",
-                "Value": "realtime_rls",
-              },
-              Object {
-                "Name": "TEMPORARY_SLOT",
-                "Value": "true",
-              },
-              Object {
-                "Name": "MAX_REPLICATION_LAG_MB",
-                "Value": "1000",
+                "Name": "RLIMIT_NOFILE",
+                "Value": "",
               },
             ],
             "Essential": true,
@@ -7827,12 +7901,6 @@ Object {
             ],
             "Secrets": Array [
               Object {
-                "Name": "JWT_SECRET",
-                "ValueFrom": Object {
-                  "Ref": "JwtSecretB8834B39",
-                },
-              },
-              Object {
                 "Name": "DB_HOST",
                 "ValueFrom": Object {
                   "Fn::Join": Array [
@@ -7856,20 +7924,6 @@ Object {
                         "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
                       },
                       ":port::",
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "DB_NAME",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-                      },
-                      ":dbname::",
                     ],
                   ],
                 },
@@ -7900,6 +7954,32 @@ Object {
                       ":password::",
                     ],
                   ],
+                },
+              },
+              Object {
+                "Name": "DB_NAME",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                      },
+                      ":dbname::",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "API_JWT_SECRET",
+                "ValueFrom": Object {
+                  "Ref": "JwtSecretB8834B39",
+                },
+              },
+              Object {
+                "Name": "SECRET_KEY_BASE",
+                "ValueFrom": Object {
+                  "Ref": "CookieSigningSecretE5797145",
                 },
               },
             ],
@@ -7995,6 +8075,16 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
+                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+              },
+            },
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
                 "Ref": "JwtSecretB8834B39",
               },
             },
@@ -8005,7 +8095,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                "Ref": "CookieSigningSecretE5797145",
               },
             },
           ],
@@ -8037,120 +8127,15 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "RestFargateCloudmapServiceEC842507": Object {
+    "RestLogsE8B49088": Object {
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "SRV",
-            },
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "rest",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
+        "RetentionInDays": 30,
       },
-      "Type": "AWS::ServiceDiscovery::Service",
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
-    "RestFargateSecurityGroupEADE3F44": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/Rest/Fargate/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "RestFargateSecurityGroupfromSupabaseAuthFargateSecurityGroup5DE52F13300075ED213D": Object {
-      "Properties": Object {
-        "Description": "from SupabaseAuthFargateSecurityGroup5DE52F13:3000",
-        "FromPort": 3000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "RestFargateSecurityGroupEADE3F44",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "AuthFargateSecurityGroup512F6031",
-            "GroupId",
-          ],
-        },
-        "ToPort": 3000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "RestFargateSecurityGroupfromSupabaseKongFargateSecurityGroupB95937A23000F613D8C3": Object {
-      "Properties": Object {
-        "Description": "from SupabaseKongFargateSecurityGroupB95937A2:3000",
-        "FromPort": 3000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "RestFargateSecurityGroupEADE3F44",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
-            "GroupId",
-          ],
-        },
-        "ToPort": 3000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "RestFargateSecurityGroupfromSupabaseStorageFargateSecurityGroup7BC158B8300068CA1C96": Object {
-      "Properties": Object {
-        "Description": "from SupabaseStorageFargateSecurityGroup7BC158B8:3000",
-        "FromPort": 3000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "RestFargateSecurityGroupEADE3F44",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "StorageFargateSecurityGroupC6388B3F",
-            "GroupId",
-          ],
-        },
-        "ToPort": 3000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "RestFargateServiceB761E563": Object {
+    "RestService8812C0B2": Object {
       "DependsOn": Array [
         "DatabaseClusterInstance1078CC457",
       ],
@@ -8186,7 +8171,7 @@ Object {
             "SecurityGroups": Array [
               Object {
                 "Fn::GetAtt": Array [
-                  "RestFargateSecurityGroupEADE3F44",
+                  "RestServiceSecurityGroup0BAEA949",
                   "GroupId",
                 ],
               },
@@ -8237,7 +8222,7 @@ Object {
             "ContainerPort": 3000,
             "RegistryArn": Object {
               "Fn::GetAtt": Array [
-                "RestFargateCloudmapServiceEC842507",
+                "RestServiceCloudmapServiceA978698C",
                 "Arn",
               ],
             },
@@ -8249,7 +8234,120 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
-    "RestFargateTaskCountTarget12C6E719": Object {
+    "RestServiceCloudmapServiceA978698C": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "rest",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "RestServiceSecurityGroup0BAEA949": Object {
+      "Properties": Object {
+        "GroupDescription": "Supabase/Rest/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "RestServiceSecurityGroupfromSupabaseAuthServiceSecurityGroupC0652D2330004E9DE7F5": Object {
+      "Properties": Object {
+        "Description": "from SupabaseAuthServiceSecurityGroupC0652D23:3000",
+        "FromPort": 3000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "RestServiceSecurityGroup0BAEA949",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "AuthServiceSecurityGroup6440464F",
+            "GroupId",
+          ],
+        },
+        "ToPort": 3000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "RestServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F300032126E75": Object {
+      "Properties": Object {
+        "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:3000",
+        "FromPort": 3000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "RestServiceSecurityGroup0BAEA949",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongServiceSecurityGroupE199EE6C",
+            "GroupId",
+          ],
+        },
+        "ToPort": 3000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "RestServiceSecurityGroupfromSupabaseStorageServiceSecurityGroupADF822D430009563CF9C": Object {
+      "Properties": Object {
+        "Description": "from SupabaseStorageServiceSecurityGroupADF822D4:3000",
+        "FromPort": 3000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "RestServiceSecurityGroup0BAEA949",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "StorageServiceSecurityGroupF6280DC0",
+            "GroupId",
+          ],
+        },
+        "ToPort": 3000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "RestServiceTaskCountTarget8C6E8E1E": Object {
       "Properties": Object {
         "MaxCapacity": Object {
           "Ref": "RestMaxTaskCount1D2E84B9",
@@ -8268,7 +8366,7 @@ Object {
               "/",
               Object {
                 "Fn::GetAtt": Array [
-                  "RestFargateServiceB761E563",
+                  "RestService8812C0B2",
                   "Name",
                 ],
               },
@@ -8296,12 +8394,12 @@ Object {
       },
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
-    "RestFargateTaskCountTargetScaleOnCpu7B420701": Object {
+    "RestServiceTaskCountTargetScaleOnCpuE9845870": Object {
       "Properties": Object {
-        "PolicyName": "SupabaseRestFargateTaskCountTargetScaleOnCpuCCCFCAEB",
+        "PolicyName": "SupabaseRestServiceTaskCountTargetScaleOnCpuB529B263",
         "PolicyType": "TargetTrackingScaling",
         "ScalingTargetId": Object {
-          "Ref": "RestFargateTaskCountTarget12C6E719",
+          "Ref": "RestServiceTaskCountTarget8C6E8E1E",
         },
         "TargetTrackingScalingPolicyConfiguration": Object {
           "PredefinedMetricSpecification": Object {
@@ -8313,14 +8411,6 @@ Object {
         },
       },
       "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-    },
-    "RestLogsE8B49088": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "RetentionInDays": 30,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
     },
     "RestTaskDef716BD951": Object {
       "Properties": Object {
@@ -8371,22 +8461,10 @@ Object {
                   "Fn::Join": Array [
                     "",
                     Array [
-                      "arn:",
                       Object {
-                        "Ref": "AWS::Partition",
+                        "Ref": "DatabaseauthenticatorSecret69FA14DE",
                       },
-                      ":ssm:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":parameter",
-                      Object {
-                        "Ref": "DatabaseWriterUrlParameter9E7B47B6",
-                      },
+                      ":uri::",
                     ],
                   ],
                 },
@@ -8485,34 +8563,12 @@ Object {
             },
             Object {
               "Action": Array [
-                "ssm:DescribeParameters",
-                "ssm:GetParameters",
-                "ssm:GetParameter",
-                "ssm:GetParameterHistory",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":ssm:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":parameter",
-                    Object {
-                      "Ref": "DatabaseWriterUrlParameter9E7B47B6",
-                    },
-                  ],
-                ],
+                "Ref": "DatabaseauthenticatorSecret69FA14DE",
               },
             },
             Object {
@@ -8631,7 +8687,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "1eabd374284db340b74179e3429008132f5b6b0b7b28d472d852807d7f5f9746.zip",
+          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/GenPasswordProvider)",
         "Environment": Object {
@@ -8885,7 +8941,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/6472582ea1c9b551cee8af6c3d38073830fd6908949d1a9dcb23b119e3246337.json",
+              "/7d21fef3764af06f447ed70207ac6ddb8c950c8966c636e35debeb0c7840234c.json",
             ],
           ],
         },
@@ -8893,78 +8949,15 @@ Object {
       "Type": "AWS::CloudFormation::Stack",
       "UpdateReplacePolicy": "Delete",
     },
-    "StorageFargateCloudmapServiceB19C4F44": Object {
+    "StorageLogs2A2D4D26": Object {
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "SRV",
-            },
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "storage",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
+        "RetentionInDays": 30,
       },
-      "Type": "AWS::ServiceDiscovery::Service",
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
-    "StorageFargateSecurityGroupC6388B3F": Object {
-      "Properties": Object {
-        "GroupDescription": "Supabase/Storage/Fargate/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "StorageFargateSecurityGroupfromSupabaseKongFargateSecurityGroupB95937A25000F003E87B": Object {
-      "Properties": Object {
-        "Description": "from SupabaseKongFargateSecurityGroupB95937A2:5000",
-        "FromPort": 5000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "StorageFargateSecurityGroupC6388B3F",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongFargateSecurityGroup972A8F5C",
-            "GroupId",
-          ],
-        },
-        "ToPort": 5000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "StorageFargateService64A6F247": Object {
+    "StorageService1CFF47FC": Object {
       "DependsOn": Array [
         "DatabaseClusterInstance1078CC457",
       ],
@@ -9000,7 +8993,7 @@ Object {
             "SecurityGroups": Array [
               Object {
                 "Fn::GetAtt": Array [
-                  "StorageFargateSecurityGroupC6388B3F",
+                  "StorageServiceSecurityGroupF6280DC0",
                   "GroupId",
                 ],
               },
@@ -9051,7 +9044,7 @@ Object {
             "ContainerPort": 5000,
             "RegistryArn": Object {
               "Fn::GetAtt": Array [
-                "StorageFargateCloudmapServiceB19C4F44",
+                "StorageServiceCloudmapService524EC31C",
                 "Arn",
               ],
             },
@@ -9063,7 +9056,78 @@ Object {
       },
       "Type": "AWS::ECS::Service",
     },
-    "StorageFargateTaskCountTarget6527B498": Object {
+    "StorageServiceCloudmapService524EC31C": Object {
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "storage",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "StorageServiceSecurityGroupF6280DC0": Object {
+      "Properties": Object {
+        "GroupDescription": "Supabase/Storage/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "StorageServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F50000996D63B": Object {
+      "Properties": Object {
+        "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:5000",
+        "FromPort": 5000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "StorageServiceSecurityGroupF6280DC0",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongServiceSecurityGroupE199EE6C",
+            "GroupId",
+          ],
+        },
+        "ToPort": 5000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "StorageServiceTaskCountTargetAF72160A": Object {
       "Properties": Object {
         "MaxCapacity": Object {
           "Ref": "StorageMaxTaskCount372C6914",
@@ -9082,7 +9146,7 @@ Object {
               "/",
               Object {
                 "Fn::GetAtt": Array [
-                  "StorageFargateService64A6F247",
+                  "StorageService1CFF47FC",
                   "Name",
                 ],
               },
@@ -9110,12 +9174,12 @@ Object {
       },
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
-    "StorageFargateTaskCountTargetScaleOnCpu81945CB0": Object {
+    "StorageServiceTaskCountTargetScaleOnCpuDB3B903C": Object {
       "Properties": Object {
-        "PolicyName": "SupabaseStorageFargateTaskCountTargetScaleOnCpu9B4A7A5C",
+        "PolicyName": "SupabaseStorageServiceTaskCountTargetScaleOnCpuE2C72C87",
         "PolicyType": "TargetTrackingScaling",
         "ScalingTargetId": Object {
-          "Ref": "StorageFargateTaskCountTarget6527B498",
+          "Ref": "StorageServiceTaskCountTargetAF72160A",
         },
         "TargetTrackingScalingPolicyConfiguration": Object {
           "PredefinedMetricSpecification": Object {
@@ -9127,14 +9191,6 @@ Object {
         },
       },
       "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-    },
-    "StorageLogs2A2D4D26": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "RetentionInDays": 30,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
     },
     "StorageTaskDef36011FFA": Object {
       "Properties": Object {
@@ -9177,42 +9233,19 @@ Object {
                 "Value": "s3",
               },
               Object {
-                "Name": "REGION",
-                "Value": Object {
-                  "Ref": "AWS::Region",
-                },
-              },
-              Object {
                 "Name": "GLOBAL_S3_BUCKET",
                 "Value": Object {
                   "Ref": "Bucket83908E77",
                 },
               },
               Object {
-                "Name": "WEBHOOK_URL",
+                "Name": "REGION",
                 "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "https://",
-                      Object {
-                        "Ref": "CdnCacheManagerApi61CD317D",
-                      },
-                      ".execute-api.",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ".",
-                      Object {
-                        "Ref": "AWS::URLSuffix",
-                      },
-                      "/",
-                    ],
-                  ],
+                  "Ref": "AWS::Region",
                 },
               },
               Object {
-                "Name": "ENABLE_QUEUE_EVENTS",
+                "Name": "ENABLE_IMAGE_TRANSFORMATION",
                 "Value": "true",
               },
               Object {
@@ -9230,16 +9263,24 @@ Object {
                   ],
                 },
               },
+              Object {
+                "Name": "ENABLE_QUEUE_EVENTS",
+                "Value": "false",
+              },
             ],
             "Essential": true,
             "HealthCheck": Object {
               "Command": Array [
-                "CMD-SHELL",
-                "wget --no-verbose --tries=1 --spider http://localhost:5000/status || exit 1",
+                "CMD",
+                "wget",
+                "--no-verbose",
+                "--tries=1",
+                "--spider",
+                "http://localhost:5000/status",
               ],
-              "Interval": 10,
+              "Interval": 5,
               "Retries": 3,
-              "Timeout": 10,
+              "Timeout": 5,
             },
             "Image": Object {
               "Ref": "StorageImageUri",
@@ -9329,22 +9370,10 @@ Object {
                   "Fn::Join": Array [
                     "",
                     Array [
-                      "arn:",
                       Object {
-                        "Ref": "AWS::Partition",
+                        "Ref": "DatabasesupabasestorageadminSecret88C76AA3",
                       },
-                      ":ssm:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":parameter",
-                      Object {
-                        "Ref": "DatabaseWriterUrlParameter9E7B47B6",
-                      },
+                      ":uri::",
                     ],
                   ],
                 },
@@ -9511,34 +9540,12 @@ Object {
             },
             Object {
               "Action": Array [
-                "ssm:DescribeParameters",
-                "ssm:GetParameters",
-                "ssm:GetParameter",
-                "ssm:GetParameterHistory",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":ssm:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":parameter",
-                    Object {
-                      "Ref": "DatabaseWriterUrlParameter9E7B47B6",
-                    },
-                  ],
-                ],
+                "Ref": "DatabasesupabasestorageadminSecret88C76AA3",
               },
             },
           ],
@@ -10150,7 +10157,7 @@ applications:
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "1eabd374284db340b74179e3429008132f5b6b0b7b28d472d852807d7f5f9746.zip",
+          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Studio/Repository/ImportProvider)",
         "Environment": Object {
@@ -10268,7 +10275,7 @@ applications:
       "Type": "Custom::RepoImportJob",
       "UpdateReplacePolicy": "Delete",
     },
-    "SupabaseDatabaseClusterSecret2AA4A5CD307c1d46040699635693200afdd4b7d4": Object {
+    "SupabaseDatabaseClusterSecret2AA4A5CD3fdaad7efa858a3daf9490cf0a702aeb": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Description": Object {
@@ -10283,10 +10290,21 @@ applications:
           ],
         },
         "GenerateSecretString": Object {
-          "ExcludeCharacters": "%+~\`#$&*()|[]{}:;<>?!'/@\\"\\\\=^,",
+          "ExcludeCharacters": " %+~\`#$&*()|[]{}:;<>?!'/@\\"\\\\",
           "GenerateStringKey": "password",
           "PasswordLength": 30,
           "SecretStringTemplate": "{\\"username\\":\\"supabase_admin\\"}",
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-Database-supabase_admin",
+            ],
+          ],
         },
       },
       "Type": "AWS::SecretsManager::Secret",

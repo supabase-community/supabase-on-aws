@@ -81,7 +81,7 @@ export class BaseFargateService extends Construct {
     appContainer.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 65536, hardLimit: 65536 });
     appContainer.addPortMappings({ name: 'http', containerPort: taskImageOptions.containerPort });
 
-    this.service = new ecs.FargateService(this, 'Fargate', {
+    this.service = new ecs.FargateService(this, 'Service', {
       cluster,
       taskDefinition,
       circuitBreaker: { rollback: true },
@@ -196,6 +196,7 @@ export class AutoScalingFargateService extends BaseFargateService {
       minCapacity: this.cfnParameters.minTaskCount.valueAsNumber,
       maxCapacity: this.cfnParameters.maxTaskCount.valueAsNumber,
     });
+
     autoScaling.scaleOnCpuUtilization('ScaleOnCpu', {
       targetUtilizationPercent: 50,
       scaleInCooldown: cdk.Duration.seconds(60),
