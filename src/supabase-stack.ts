@@ -291,7 +291,7 @@ export class SupabaseStack extends FargateStack {
         //image: ecs.ContainerImage.fromAsset('./containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
         containerPort: 5000,
         healthCheck: {
-          command: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:5000/status'],
+          command: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:5000/health'],
           interval: cdk.Duration.seconds(5),
           timeout: cdk.Duration.seconds(5),
           retries: 3,
