@@ -1332,7 +1332,7 @@ Object {
       "Type": "String",
     },
     "RealtimeImageUri": Object {
-      "Default": "public.ecr.aws/supabase/realtime:v0.25.1",
+      "Default": "public.ecr.aws/supabase/realtime:v2.5.1",
       "Description": "https://gallery.ecr.aws/supabase/realtime",
       "Type": "String",
     },
