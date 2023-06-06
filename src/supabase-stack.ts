@@ -168,6 +168,12 @@ export class SupabaseStack extends FargateStack {
         image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/kong:latest'),
         //image: ecs.ContainerImage.fromAsset('./containers/kong', { platform: Platform.LINUX_ARM64 }),
         containerPort: 8000,
+        healthCheck: {
+          command: ['CMD', 'kong', 'health'],
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(5),
+          retries: 3,
+        },
         environment: {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
           KONG_PLUGINS: 'request-transformer,cors,key-auth,acl,opentelemetry',
@@ -179,12 +185,6 @@ export class SupabaseStack extends FargateStack {
         secrets: {
           ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
           SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
-        },
-        healthCheck: {
-          command: ['CMD', 'kong', 'health'],
-          interval: cdk.Duration.seconds(10),
-          timeout: cdk.Duration.seconds(10),
-          retries: 3,
         },
       },
     });
@@ -211,6 +211,12 @@ export class SupabaseStack extends FargateStack {
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(authImageUri.valueAsString),
         containerPort: 9999,
+        healthCheck: {
+          command: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9999/health'],
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(5),
+          retries: 3,
+        },
         environment: {
           // Top-Level - https://github.com/supabase/gotrue#top-level
           GOTRUE_SITE_URL: siteUrl.valueAsString,
@@ -254,12 +260,6 @@ export class SupabaseStack extends FargateStack {
           GOTRUE_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           GOTRUE_SMTP_USER: ecs.Secret.fromSecretsManager(smtp.secret, 'username'),
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(smtp.secret, 'password'),
-        },
-        healthCheck: {
-          command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:9999/health || exit 1'],
-          interval: cdk.Duration.seconds(10),
-          timeout: cdk.Duration.seconds(10),
-          retries: 3,
         },
       },
     });
@@ -355,6 +355,12 @@ export class SupabaseStack extends FargateStack {
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(imgproxyImageUri.valueAsString),
         containerPort: 5001,
+        healthCheck: {
+          command: ['CMD', 'imgproxy', 'health'],
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(5),
+          retries: 3,
+        },
         environment: {
           IMGPROXY_BIND: ':5001',
           IMGPROXY_LOCAL_FILESYSTEM_ROOT: '/',
@@ -364,12 +370,18 @@ export class SupabaseStack extends FargateStack {
       },
     });
 
-    /** A S3 compatible object storage service that stores metadata in Postgres */
+    /** S3 compatible object storage API that stores metadata in Postgres */
     const storage = new AutoScalingFargateService(this, 'Storage', {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(storageImageUri.valueAsString),
         containerPort: 5000,
+        healthCheck: {
+          command: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:5000/status'],
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(5),
+          retries: 3,
+        },
         environment: {
           POSTGREST_URL: `${rest.endpoint}`,
           PGOPTIONS: '-c search_path=storage,public',
@@ -394,12 +406,6 @@ export class SupabaseStack extends FargateStack {
           SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           DATABASE_URL: ecs.Secret.fromSecretsManager(supabaseStorageAdminSecret, 'uri'),
-        },
-        healthCheck: {
-          command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/status || exit 1'],
-          interval: cdk.Duration.seconds(10),
-          timeout: cdk.Duration.seconds(10),
-          retries: 3,
         },
       },
       cpuArchitecture: 'X86_64', // storage-api does not work on ARM64
