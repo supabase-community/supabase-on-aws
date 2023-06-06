@@ -1875,7 +1875,6 @@ Object {
           ],
         },
         "EnableECSManagedTags": true,
-        "EnableExecuteCommand": true,
         "LaunchType": "FARGATE",
         "NetworkConfiguration": Object {
           "AwsvpcConfiguration": Object {
@@ -3120,46 +3119,6 @@ Object {
         },
       },
       "Type": "AWS::IAM::Role",
-    },
-    "AuthTaskDefTaskRoleDefaultPolicy0C750090": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "ssmmessages:CreateControlChannel",
-                "ssmmessages:CreateDataChannel",
-                "ssmmessages:OpenControlChannel",
-                "ssmmessages:OpenDataChannel",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": "logs:DescribeLogGroups",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:DescribeLogStreams",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "AuthTaskDefTaskRoleDefaultPolicy0C750090",
-        "Roles": Array [
-          Object {
-            "Ref": "AuthTaskDefTaskRole8CE224AF",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
     },
     "Bucket83908E77": Object {
       "DeletionPolicy": "Delete",
@@ -5201,7 +5160,6 @@ Object {
           ],
         },
         "EnableECSManagedTags": true,
-        "EnableExecuteCommand": true,
         "LaunchType": "FARGATE",
         "NetworkConfiguration": Object {
           "AwsvpcConfiguration": Object {
@@ -5617,46 +5575,6 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "GraphQLTaskDefTaskRoleDefaultPolicy219B807B": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "ssmmessages:CreateControlChannel",
-                "ssmmessages:CreateDataChannel",
-                "ssmmessages:OpenControlChannel",
-                "ssmmessages:OpenDataChannel",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": "logs:DescribeLogGroups",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:DescribeLogStreams",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "GraphQLTaskDefTaskRoleDefaultPolicy219B807B",
-        "Roles": Array [
-          Object {
-            "Ref": "GraphQLTaskDefTaskRoleD651EBE2",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "ImgproxyLogs00A67BBB": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
@@ -5691,7 +5609,6 @@ Object {
           ],
         },
         "EnableECSManagedTags": true,
-        "EnableExecuteCommand": true,
         "LaunchType": "FARGATE",
         "NetworkConfiguration": Object {
           "AwsvpcConfiguration": Object {
@@ -6068,46 +5985,6 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "ImgproxyTaskDefTaskRoleDefaultPolicy4C127284": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "ssmmessages:CreateControlChannel",
-                "ssmmessages:CreateDataChannel",
-                "ssmmessages:OpenControlChannel",
-                "ssmmessages:OpenDataChannel",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": "logs:DescribeLogGroups",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:DescribeLogStreams",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "ImgproxyTaskDefTaskRoleDefaultPolicy4C127284",
-        "Roles": Array [
-          Object {
-            "Ref": "ImgproxyTaskDefTaskRoleB88D5B6D",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "JwtSecretAnonKeyParameter532DCC06": Object {
       "Properties": Object {
         "Description": Object {
@@ -6480,7 +6357,6 @@ Object {
           ],
         },
         "EnableECSManagedTags": true,
-        "EnableExecuteCommand": true,
         "HealthCheckGracePeriodSeconds": 60,
         "LaunchType": "FARGATE",
         "LoadBalancers": Array [
@@ -7115,46 +6991,6 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "KongTaskDefTaskRoleDefaultPolicy4B09E271": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "ssmmessages:CreateControlChannel",
-                "ssmmessages:CreateDataChannel",
-                "ssmmessages:OpenControlChannel",
-                "ssmmessages:OpenDataChannel",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": "logs:DescribeLogGroups",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:DescribeLogStreams",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "KongTaskDefTaskRoleDefaultPolicy4B09E271",
-        "Roles": Array [
-          Object {
-            "Ref": "KongTaskDefTaskRole62A71DDF",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "LoadBalancerBE9EEC3A": Object {
       "DependsOn": Array [
         "VPCPublicSubnet1DefaultRoute91CEF279",
@@ -7317,7 +7153,6 @@ Object {
           ],
         },
         "EnableECSManagedTags": true,
-        "EnableExecuteCommand": true,
         "LaunchType": "FARGATE",
         "NetworkConfiguration": Object {
           "AwsvpcConfiguration": Object {
@@ -7754,46 +7589,6 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "MetaTaskDefTaskRoleDefaultPolicyBB5EAED0": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "ssmmessages:CreateControlChannel",
-                "ssmmessages:CreateDataChannel",
-                "ssmmessages:OpenControlChannel",
-                "ssmmessages:OpenDataChannel",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": "logs:DescribeLogGroups",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:DescribeLogStreams",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "MetaTaskDefTaskRoleDefaultPolicyBB5EAED0",
-        "Roles": Array [
-          Object {
-            "Ref": "MetaTaskDefTaskRoleC662B431",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "RealtimeLogs5C43159D": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
@@ -7831,7 +7626,6 @@ Object {
           ],
         },
         "EnableECSManagedTags": true,
-        "EnableExecuteCommand": true,
         "LaunchType": "FARGATE",
         "NetworkConfiguration": Object {
           "AwsvpcConfiguration": Object {
@@ -8364,46 +8158,6 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "RealtimeTaskDefTaskRoleDefaultPolicyA6449E21": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "ssmmessages:CreateControlChannel",
-                "ssmmessages:CreateDataChannel",
-                "ssmmessages:OpenControlChannel",
-                "ssmmessages:OpenDataChannel",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": "logs:DescribeLogGroups",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:DescribeLogStreams",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "RealtimeTaskDefTaskRoleDefaultPolicyA6449E21",
-        "Roles": Array [
-          Object {
-            "Ref": "RealtimeTaskDefTaskRole3682E469",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "RestLogsE8B49088": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
@@ -8441,7 +8195,6 @@ Object {
           ],
         },
         "EnableECSManagedTags": true,
-        "EnableExecuteCommand": true,
         "LaunchType": "FARGATE",
         "NetworkConfiguration": Object {
           "AwsvpcConfiguration": Object {
@@ -8888,46 +8641,6 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "RestTaskDefTaskRoleDefaultPolicy25362AB4": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "ssmmessages:CreateControlChannel",
-                "ssmmessages:CreateDataChannel",
-                "ssmmessages:OpenControlChannel",
-                "ssmmessages:OpenDataChannel",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": "logs:DescribeLogGroups",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:DescribeLogStreams",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "RestTaskDefTaskRoleDefaultPolicy25362AB4",
-        "Roles": Array [
-          Object {
-            "Ref": "RestTaskDefTaskRole59E8D431",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "SmtpAccessKeyCCAD8B7D": Object {
       "Properties": Object {
         "UserName": Object {
@@ -9304,7 +9017,6 @@ Object {
           ],
         },
         "EnableECSManagedTags": true,
-        "EnableExecuteCommand": true,
         "LaunchType": "FARGATE",
         "NetworkConfiguration": Object {
           "AwsvpcConfiguration": Object {
@@ -9883,30 +9595,6 @@ Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
-            Object {
-              "Action": Array [
-                "ssmmessages:CreateControlChannel",
-                "ssmmessages:CreateDataChannel",
-                "ssmmessages:OpenControlChannel",
-                "ssmmessages:OpenDataChannel",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": "logs:DescribeLogGroups",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:DescribeLogStreams",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
             Object {
               "Action": Array [
                 "s3:GetObject*",
