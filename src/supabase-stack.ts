@@ -347,6 +347,7 @@ export class SupabaseStack extends FargateStack {
         command: [
           'sh',
           '-c',
+          // Todo: Remove the use of sed
           '/bin/sed -i -e "s/127.0.0.1/$(grep $HOSTNAME /etc/hosts | cut -f 1 -d " ")/" /app/releases/*/env.sh && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server',
         ],
       },
