@@ -14,6 +14,7 @@ import { FargateStack } from './supabase-stack';
 interface SupabaseTaskImageOptions extends NetworkLoadBalancedTaskImageOptions {
   containerPort: number;
   healthCheck?: ecs.HealthCheck;
+  entryPoint?: string[];
   command?: string[];
 }
 
@@ -41,7 +42,14 @@ export class BaseFargateService extends Construct {
    * (e.g. `http://rest.supabase.internal:8000`)
    */
   readonly endpoint: string;
+  /**
+   * This creates a service using the Fargate launch type on an ECS cluster.
+   * @resource — AWS::ECS::Service
+   */
   readonly service: ecs.FargateService;
+  /**
+   * Manage the allowed network connections for constructs with Security Groups.
+   */
   readonly connections: ec2.Connections;
 
   constructor(scope: Construct, id: string, props: BaseFargateServiceProps) {
@@ -66,9 +74,13 @@ export class BaseFargateService extends Construct {
       retention: logs.RetentionDays.ONE_MONTH,
     });
 
+    /** awslogs log driver */
     const logDriver = new ecs.AwsLogDriver({ logGroup, streamPrefix: 'ecs' });
 
+    /** The name of default container */
     const containerName = taskImageOptions.containerName ?? 'app';
+
+    /** Default container */
     const appContainer = taskDefinition.addContainer(containerName, {
       image: taskImageOptions.image,
       logging: logDriver,
@@ -76,6 +88,7 @@ export class BaseFargateService extends Construct {
       secrets: taskImageOptions.secrets,
       dockerLabels: taskImageOptions.dockerLabels,
       healthCheck: taskImageOptions.healthCheck,
+      entryPoint: taskImageOptions.entryPoint,
       command: taskImageOptions.command,
     });
     appContainer.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 65536, hardLimit: 65536 });
@@ -118,6 +131,7 @@ export class BaseFargateService extends Construct {
     this.endpoint = `http://${serviceName}.${cluster.defaultCloudMapNamespace?.namespaceName}:${containerPort}`;
   }
 
+  /** Create a Target Group and link it to the ECS Service. */
   addTargetGroup(props?: TargetGroupProps) {
     const targetGroup = new elb.ApplicationTargetGroup(this, 'TargetGroup', {
       protocol: elb.ApplicationProtocol.HTTP,
