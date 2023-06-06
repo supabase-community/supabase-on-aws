@@ -168,7 +168,7 @@ export class SupabaseDatabase extends Construct {
           },
           afterBundling: (inputDir, outputDir) => {
             return [
-              `cp -rp ${inputDir}/src/supabase-db/sql/ ${outputDir}/`,
+              `cp -rp ${inputDir}/src/supabase-db/sql/* ${outputDir}/`,
             ];
           },
         },
