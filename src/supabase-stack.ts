@@ -330,10 +330,9 @@ export class SupabaseStack extends FargateStack {
           DB_ENC_KEY: 'supabaserealtime',
           FLY_ALLOC_ID: 'fly123',
           FLY_APP_NAME: 'realtime',
-          ERL_AFLAGS: '-proto_dist inet_tcp',
+          ERL_AFLAGS: '-proto_dist inet_tcp', // IPv4
           ENABLE_TAILSCALE: 'false',
-          DNS_NODES: "''",
-          RLIMIT_NOFILE: '', // nofile is already configured in Fargate
+          DNS_NODES: `realtime.${namespaceName.valueAsString}`,
         },
         secrets: {
           DB_HOST: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'host'),
@@ -344,11 +343,18 @@ export class SupabaseStack extends FargateStack {
           API_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           SECRET_KEY_BASE: ecs.Secret.fromSecretsManager(cookieSigningSecret),
         },
-        command: ['sh', '-c', "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server"],
+        entryPoint: ['/usr/bin/tini', '-s', '-g', '--'], // ignore /app/limits.sh
+        command: [
+          'sh',
+          '-c',
+          // Todo: Remove the use of sed
+          '/bin/sed -i -e "s/127.0.0.1/$(grep $HOSTNAME /etc/hosts | cut -f 1 -d " ")/" /app/releases/*/env.sh && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server',
+        ],
       },
-      minTaskCount: 1,
-      maxTaskCount: 1,
     });
+
+    // Allow each container to connect others in cluster
+    realtime.connections.allowInternally(Port.allTraffic());
 
     /** Supabase Storage Backend */
     const bucket = new s3.Bucket(this, 'Bucket', {

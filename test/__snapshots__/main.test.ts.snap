@@ -1337,7 +1337,7 @@ Object {
       "Type": "String",
     },
     "RealtimeMaxTaskCountE72E1120": Object {
-      "Default": 1,
+      "Default": 20,
       "Description": "Maximum fargate task count",
       "MinValue": 0,
       "Type": "Number",
@@ -7767,6 +7767,25 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
+    "RealtimeServiceSecurityGroupfromSupabaseRealtimeServiceSecurityGroup570992FEALLTRAFFIC599B2469": Object {
+      "Properties": Object {
+        "Description": "from SupabaseRealtimeServiceSecurityGroup570992FE:ALL TRAFFIC",
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "RealtimeServiceSecurityGroup8E245E7E",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "-1",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "RealtimeServiceSecurityGroup8E245E7E",
+            "GroupId",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
     "RealtimeServiceTaskCountTarget89349CD4": Object {
       "Properties": Object {
         "MaxCapacity": Object {
@@ -7839,7 +7858,13 @@ Object {
             "Command": Array [
               "sh",
               "-c",
-              "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server",
+              "/bin/sed -i -e \\"s/127.0.0.1/$(grep $HOSTNAME /etc/hosts | cut -f 1 -d \\" \\")/\\" /app/releases/*/env.sh && /app/bin/migrate && /app/bin/realtime eval \\"Realtime.Release.seeds(Realtime.Repo)\\" && /app/bin/server",
+            ],
+            "EntryPoint": Array [
+              "/usr/bin/tini",
+              "-s",
+              "-g",
+              "--",
             ],
             "Environment": Array [
               Object {
@@ -7868,11 +7893,17 @@ Object {
               },
               Object {
                 "Name": "DNS_NODES",
-                "Value": "''",
-              },
-              Object {
-                "Name": "RLIMIT_NOFILE",
-                "Value": "",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "realtime.",
+                      Object {
+                        "Ref": "NamespaceName",
+                      },
+                    ],
+                  ],
+                },
               },
             ],
             "Essential": true,
