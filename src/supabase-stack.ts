@@ -5,6 +5,7 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import { Smtp } from './amazon-ses-smtp';
 import { AmplifyHosting } from './aws-amplify-hosting';
@@ -308,6 +309,16 @@ export class SupabaseStack extends FargateStack {
       },
     });
 
+    /**  Secret used by the server to sign cookies. Recommended: 64 characters. */
+    const cookieSigningSecret = new Secret(this, 'CookieSigningSecret', {
+      secretName: `${cdk.Aws.STACK_NAME}-Realtime-CookieSigning-Secret`,
+      description: 'Supabase - Cookie Signing Secret for Realtime',
+      generateSecretString: {
+        passwordLength: 64,
+        excludePunctuation: true,
+      },
+    });
+
     /** Websocket API */
     const realtime = new AutoScalingFargateService(this, 'Realtime', {
       cluster,
@@ -319,7 +330,6 @@ export class SupabaseStack extends FargateStack {
           DB_ENC_KEY: 'supabaserealtime',
           FLY_ALLOC_ID: 'fly123',
           FLY_APP_NAME: 'realtime',
-          SECRET_KEY_BASE: 'UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq',
           ERL_AFLAGS: '-proto_dist inet_tcp',
           ENABLE_TAILSCALE: 'false',
           DNS_NODES: "''",
@@ -332,6 +342,7 @@ export class SupabaseStack extends FargateStack {
           DB_PASSWORD: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'password'),
           DB_NAME: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'dbname'),
           API_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
+          SECRET_KEY_BASE: ecs.Secret.fromSecretsManager(cookieSigningSecret),
         },
         command: ['sh', '-c', "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server"],
       },

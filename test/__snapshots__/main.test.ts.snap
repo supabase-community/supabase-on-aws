@@ -3425,6 +3425,29 @@ Object {
       },
       "Type": "AWS::ECS::Cluster",
     },
+    "CookieSigningSecretE5797145": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": "Supabase - Cookie Signing Secret for Realtime",
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+          "PasswordLength": 64,
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-Realtime-CookieSigning-Secret",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
     "DatabaseCluster5B53A178": Object {
       "DeletionPolicy": "Snapshot",
       "Properties": Object {
@@ -7836,10 +7859,6 @@ Object {
                 "Value": "realtime",
               },
               Object {
-                "Name": "SECRET_KEY_BASE",
-                "Value": "UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq",
-              },
-              Object {
                 "Name": "ERL_AFLAGS",
                 "Value": "-proto_dist inet_tcp",
               },
@@ -7857,7 +7876,9 @@ Object {
               },
             ],
             "Essential": true,
-            "Image": "public.ecr.aws/supabase/realtime:v2.5.1",
+            "Image": Object {
+              "Ref": "RealtimeImageUri",
+            },
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
               "Options": Object {
@@ -7953,6 +7974,12 @@ Object {
                 "Name": "API_JWT_SECRET",
                 "ValueFrom": Object {
                   "Ref": "JwtSecretB8834B39",
+                },
+              },
+              Object {
+                "Name": "SECRET_KEY_BASE",
+                "ValueFrom": Object {
+                  "Ref": "CookieSigningSecretE5797145",
                 },
               },
             ],
@@ -8059,6 +8086,16 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Ref": "JwtSecretB8834B39",
+              },
+            },
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "CookieSigningSecretE5797145",
               },
             },
           ],
