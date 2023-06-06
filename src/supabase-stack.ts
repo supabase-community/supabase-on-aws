@@ -312,8 +312,7 @@ export class SupabaseStack extends FargateStack {
     const realtime = new AutoScalingFargateService(this, 'Realtime', {
       cluster,
       taskImageOptions: {
-        //image: ecs.ContainerImage.fromRegistry(realtimeImageUri.valueAsString),
-        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/supabase/realtime:v2.5.1'),
+        image: ecs.ContainerImage.fromRegistry(realtimeImageUri.valueAsString),
         containerPort: 4000,
         environment: {
           DB_AFTER_CONNECT_QUERY: 'SET search_path TO realtime',
