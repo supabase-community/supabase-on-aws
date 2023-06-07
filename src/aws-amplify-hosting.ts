@@ -17,8 +17,11 @@ interface AmplifyHostingProps {
 }
 
 export class AmplifyHosting extends Construct {
+  /** App in Amplify Hosting. It is a collection of branches. */
   readonly app: amplify.App;
+  /** Production branch */
   readonly prodBranch: amplify.Branch;
+  /** URL of production branch */
   readonly prodBranchUrl: string;
 
   /** Next.js App Hosting */
@@ -27,7 +30,7 @@ export class AmplifyHosting extends Construct {
 
     const { sourceRepo, sourceBranch, appRoot, environmentVariables = {} } = props;
 
-    /** Source Repository for Amplify Hosting */
+    /** CodeCommit - Source Repository for Amplify Hosting */
     const repository = new Repository(this, 'Repository', {
       repositoryName: cdk.Aws.STACK_NAME,
       description: `${this.node.path}/Repository`,
@@ -36,13 +39,17 @@ export class AmplifyHosting extends Construct {
     /** Import from GitHub to CodeComit */
     const repoImportJob = repository.importFromUrl(sourceRepo, sourceBranch);
 
+    /** IAM Role for SSR app logging */
     const amplifySSRLoggingRole = new iam.Role(this, 'AmplifySSRLoggingRole', {
       description: 'The service role that will be used by AWS Amplify for SSR app logging.',
       path: '/service-role/',
       assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
     });
 
+    /** Keys of environment variables */
     const envKeys = Object.keys(environmentVariables);
+
+    /** BuildSpec for Amplify Hosting */
     const buildSpec = BuildSpec.fromObjectToYaml({
       version: 1,
       applications: [{
@@ -100,9 +107,6 @@ export class AmplifyHosting extends Construct {
     });
     (this.app.node.defaultChild as cdk.CfnResource).addPropertyOverride('Platform', 'WEB_COMPUTE');
 
-    //const outputFileTracingRoot = appRoot.split('/').map(x => x = '..').join('/') + '/';
-    //this.app.addEnvironment('NEXT_PRIVATE_OUTPUT_TRACE_ROOT', outputFileTracingRoot);
-
     this.app.addEnvironment('NODE_OPTIONS', '--max-old-space-size=4096');
     this.app.addEnvironment('AMPLIFY_MONOREPO_APP_ROOT', appRoot);
     this.app.addEnvironment('AMPLIFY_DIFF_DEPLOY', 'false');
@@ -121,6 +125,7 @@ export class AmplifyHosting extends Construct {
 
     repoImportJob.node.addDependency(this.prodBranch.node.defaultChild!);
 
+    /** IAM Policy for SSR app logging */
     const amplifySSRLoggingPolicy = new iam.Policy(this, 'AmplifySSRLoggingPolicy', {
       policyName: `AmplifySSRLoggingPolicy-${this.app.appId}`,
       statements: [
@@ -154,6 +159,7 @@ export class Repository extends codecommit.Repository {
   readonly importFunction: lambda.Function;
   readonly importProvider: cr.Provider;
 
+  /** CodeCommit to sync with GitHub */
   constructor(scope: Construct, id: string, props: codecommit.RepositoryProps) {
     super(scope, id, props);
 
