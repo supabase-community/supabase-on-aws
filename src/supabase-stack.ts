@@ -116,27 +116,28 @@ export class SupabaseStack extends FargateStack {
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
-    const namespaceName = new cdk.CfnParameter(this, 'NamespaceName', {
-      type: 'String',
-      default: 'supabase.internal',
-      description: 'Namespace for ECS Service Connect',
-    });
-
-    // Resources
+    /** VPC for Containers and Database */
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
+    /** Namespace name for CloudMap and ECS Service Connect */
+    const namespaceName = 'supabase.internal';
+
+    /** ECS Cluster for Supabase components */
     const cluster = new ecs.Cluster(this, 'Cluster', {
       enableFargateCapacityProviders: true,
       containerInsights: false,
       defaultCloudMapNamespace: {
-        name: namespaceName.valueAsString,
+        name: namespaceName,
         useForServiceConnect: true,
       },
       vpc,
     });
 
+
+    /** SMTP Credentials */
     const smtp = new Smtp(this, 'Smtp');
 
+    /** PostgreSQL Database with Secrets */
     const db = new SupabaseDatabase(this, 'Database', { vpc });
 
     /** Secret of supabase_admin user */
@@ -332,7 +333,7 @@ export class SupabaseStack extends FargateStack {
           FLY_APP_NAME: 'realtime',
           ERL_AFLAGS: '-proto_dist inet_tcp', // IPv4
           ENABLE_TAILSCALE: 'false',
-          DNS_NODES: `realtime.${namespaceName.valueAsString}`,
+          DNS_NODES: `realtime.${namespaceName}`,
         },
         secrets: {
           DB_HOST: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'host'),
@@ -576,13 +577,6 @@ export class SupabaseStack extends FargateStack {
           ],
         },
         {
-          Label: { default: 'Infrastructure Settings - Network & Security' },
-          Parameters: [
-            namespaceName.logicalId,
-            cdn.cfnParameters.webAclArn.logicalId,
-          ],
-        },
-        {
           Label: { default: 'Infrastructure Settings - Kong (API Gateway)' },
           Parameters: [
             kong.cfnParameters.taskSize.logicalId,
@@ -670,7 +664,6 @@ export class SupabaseStack extends FargateStack {
         [db.cfnParameters.minCapacity.logicalId]: { default: 'Minimum ACUs' },
         [db.cfnParameters.maxCapacity.logicalId]: { default: 'Maximum ACUs' },
 
-        [namespaceName.logicalId]: { default: 'Namespace' },
         [cdn.cfnParameters.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
         [kong.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
