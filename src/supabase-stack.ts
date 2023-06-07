@@ -39,7 +39,7 @@ export class FargateStack extends cdk.Stack {
 
 export class SupabaseStack extends FargateStack {
 
-  /** Supabase Construct */
+  /** Supabase Stack */
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
     super(scope, id, props);
 
