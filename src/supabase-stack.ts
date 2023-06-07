@@ -39,11 +39,10 @@ export class FargateStack extends cdk.Stack {
 
 export class SupabaseStack extends FargateStack {
 
-  /** Supabase Construct */
+  /** Supabase Stack */
   constructor(scope: Construct, id: string, props: cdk.StackProps = {}) {
     super(scope, id, props);
 
-    // Parameters
     const disableSignup = new cdk.CfnParameter(this, 'DisableSignup', {
       description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
       type: 'String',
@@ -116,27 +115,27 @@ export class SupabaseStack extends FargateStack {
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
-    const namespaceName = new cdk.CfnParameter(this, 'NamespaceName', {
-      type: 'String',
-      default: 'supabase.internal',
-      description: 'Namespace for ECS Service Connect',
-    });
-
-    // Resources
+    /** VPC for Containers and Database */
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
+    /** Namespace name for CloudMap and ECS Service Connect */
+    const namespaceName = 'supabase.internal';
+
+    /** ECS Cluster for Supabase components */
     const cluster = new ecs.Cluster(this, 'Cluster', {
       enableFargateCapacityProviders: true,
       containerInsights: false,
       defaultCloudMapNamespace: {
-        name: namespaceName.valueAsString,
+        name: namespaceName,
         useForServiceConnect: true,
       },
       vpc,
     });
 
+    /** SMTP Credentials */
     const smtp = new Smtp(this, 'Smtp');
 
+    /** PostgreSQL Database with Secrets */
     const db = new SupabaseDatabase(this, 'Database', { vpc });
 
     /** Secret of supabase_admin user */
@@ -150,16 +149,44 @@ export class SupabaseStack extends FargateStack {
     /** Secret of postgres user */
     const postgresSecret = db.genUserPassword('postgres');
 
+    /**
+     * JWT Secret
+     *
+     * Used to decode your JWTs. You can also use this to mint your own JWTs.
+     */
     const jwtSecret = new JwtSecret(this, 'JwtSecret');
+
+    /**
+     * Anonymous Key
+     *
+     * This key is safe to use in a browser if you have enabled Row Level Security for your tables and configured policies.
+     */
     const anonKey = jwtSecret.genApiKey('AnonKey', { roleName: 'anon', issuer: 'supabase', expiresIn: '10y' });
+
+    /**
+     * Service Role Key
+     *
+     * This key has the ability to bypass Row Level Security. Never share it publicly.
+     */
     const serviceRoleKey = jwtSecret.genApiKey('ServiceRoleKey', { roleName: 'service_role', issuer: 'supabase', expiresIn: '10y' });
 
+    /** The load balancer for Kong Gateway */
     const loadBalancer = new elb.ApplicationLoadBalancer(this, 'LoadBalancer', { internetFacing: true, vpc });
 
+    /** CloudFront Prefix List */
     const cfPrefixList = new PrefixList(this, 'CloudFrontPrefixList', { prefixListName: 'com.amazonaws.global.cloudfront.origin-facing' });
+
+    // Allow only CloudFront to connect the load balancer.
     loadBalancer.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(80), 'CloudFront');
 
+    /** CloudFront */
     const cdn = new SupabaseCdn(this, 'Cdn', { origin: loadBalancer });
+
+    /**
+     * Supabase API URL
+     *
+     * e.g. https://xxx.cloudfront.net
+     */
     const apiExternalUrl = `https://${cdn.distribution.domainName}`;
 
     /** API Gateway for Supabase */
@@ -190,6 +217,7 @@ export class SupabaseStack extends FargateStack {
       },
     });
 
+    /** TargetGroup for kong-gateway */
     const kongTargetGroup = kong.addTargetGroup({
       healthCheck: {
         port: '8100',
@@ -199,11 +227,14 @@ export class SupabaseStack extends FargateStack {
       },
     });
 
+    /** Listner for kong-gateway */
     const listener = loadBalancer.addListener('Listener', {
       port: 80,
       defaultTargetGroups: [kongTargetGroup],
       open: false,
     });
+
+    // Allow the load balancer to connect kong-gateway.
     kong.connections.allowFrom(loadBalancer, Port.tcp(8100), 'ALB healthcheck');
 
     /** GoTrue - Authentication and User Management by Supabase */
@@ -332,7 +363,7 @@ export class SupabaseStack extends FargateStack {
           FLY_APP_NAME: 'realtime',
           ERL_AFLAGS: '-proto_dist inet_tcp', // IPv4
           ENABLE_TAILSCALE: 'false',
-          DNS_NODES: `realtime.${namespaceName.valueAsString}`,
+          DNS_NODES: `realtime.${namespaceName}`,
         },
         secrets: {
           DB_HOST: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'host'),
@@ -450,6 +481,7 @@ export class SupabaseStack extends FargateStack {
       },
     });
 
+    // Add environment variables to kong-gateway
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_AUTH_URL', `${auth.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REST_URL', `${rest.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_GRAPHQL_URL', `${gql.endpoint}/graphql`);
@@ -506,7 +538,7 @@ export class SupabaseStack extends FargateStack {
     });
 
     /** Supabase Studio */
-    new AmplifyHosting(this, 'Studio', {
+    const studio = new AmplifyHosting(this, 'Studio', {
       sourceRepo: 'https://github.com/supabase/supabase.git',
       sourceBranch: studioBranch.valueAsString,
       appRoot: 'studio',
@@ -533,6 +565,10 @@ export class SupabaseStack extends FargateStack {
       exportName: `${cdk.Aws.STACK_NAME}AnonKey`,
     });
 
+    /**
+     * CloudFormation Interface
+     * @resource AWS::CloudFormation::Interface
+     */
     const cfnInterface = {
       ParameterGroups: [
         {
@@ -573,13 +609,6 @@ export class SupabaseStack extends FargateStack {
             db.cfnParameters.instanceCount.logicalId,
             db.cfnParameters.minCapacity.logicalId,
             db.cfnParameters.maxCapacity.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure Settings - Network & Security' },
-          Parameters: [
-            namespaceName.logicalId,
-            cdn.cfnParameters.webAclArn.logicalId,
           ],
         },
         {
@@ -670,7 +699,6 @@ export class SupabaseStack extends FargateStack {
         [db.cfnParameters.minCapacity.logicalId]: { default: 'Minimum ACUs' },
         [db.cfnParameters.maxCapacity.logicalId]: { default: 'Maximum ACUs' },
 
-        [namespaceName.logicalId]: { default: 'Namespace' },
         [cdn.cfnParameters.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
         [kong.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },

@@ -31,7 +31,7 @@ export class SupabaseDatabase extends Construct {
   /** Custom resource provider to generate user password */
   userPasswordProvider: cr.Provider;
 
-  /** Database with Roles managed by Supabase */
+  /** PostgreSQL for Supabase */
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
     super(scope, id);
 

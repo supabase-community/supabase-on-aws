@@ -641,15 +641,6 @@ Object {
         },
         Object {
           "Label": Object {
-            "default": "Infrastructure Settings - Network & Security",
-          },
-          "Parameters": Array [
-            "NamespaceName",
-            "CdnWebAclArn5923748A",
-          ],
-        },
-        Object {
-          "Label": Object {
             "default": "Infrastructure Settings - Kong (API Gateway)",
           },
           "Parameters": Array [
@@ -858,9 +849,6 @@ Object {
         },
         "MetaTaskSize556D36D9": Object {
           "default": "Fargate Task Size",
-        },
-        "NamespaceName": Object {
-          "default": "Namespace",
         },
         "PasswordMinLength": Object {
           "default": "Min password length",
@@ -1312,11 +1300,6 @@ Object {
       ],
       "Default": "micro",
       "Description": "Fargare task size",
-      "Type": "String",
-    },
-    "NamespaceName": Object {
-      "Default": "supabase.internal",
-      "Description": "Namespace for ECS Service Connect",
       "Type": "String",
     },
     "PasswordMinLength": Object {
@@ -1912,9 +1895,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": Object {
-            "Ref": "NamespaceName",
-          },
+          "Namespace": "supabase.internal",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -3400,9 +3381,7 @@ Object {
     },
     "ClusterDefaultServiceDiscoveryNamespaceC336F9B4": Object {
       "Properties": Object {
-        "Name": Object {
-          "Ref": "NamespaceName",
-        },
+        "Name": "supabase.internal",
         "Vpc": Object {
           "Ref": "VPCB9E5F0B4",
         },
@@ -3418,9 +3397,7 @@ Object {
           },
         ],
         "ServiceConnectDefaults": Object {
-          "Namespace": Object {
-            "Ref": "NamespaceName",
-          },
+          "Namespace": "supabase.internal",
         },
       },
       "Type": "AWS::ECS::Cluster",
@@ -4208,7 +4185,7 @@ Object {
         "DatabaseClusterInstance1078CC457",
       ],
       "Properties": Object {
-        "Fingerprint": "7b10178700d21f7333ddb5ff464006da7e19bf97517507f90bf079d950ea5a41",
+        "Fingerprint": "b3c859baa4ec970a32d58d3b814365cfd68340589d48a09cf84b752fb97dba6c",
         "ServiceToken": Object {
           "Fn::GetAtt": Array [
             "DatabaseMigrationProviderframeworkonEvent48D76DDA",
@@ -4233,7 +4210,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "cb40bf677a9605d5445f90e5653cb761898337e4664a55cabc0271458822eded.zip",
+          "S3Key": "ea9242e618016f839d4f17b0c618ea453ff82c05ae7cbf801ab582224606472c.zip",
         },
         "Description": "Supabase - Database migration function",
         "Environment": Object {
@@ -5197,9 +5174,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": Object {
-            "Ref": "NamespaceName",
-          },
+          "Namespace": "supabase.internal",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -5646,9 +5621,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": Object {
-            "Ref": "NamespaceName",
-          },
+          "Namespace": "supabase.internal",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -6404,9 +6377,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": Object {
-            "Ref": "NamespaceName",
-          },
+          "Namespace": "supabase.internal",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -6638,93 +6609,27 @@ Object {
               },
               Object {
                 "Name": "SUPABASE_AUTH_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "http://auth.",
-                      Object {
-                        "Ref": "NamespaceName",
-                      },
-                      ":9999/",
-                    ],
-                  ],
-                },
+                "Value": "http://auth.supabase.internal:9999/",
               },
               Object {
                 "Name": "SUPABASE_REST_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "http://rest.",
-                      Object {
-                        "Ref": "NamespaceName",
-                      },
-                      ":3000/",
-                    ],
-                  ],
-                },
+                "Value": "http://rest.supabase.internal:3000/",
               },
               Object {
                 "Name": "SUPABASE_GRAPHQL_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "http://graphql.",
-                      Object {
-                        "Ref": "NamespaceName",
-                      },
-                      ":5000/graphql",
-                    ],
-                  ],
-                },
+                "Value": "http://graphql.supabase.internal:5000/graphql",
               },
               Object {
                 "Name": "SUPABASE_REALTIME_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "http://realtime.",
-                      Object {
-                        "Ref": "NamespaceName",
-                      },
-                      ":4000/socket/",
-                    ],
-                  ],
-                },
+                "Value": "http://realtime.supabase.internal:4000/socket/",
               },
               Object {
                 "Name": "SUPABASE_STORAGE_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "http://storage.",
-                      Object {
-                        "Ref": "NamespaceName",
-                      },
-                      ":5000/",
-                    ],
-                  ],
-                },
+                "Value": "http://storage.supabase.internal:5000/",
               },
               Object {
                 "Name": "SUPABASE_META_HOST",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "http://meta.",
-                      Object {
-                        "Ref": "NamespaceName",
-                      },
-                      ":8080/",
-                    ],
-                  ],
-                },
+                "Value": "http://meta.supabase.internal:8080/",
               },
             ],
             "Essential": true,
@@ -7190,9 +7095,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": Object {
-            "Ref": "NamespaceName",
-          },
+          "Namespace": "supabase.internal",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -7663,9 +7566,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": Object {
-            "Ref": "NamespaceName",
-          },
+          "Namespace": "supabase.internal",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -7893,17 +7794,7 @@ Object {
               },
               Object {
                 "Name": "DNS_NODES",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "realtime.",
-                      Object {
-                        "Ref": "NamespaceName",
-                      },
-                    ],
-                  ],
-                },
+                "Value": "realtime.supabase.internal",
               },
             ],
             "Essential": true,
@@ -8232,9 +8123,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": Object {
-            "Ref": "NamespaceName",
-          },
+          "Namespace": "supabase.internal",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -9054,9 +8943,7 @@ Object {
               "awslogs-stream-prefix": "ecs",
             },
           },
-          "Namespace": Object {
-            "Ref": "NamespaceName",
-          },
+          "Namespace": "supabase.internal",
           "Services": Array [
             Object {
               "ClientAliases": Array [
@@ -9230,18 +9117,7 @@ Object {
             "Environment": Array [
               Object {
                 "Name": "POSTGREST_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "http://rest.",
-                      Object {
-                        "Ref": "NamespaceName",
-                      },
-                      ":3000",
-                    ],
-                  ],
-                },
+                "Value": "http://rest.supabase.internal:3000",
               },
               Object {
                 "Name": "PGOPTIONS",
@@ -9281,18 +9157,7 @@ Object {
               },
               Object {
                 "Name": "IMGPROXY_URL",
-                "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "http://imgproxy.",
-                      Object {
-                        "Ref": "NamespaceName",
-                      },
-                      ":5001",
-                    ],
-                  ],
-                },
+                "Value": "http://imgproxy.supabase.internal:5001",
               },
               Object {
                 "Name": "ENABLE_QUEUE_EVENTS",
