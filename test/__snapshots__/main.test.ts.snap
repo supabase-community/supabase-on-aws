@@ -641,6 +641,14 @@ Object {
         },
         Object {
           "Label": Object {
+            "default": "Infrastructure Settings - Security",
+          },
+          "Parameters": Array [
+            "CdnWebAclArn5923748A",
+          ],
+        },
+        Object {
+          "Label": Object {
             "default": "Infrastructure Settings - Kong (API Gateway)",
           },
           "Parameters": Array [
