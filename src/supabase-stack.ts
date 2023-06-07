@@ -612,6 +612,12 @@ export class SupabaseStack extends FargateStack {
           ],
         },
         {
+          Label: { default: 'Infrastructure Settings - Security' },
+          Parameters: [
+            cdn.cfnParameters.webAclArn.logicalId,
+          ],
+        },
+        {
           Label: { default: 'Infrastructure Settings - Kong (API Gateway)' },
           Parameters: [
             kong.cfnParameters.taskSize.logicalId,
