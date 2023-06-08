@@ -1229,7 +1229,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "bb459fac5f6b4b052aac9803443226d161a5cfe96f4648b21f9e4912c698bf30.zip",
+          "S3Key": "f9346b940b724b094a16ca051c017799995fa93df6da38a0539bf7c000fee50a.zip",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -3515,7 +3515,7 @@ Object {
         "DatabaseInstanceAA8A5FDE",
       ],
       "Properties": Object {
-        "Fingerprint": "4ba645fe5bdb6694cb586d9e438db9bbda88c1ca6dc6ed07d9d998a9dd70d436",
+        "Fingerprint": "3588f4b3167a4650ea4dfd3aea3e53facfba6a2fe38d749488dcb1623202b110",
         "ServiceToken": Object {
           "Fn::GetAtt": Array [
             "DatabaseMigrationProviderframeworkonEvent48D76DDA",
@@ -3540,7 +3540,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "4da737b98cb10c0718cb4ea27c66a47c9e4b1faa82c2758f796afa2aa9073e12.zip",
+          "S3Key": "67a7f982847312f00fe63a7caafa9e6daaa88c8fb1a0a471e5a41bbf18d1aab6.zip",
         },
         "Description": "Supabase - Database migration function",
         "Environment": Object {
@@ -3797,7 +3797,6 @@ Object {
         "Description": "Parameter group for Supabase",
         "Family": "postgres15",
         "Parameters": Object {
-          "max_logical_replication_workers": "4",
           "max_slot_wal_keep_size": "1024",
           "rds.force_ssl": "0",
           "rds.logical_replication": "1",

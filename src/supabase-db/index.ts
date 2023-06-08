@@ -83,7 +83,6 @@ export class SupabaseDatabase extends Construct {
         'rds.force_ssl': '0',
         'shared_preload_libraries': 'pg_tle, plrust, pg_stat_statements, pgaudit, pg_cron',
         'rds.logical_replication': '1',
-        'max_logical_replication_workers': '4',
         'max_slot_wal_keep_size': '1024', // https://github.com/supabase/realtime
       },
     });
@@ -91,22 +90,17 @@ export class SupabaseDatabase extends Construct {
     this.instance = new rds.DatabaseInstance(this, 'Instance', {
       engine,
       parameterGroup,
+      vpc,
       multiAz: true,
-      // Instance
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.MICRO),
-      // Storage
       storageType: rds.StorageType.GP3,
-      storageEncrypted: true,
       allocatedStorage: 20,
       maxAllocatedStorage: 200,
-      // Network
-      vpc,
-      // Authentication
       credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', {
         secretName: `${cdk.Aws.STACK_NAME}-${id}-supabase_admin`,
       }),
-      // Others
       databaseName: 'postgres',
+      storageEncrypted: true,
     });
 
     /** CFn resource for overwrite */
@@ -115,42 +109,22 @@ export class SupabaseDatabase extends Construct {
     // Overwrite instance class
     dbInstance.dbInstanceClass = this.cfnParameters.instanceClass.valueAsString;
 
-    //this.cluster = new rds.DatabaseCluster(this, 'Cluster', {
+    //const cluster = new rds.DatabaseCluster(this, 'Cluster', {
     //  engine,
     //  parameterGroup,
-    //  storageEncrypted: true,
-    //  instances: 16,
-    //  instanceProps: {
-    //    instanceType: new ec2.InstanceType('serverless'),
-    //    enablePerformanceInsights: true,
-    //    vpc,
-    //  },
+    //  serverlessV2MinCapacity: 0.5,
+    //  serverlessV2MaxCapacity: 32,
+    //  writer: rds.ClusterInstance.serverlessV2('Instance1'),
+    //  readers: [
+    //    rds.ClusterInstance.serverlessV2('Instance2', { scaleWithWriter: true }),
+    //  ],
+    //  vpc,
     //  credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', {
     //    secretName: `${cdk.Aws.STACK_NAME}-${id}-supabase_admin`,
     //  }),
     //  defaultDatabaseName: 'postgres',
+    //  storageEncrypted: true,
     //});
-
-    // Modify scaling configurations
-    //(this.cluster.node.defaultChild as rds.CfnDBCluster).serverlessV2ScalingConfiguration = {
-    //  minCapacity: this.cfnParameters.minCapacity.valueAsNumber,
-    //  maxCapacity: this.cfnParameters.maxCapacity.valueAsNumber,
-    //};
-
-    // Replace instance class in the DB cluster
-    //const updateDBInstance = (index: number, parentCondition?: cdk.CfnCondition) => {
-    //  const expression = (typeof parentCondition == 'undefined')
-    //    ? cdk.Fn.conditionEquals(this.cfnParameters.instanceCount, index)
-    //    : cdk.Fn.conditionOr(parentCondition, cdk.Fn.conditionEquals(this.cfnParameters.instanceCount, index));
-    //  const condition = new cdk.CfnCondition(this, `Instance${index}Enabled`, { expression });
-    //  const dbInstance = this.cluster.node.findChild(`Instance${index}`) as rds.CfnDBInstance;
-    //  dbInstance.cfnOptions.condition = condition;
-    //  dbInstance.dbInstanceClass = this.cfnParameters.instanceClass.valueAsString;
-    //  if (index >= 2) {
-    //    updateDBInstance(index-1, condition);
-    //  }
-    //};
-    //updateDBInstance(16);
 
     /** Custom resource handler for database migration */
     const migrationFunction = new NodejsFunction(this, 'MigrationFunction', {
