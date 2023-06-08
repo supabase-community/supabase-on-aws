@@ -144,10 +144,6 @@ export class BaseFargateService extends Construct {
     return targetGroup;
   }
 
-  connectDatabase(database: SupabaseDatabase) {
-    this.service.connections.allowToDefaultPort(database.cluster);
-    this.service.node.defaultChild?.node.addDependency(database.cluster.node.findChild('Instance1'));
-  }
 
   addExternalAuthProviders(redirectUri: string, providerCount: number) {
     const providers: AuthProvider[] = [];

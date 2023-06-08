@@ -1,3 +1,7 @@
+-- Enable Trusted Language Extensions
+CREATE EXTENSION IF NOT EXISTS pg_tle;
+
+-- Install pgjwt
 SELECT pgtle.install_extension(
 'pgjwt', '0.2.0', 'JSON Web Token API for Postgresql',
 $pg_tle$
