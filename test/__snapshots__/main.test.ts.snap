@@ -55,239 +55,6 @@ Object {
         "",
       ],
     },
-    "DatabaseInstance10Enabled6673066F": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance11EnabledB1C5CBAB",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            10,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance11EnabledB1C5CBAB": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance12EnabledF3886774",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            11,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance12EnabledF3886774": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance13Enabled3DB2AD18",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            12,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance13Enabled3DB2AD18": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance14Enabled80809892",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            13,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance14Enabled80809892": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance15EnabledDC9D31BD",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            14,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance15EnabledDC9D31BD": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance16Enabled2CE0876E",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            15,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance16Enabled2CE0876E": Object {
-      "Fn::Equals": Array [
-        Object {
-          "Ref": "DatabaseInstanceCount7E7C28F9",
-        },
-        16,
-      ],
-    },
-    "DatabaseInstance1EnabledA506D432": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance2Enabled9CE137EB",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            1,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance2Enabled9CE137EB": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance3Enabled44A32710",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            2,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance3Enabled44A32710": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance4Enabled3E6E6545",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            3,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance4Enabled3E6E6545": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance5Enabled6A6E91B8",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            4,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance5Enabled6A6E91B8": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance6EnabledF0D02CB8",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            5,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance6EnabledF0D02CB8": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance7Enabled1F2EE1B3",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            6,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance7Enabled1F2EE1B3": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance8Enabled22381EB2",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            7,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance8Enabled22381EB2": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance9Enabled9C35143A",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            8,
-          ],
-        },
-      ],
-    },
-    "DatabaseInstance9Enabled9C35143A": Object {
-      "Fn::Or": Array [
-        Object {
-          "Condition": "DatabaseInstance10Enabled6673066F",
-        },
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "DatabaseInstanceCount7E7C28F9",
-            },
-            9,
-          ],
-        },
-      ],
-    },
     "GraphQLServiceDisabled2040BDFB": Object {
       "Fn::Equals": Array [
         Object {
@@ -634,9 +401,6 @@ Object {
           },
           "Parameters": Array [
             "DatabaseInstanceClass6CA66E68",
-            "DatabaseInstanceCount7E7C28F9",
-            "DatabaseMinCapacity82563E98",
-            "DatabaseMaxCapacityDD9828CB",
           ],
         },
         Object {
@@ -803,15 +567,6 @@ Object {
         },
         "DatabaseInstanceClass6CA66E68": Object {
           "default": "DB Instance Class",
-        },
-        "DatabaseInstanceCount7E7C28F9": Object {
-          "default": "DB Instance Count",
-        },
-        "DatabaseMaxCapacityDD9828CB": Object {
-          "default": "Maximum ACUs",
-        },
-        "DatabaseMinCapacity82563E98": Object {
-          "default": "Minimum ACUs",
         },
         "DisableSignup": Object {
           "default": "Disable User Signups",
@@ -1151,39 +906,27 @@ Object {
     },
     "DatabaseInstanceClass6CA66E68": Object {
       "AllowedValues": Array [
-        "db.serverless",
+        "db.t4g.micro",
+        "db.t4g.small",
         "db.t4g.medium",
         "db.t4g.large",
-        "db.r6g.large",
-        "db.r6g.xlarge",
-        "db.r6g.2xlarge",
-        "db.r6g.4xlarge",
-        "db.r6g.8xlarge",
-        "db.r6g.12xlarge",
-        "db.r6g.16xlarge",
+        "db.m6gd.large",
+        "db.m6gd.xlarge",
+        "db.m6gd.2xlarge",
+        "db.m6gd.4xlarge",
+        "db.m6gd.8xlarge",
+        "db.m6gd.12xlarge",
+        "db.m6gd.16xlarge",
+        "db.r6gd.large",
+        "db.r6gd.xlarge",
+        "db.r6gd.2xlarge",
+        "db.r6gd.4xlarge",
+        "db.r6gd.8xlarge",
+        "db.r6gd.12xlarge",
+        "db.r6gd.16xlarge",
       ],
-      "Default": "db.serverless",
+      "Default": "db.t4g.micro",
       "Type": "String",
-    },
-    "DatabaseInstanceCount7E7C28F9": Object {
-      "Default": 1,
-      "MaxValue": 16,
-      "MinValue": 1,
-      "Type": "Number",
-    },
-    "DatabaseMaxCapacityDD9828CB": Object {
-      "Default": 32,
-      "Description": "The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.",
-      "MaxValue": 128,
-      "MinValue": 0.5,
-      "Type": "Number",
-    },
-    "DatabaseMinCapacity82563E98": Object {
-      "Default": 0.5,
-      "Description": "The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.",
-      "MaxValue": 128,
-      "MinValue": 0.5,
-      "Type": "Number",
     },
     "DisableSignup": Object {
       "AllowedValues": Array [
@@ -1486,7 +1229,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "bb459fac5f6b4b052aac9803443226d161a5cfe96f4648b21f9e4912c698bf30.zip",
+          "S3Key": "f9346b940b724b094a16ca051c017799995fa93df6da38a0539bf7c000fee50a.zip",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -1838,9 +1581,6 @@ Object {
       "Type": "AWS::SSM::Parameter",
     },
     "AuthServiceBA690728": Object {
-      "DependsOn": Array [
-        "DatabaseClusterInstance1078CC457",
-      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
@@ -3433,485 +3173,67 @@ Object {
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
     },
-    "DatabaseCluster5B53A178": Object {
+    "DatabaseInstanceAA8A5FDE": Object {
       "DeletionPolicy": "Snapshot",
       "Properties": Object {
+        "AllocatedStorage": "20",
         "CopyTagsToSnapshot": true,
-        "DBClusterParameterGroupName": Object {
+        "DBInstanceClass": Object {
+          "Ref": "DatabaseInstanceClass6CA66E68",
+        },
+        "DBName": "postgres",
+        "DBParameterGroupName": Object {
           "Ref": "DatabaseParameterGroup2A921026",
         },
         "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
+          "Ref": "DatabaseInstanceSubnetGroupDE121BB6",
         },
-        "DatabaseName": "postgres",
-        "Engine": "aurora-postgresql",
-        "EngineVersion": "15.2",
+        "Engine": "postgres",
+        "EngineVersion": "15",
         "MasterUserPassword": Object {
           "Fn::Join": Array [
             "",
             Array [
               "{{resolve:secretsmanager:",
               Object {
-                "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD3fdaad7efa858a3daf9490cf0a702aeb",
+                "Ref": "SupabaseDatabaseInstanceSecret90E6F38D3fdaad7efa858a3daf9490cf0a702aeb",
               },
               ":SecretString:password::}}",
             ],
           ],
         },
         "MasterUsername": "supabase_admin",
-        "Port": 5432,
-        "ServerlessV2ScalingConfiguration": Object {
-          "MaxCapacity": Object {
-            "Ref": "DatabaseMaxCapacityDD9828CB",
-          },
-          "MinCapacity": Object {
-            "Ref": "DatabaseMinCapacity82563E98",
-          },
-        },
+        "MaxAllocatedStorage": 200,
+        "MultiAZ": true,
         "StorageEncrypted": true,
-        "VpcSecurityGroupIds": Array [
+        "StorageType": "gp3",
+        "VPCSecurityGroups": Array [
           Object {
             "Fn::GetAtt": Array [
-              "DatabaseClusterSecurityGroupFEF1426A",
+              "DatabaseInstanceSecurityGroupDDFAC9BB",
               "GroupId",
             ],
           },
         ],
       },
-      "Type": "AWS::RDS::DBCluster",
+      "Type": "AWS::RDS::DBInstance",
       "UpdateReplacePolicy": "Snapshot",
     },
-    "DatabaseClusterInstance105C1AA772": Object {
-      "Condition": "DatabaseInstance10Enabled6673066F",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance1078CC457": Object {
-      "Condition": "DatabaseInstance1EnabledA506D432",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance1174E7CB6A": Object {
-      "Condition": "DatabaseInstance11EnabledB1C5CBAB",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance12787C1444": Object {
-      "Condition": "DatabaseInstance12EnabledF3886774",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance130BE7A06C": Object {
-      "Condition": "DatabaseInstance13Enabled3DB2AD18",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance14A0E728DF": Object {
-      "Condition": "DatabaseInstance14Enabled80809892",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance150907340C": Object {
-      "Condition": "DatabaseInstance15EnabledDC9D31BD",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance16BAC8D51F": Object {
-      "Condition": "DatabaseInstance16Enabled2CE0876E",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance291B00375": Object {
-      "Condition": "DatabaseInstance2Enabled9CE137EB",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance31BD73686": Object {
-      "Condition": "DatabaseInstance3Enabled44A32710",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance41328D933": Object {
-      "Condition": "DatabaseInstance4Enabled3E6E6545",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance57069E689": Object {
-      "Condition": "DatabaseInstance5Enabled6A6E91B8",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance6B5F4EA10": Object {
-      "Condition": "DatabaseInstance6EnabledF0D02CB8",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance7175B0096": Object {
-      "Condition": "DatabaseInstance7Enabled1F2EE1B3",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance8DFFBD94A": Object {
-      "Condition": "DatabaseInstance8Enabled22381EB2",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance9B0243C77": Object {
-      "Condition": "DatabaseInstance9Enabled9C35143A",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": Object {
-          "Ref": "DatabaseInstanceClass6CA66E68",
-        },
-        "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
-        },
-        "EnablePerformanceInsights": true,
-        "Engine": "aurora-postgresql",
-        "PerformanceInsightsRetentionPeriod": 7,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterSecretAttachmentDC8466C0": Object {
+    "DatabaseInstanceSecretAttachmentFCA06D38": Object {
       "Properties": Object {
         "SecretId": Object {
-          "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD3fdaad7efa858a3daf9490cf0a702aeb",
+          "Ref": "SupabaseDatabaseInstanceSecret90E6F38D3fdaad7efa858a3daf9490cf0a702aeb",
         },
         "TargetId": Object {
-          "Ref": "DatabaseCluster5B53A178",
+          "Ref": "DatabaseInstanceAA8A5FDE",
         },
-        "TargetType": "AWS::RDS::DBCluster",
+        "TargetType": "AWS::RDS::DBInstance",
       },
       "Type": "AWS::SecretsManager::SecretTargetAttachment",
     },
-    "DatabaseClusterSecurityGroupFEF1426A": Object {
+    "DatabaseInstanceSecurityGroupDDFAC9BB": Object {
       "Properties": Object {
-        "GroupDescription": "RDS security group",
+        "GroupDescription": "Security group for Instance database",
         "SecurityGroupEgress": Array [
           Object {
             "CidrIp": "0.0.0.0/0",
@@ -3925,18 +3247,18 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseAuthServiceSecurityGroupC0652D23IndirectPort316A82A5": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseAuthServiceSecurityGroupC0652D23IndirectPort78D64D5F": Object {
       "Properties": Object {
         "Description": "from SupabaseAuthServiceSecurityGroupC0652D23:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -3949,25 +3271,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseDatabaseMigrationFunctionSecurityGroup2273CFF4IndirectPort7EBF4AAA": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseDatabaseMigrationFunctionSecurityGroup2273CFF4IndirectPortC0730BF5": Object {
       "Properties": Object {
         "Description": "from SupabaseDatabaseMigrationFunctionSecurityGroup2273CFF4:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -3980,25 +3302,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseDatabaseUserPasswordFunctionSecurityGroup71503A07IndirectPort8134897C": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseDatabaseUserPasswordFunctionSecurityGroup71503A07IndirectPort7E13B60D": Object {
       "Properties": Object {
         "Description": "from SupabaseDatabaseUserPasswordFunctionSecurityGroup71503A07:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -4011,25 +3333,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseGraphQLServiceSecurityGroup270E856EIndirectPort858A8D36": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseGraphQLServiceSecurityGroup270E856EIndirectPort442F302B": Object {
       "Properties": Object {
         "Description": "from SupabaseGraphQLServiceSecurityGroup270E856E:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -4042,25 +3364,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseMetaServiceSecurityGroup8C22DD35IndirectPort496372C3": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseMetaServiceSecurityGroup8C22DD35IndirectPort236FD27A": Object {
       "Properties": Object {
         "Description": "from SupabaseMetaServiceSecurityGroup8C22DD35:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -4073,25 +3395,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseRealtimeServiceSecurityGroup570992FEIndirectPort1FAA9E4F": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseRealtimeServiceSecurityGroup570992FEIndirectPort89754FC0": Object {
       "Properties": Object {
         "Description": "from SupabaseRealtimeServiceSecurityGroup570992FE:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -4104,25 +3426,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseRestServiceSecurityGroupC3243DF3IndirectPort2D0B0423": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseRestServiceSecurityGroupC3243DF3IndirectPortC4BE363C": Object {
       "Properties": Object {
         "Description": "from SupabaseRestServiceSecurityGroupC3243DF3:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -4135,25 +3457,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseStorageServiceSecurityGroupADF822D4IndirectPort3CE1B682": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseStorageServiceSecurityGroupADF822D4IndirectPortA23D8F96": Object {
       "Properties": Object {
         "Description": "from SupabaseStorageServiceSecurityGroupADF822D4:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -4166,16 +3488,16 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSubnets5540150D": Object {
+    "DatabaseInstanceSubnetGroupDE121BB6": Object {
       "Properties": Object {
-        "DBSubnetGroupDescription": "Subnets for Cluster database",
+        "DBSubnetGroupDescription": "Subnet group for Instance database",
         "SubnetIds": Array [
           Object {
             "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
@@ -4190,10 +3512,10 @@ Object {
     "DatabaseMigration993F5B9C": Object {
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
-        "DatabaseClusterInstance1078CC457",
+        "DatabaseInstanceAA8A5FDE",
       ],
       "Properties": Object {
-        "Fingerprint": "b3c859baa4ec970a32d58d3b814365cfd68340589d48a09cf84b752fb97dba6c",
+        "Fingerprint": "3588f4b3167a4650ea4dfd3aea3e53facfba6a2fe38d749488dcb1623202b110",
         "ServiceToken": Object {
           "Fn::GetAtt": Array [
             "DatabaseMigrationProviderframeworkonEvent48D76DDA",
@@ -4218,14 +3540,14 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "ea9242e618016f839d4f17b0c618ea453ff82c05ae7cbf801ab582224606472c.zip",
+          "S3Key": "67a7f982847312f00fe63a7caafa9e6daaa88c8fb1a0a471e5a41bbf18d1aab6.zip",
         },
         "Description": "Supabase - Database migration function",
         "Environment": Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "DB_SECRET_ARN": Object {
-              "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+              "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
             },
           },
         },
@@ -4298,7 +3620,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
               },
             },
           ],
@@ -4472,20 +3794,16 @@ Object {
     },
     "DatabaseParameterGroup2A921026": Object {
       "Properties": Object {
-        "Description": "Supabase parameter group for aurora-postgresql",
-        "Family": "aurora-postgresql15",
+        "Description": "Parameter group for Supabase",
+        "Family": "postgres15",
         "Parameters": Object {
-          "autovacuum_max_workers": "GREATEST({DBInstanceClassMemory/64371566592},2)",
-          "max_logical_replication_workers": "4",
-          "max_parallel_workers": "2",
-          "max_replication_slots": "20",
           "max_slot_wal_keep_size": "1024",
-          "max_wal_senders": "20",
+          "rds.force_ssl": "0",
           "rds.logical_replication": "1",
-          "shared_preload_libraries": "pg_tle, pg_stat_statements, pgaudit, pg_cron",
+          "shared_preload_libraries": "pg_tle, plrust, pg_stat_statements, pgaudit, pg_cron",
         },
       },
-      "Type": "AWS::RDS::DBClusterParameterGroup",
+      "Type": "AWS::RDS::DBParameterGroup",
     },
     "DatabaseUserPasswordFunctionAFAC7436": Object {
       "DependsOn": Array [
@@ -4508,7 +3826,7 @@ Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "DB_SECRET_ARN": Object {
-              "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+              "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
             },
           },
         },
@@ -4654,7 +3972,7 @@ Object {
               "Effect": "Allow",
               "NotAction": "secretsmanager:PutSecretValue",
               "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
               },
             },
           ],
@@ -4799,6 +4117,9 @@ Object {
     },
     "DatabaseauthenticatorSecret69FA14DE": Object {
       "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseMigration993F5B9C",
+      ],
       "Properties": Object {
         "Description": "Supabase - Database User authenticator",
         "GenerateSecretString": Object {
@@ -4843,6 +4164,9 @@ Object {
     },
     "DatabasepostgresSecret8E64AF98": Object {
       "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseMigration993F5B9C",
+      ],
       "Properties": Object {
         "Description": "Supabase - Database User postgres",
         "GenerateSecretString": Object {
@@ -4887,6 +4211,9 @@ Object {
     },
     "DatabasesupabaseauthadminSecretC3287578": Object {
       "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseMigration993F5B9C",
+      ],
       "Properties": Object {
         "Description": "Supabase - Database User supabase_auth_admin",
         "GenerateSecretString": Object {
@@ -4931,6 +4258,9 @@ Object {
     },
     "DatabasesupabasestorageadminSecret88C76AA3": Object {
       "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseMigration993F5B9C",
+      ],
       "Properties": Object {
         "Description": "Supabase - Database User supabase_storage_admin",
         "GenerateSecretString": Object {
@@ -5117,9 +4447,6 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "GraphQLServiceAFEB0D4A": Object {
-      "DependsOn": Array [
-        "DatabaseClusterInstance1078CC457",
-      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
@@ -7038,9 +6365,6 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "MetaService2BE3A4CF": Object {
-      "DependsOn": Array [
-        "DatabaseClusterInstance1078CC457",
-      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
@@ -7279,6 +6603,24 @@ Object {
                 "Name": "PG_META_PORT",
                 "Value": "8080",
               },
+              Object {
+                "Name": "PG_META_DB_HOST",
+                "Value": Object {
+                  "Fn::GetAtt": Array [
+                    "DatabaseInstanceAA8A5FDE",
+                    "Endpoint.Address",
+                  ],
+                },
+              },
+              Object {
+                "Name": "PG_META_DB_PORT",
+                "Value": Object {
+                  "Fn::GetAtt": Array [
+                    "DatabaseInstanceAA8A5FDE",
+                    "Endpoint.Port",
+                  ],
+                },
+              },
             ],
             "Essential": true,
             "Image": Object {
@@ -7306,41 +6648,13 @@ Object {
             ],
             "Secrets": Array [
               Object {
-                "Name": "PG_META_DB_HOST",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-                      },
-                      ":host::",
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "PG_META_DB_PORT",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-                      },
-                      ":port::",
-                    ],
-                  ],
-                },
-              },
-              Object {
                 "Name": "PG_META_DB_NAME",
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":dbname::",
                     ],
@@ -7354,7 +6668,7 @@ Object {
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":username::",
                     ],
@@ -7368,7 +6682,7 @@ Object {
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":password::",
                     ],
@@ -7468,7 +6782,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
               },
             },
           ],
@@ -7509,9 +6823,6 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "RealtimeServiceA39AF596": Object {
-      "DependsOn": Array [
-        "DatabaseClusterInstance1078CC457",
-      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
@@ -7777,6 +7088,28 @@ Object {
             ],
             "Environment": Array [
               Object {
+                "Name": "PORT",
+                "Value": "4000",
+              },
+              Object {
+                "Name": "DB_HOST",
+                "Value": Object {
+                  "Fn::GetAtt": Array [
+                    "DatabaseInstanceAA8A5FDE",
+                    "Endpoint.Address",
+                  ],
+                },
+              },
+              Object {
+                "Name": "DB_PORT",
+                "Value": Object {
+                  "Fn::GetAtt": Array [
+                    "DatabaseInstanceAA8A5FDE",
+                    "Endpoint.Port",
+                  ],
+                },
+              },
+              Object {
                 "Name": "DB_AFTER_CONNECT_QUERY",
                 "Value": "SET search_path TO realtime",
               },
@@ -7831,41 +7164,13 @@ Object {
             ],
             "Secrets": Array [
               Object {
-                "Name": "DB_HOST",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-                      },
-                      ":host::",
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "DB_PORT",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-                      },
-                      ":port::",
-                    ],
-                  ],
-                },
-              },
-              Object {
                 "Name": "DB_USER",
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":username::",
                     ],
@@ -7879,7 +7184,7 @@ Object {
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":password::",
                     ],
@@ -7893,7 +7198,7 @@ Object {
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":dbname::",
                     ],
@@ -8005,7 +7310,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
               },
             },
             Object {
@@ -8066,9 +7371,6 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "RestService8812C0B2": Object {
-      "DependsOn": Array [
-        "DatabaseClusterInstance1078CC457",
-      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
@@ -8886,9 +8188,6 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "StorageService1CFF47FC": Object {
-      "DependsOn": Array [
-        "DatabaseClusterInstance1078CC457",
-      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
@@ -9794,7 +9093,7 @@ applications:
                 Array [
                   "{{resolve:secretsmanager:",
                   Object {
-                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                    "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                   },
                   ":SecretString:password::}}",
                 ],
@@ -10179,7 +9478,7 @@ applications:
       "Type": "Custom::RepoImportJob",
       "UpdateReplacePolicy": "Delete",
     },
-    "SupabaseDatabaseClusterSecret2AA4A5CD3fdaad7efa858a3daf9490cf0a702aeb": Object {
+    "SupabaseDatabaseInstanceSecret90E6F38D3fdaad7efa858a3daf9490cf0a702aeb": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Description": Object {
