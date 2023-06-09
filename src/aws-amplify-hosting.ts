@@ -11,7 +11,7 @@ interface AmplifyHostingProps {
   sourceRepo: string;
   sourceBranch: string;
   appRoot: string;
-  environmentVariables?: {
+  environment?: {
     [name: string]: string;
   };
 }
@@ -28,7 +28,7 @@ export class AmplifyHosting extends Construct {
   constructor(scope: Construct, id: string, props: AmplifyHostingProps) {
     super(scope, id);
 
-    const { sourceRepo, sourceBranch, appRoot, environmentVariables = {} } = props;
+    const { sourceRepo, sourceBranch, appRoot, environment = {} } = props;
 
     /** CodeCommit - Source Repository for Amplify Hosting */
     const repository = new Repository(this, 'Repository', {
@@ -40,14 +40,14 @@ export class AmplifyHosting extends Construct {
     const repoImportJob = repository.importFromUrl(sourceRepo, sourceBranch);
 
     /** IAM Role for SSR app logging */
-    const amplifySSRLoggingRole = new iam.Role(this, 'AmplifySSRLoggingRole', {
+    const role = new iam.Role(this, 'Role', {
       description: 'The service role that will be used by AWS Amplify for SSR app logging.',
       path: '/service-role/',
       assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
     });
 
     /** Keys of environment variables */
-    const envKeys = Object.keys(environmentVariables);
+    const envKeys = Object.keys(environment);
 
     /** BuildSpec for Amplify Hosting */
     const buildSpec = BuildSpec.fromObjectToYaml({
@@ -100,10 +100,15 @@ export class AmplifyHosting extends Construct {
 
     this.app = new amplify.App(this, 'App', {
       appName: this.node.path.replace(/\//g, ''),
-      role: amplifySSRLoggingRole,
+      role,
       sourceCodeProvider: new amplify.CodeCommitSourceCodeProvider({ repository }),
       buildSpec,
-      environmentVariables,
+      environmentVariables: {
+        ...environment,
+        NODE_OPTIONS: '--max-old-space-size=4096',
+        AMPLIFY_MONOREPO_APP_ROOT: appRoot,
+        AMPLIFY_DIFF_DEPLOY: 'false',
+      },
     });
     (this.app.node.defaultChild as cdk.CfnResource).addPropertyOverride('Platform', 'WEB_COMPUTE');
 
@@ -146,7 +151,7 @@ export class AmplifyHosting extends Construct {
         }),
       ],
     });
-    amplifySSRLoggingPolicy.attachToRole(amplifySSRLoggingRole);
+    amplifySSRLoggingPolicy.attachToRole(role);
 
     this.prodBranchUrl = `https://${this.prodBranch.branchName}.${this.app.defaultDomain}`;
 

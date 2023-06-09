@@ -8941,52 +8941,7 @@ Object {
         },
         "Roles": Array [
           Object {
-            "Ref": "StudioAmplifySSRLoggingRole4245BB50",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "StudioAmplifySSRLoggingRole4245BB50": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "amplify.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Description": "The service role that will be used by AWS Amplify for SSR app logging.",
-        "Path": "/service-role/",
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "StudioAmplifySSRLoggingRoleDefaultPolicyD00FDB3B": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "codecommit:GitPull",
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "StudioRepositoryE0EFFBE2",
-                  "Arn",
-                ],
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "StudioAmplifySSRLoggingRoleDefaultPolicyD00FDB3B",
-        "Roles": Array [
-          Object {
-            "Ref": "StudioAmplifySSRLoggingRole4245BB50",
+            "Ref": "StudioRole199EAF11",
           },
         ],
       },
@@ -9167,7 +9122,7 @@ applications:
         ],
         "IAMServiceRole": Object {
           "Fn::GetAtt": Array [
-            "StudioAmplifySSRLoggingRole4245BB50",
+            "StudioRole199EAF11",
             "Arn",
           ],
         },
@@ -9477,6 +9432,51 @@ applications:
       },
       "Type": "Custom::RepoImportJob",
       "UpdateReplacePolicy": "Delete",
+    },
+    "StudioRole199EAF11": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "amplify.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "The service role that will be used by AWS Amplify for SSR app logging.",
+        "Path": "/service-role/",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "StudioRoleDefaultPolicy289CEC37": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "codecommit:GitPull",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "StudioRepositoryE0EFFBE2",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "StudioRoleDefaultPolicy289CEC37",
+        "Roles": Array [
+          Object {
+            "Ref": "StudioRole199EAF11",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "SupabaseDatabaseInstanceSecret90E6F38D3fdaad7efa858a3daf9490cf0a702aeb": Object {
       "DeletionPolicy": "Delete",

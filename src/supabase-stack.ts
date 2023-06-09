@@ -543,7 +543,7 @@ export class SupabaseStack extends FargateStack {
       sourceRepo: 'https://github.com/supabase/supabase.git',
       sourceBranch: studioBranch.valueAsString,
       appRoot: 'studio',
-      environmentVariables: {
+      environment: {
         STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
         POSTGRES_PASSWORD: supabaseAdminSecret.secretValueFromJson('password').toString(),
         //DEFAULT_ORGANIZATION: 'Default Organization',
