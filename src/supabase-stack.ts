@@ -4,6 +4,7 @@ import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as events from 'aws-cdk-lib/aws-events';
+import * as rds from 'aws-cdk-lib/aws-rds';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
@@ -115,6 +116,24 @@ export class SupabaseStack extends FargateStack {
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
+    /** The minimum number of aurora capacity units */
+    const minACU = new cdk.CfnParameter(this, 'MinACU', {
+      description: 'The minimum number of Aurora capacity units (ACU) for a DB instance in an Aurora Serverless v2 cluster.',
+      type: 'Number',
+      default: 0.5,
+      minValue: 0.5,
+      maxValue: 128,
+    });
+
+    /** The maximum number of aurora capacity units */
+    const maxACU = new cdk.CfnParameter(this, 'MaxACU', {
+      description: 'The maximum number of Aurora capacity units (ACU) for a DB instance in an Aurora Serverless v2 cluster.',
+      type: 'Number',
+      default: 32,
+      minValue: 0.5,
+      maxValue: 128,
+    });
+
     /** VPC for Containers and Database */
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
@@ -138,8 +157,14 @@ export class SupabaseStack extends FargateStack {
     /** PostgreSQL Database with Secrets */
     const db = new SupabaseDatabase(this, 'Database', { vpc });
 
+    // Overwrite ACU
+    (db.cluster.node.defaultChild as rds.CfnDBCluster).serverlessV2ScalingConfiguration = {
+      minCapacity: minACU.valueAsNumber,
+      maxCapacity: maxACU.valueAsNumber,
+    };
+
     /** Secret of supabase_admin user */
-    const supabaseAdminSecret = db.instance.secret!;
+    const supabaseAdminSecret = db.cluster.secret!;
     /** Secret of supabase_auth_admin user */
     const supabaseAuthAdminSecret = db.genUserPassword('supabase_auth_admin');
     /** Secret of supabase_storage_admin user */
@@ -358,8 +383,8 @@ export class SupabaseStack extends FargateStack {
         containerPort: 4000,
         environment: {
           PORT: '4000',
-          DB_HOST: db.instance.dbInstanceEndpointAddress,
-          DB_PORT: db.instance.dbInstanceEndpointPort,
+          DB_HOST: db.cluster.clusterEndpoint.hostname,
+          DB_PORT: db.cluster.clusterEndpoint.port.toString(),
           DB_AFTER_CONNECT_QUERY: 'SET search_path TO realtime',
           DB_ENC_KEY: 'supabaserealtime',
           FLY_ALLOC_ID: 'fly123',
@@ -384,6 +409,9 @@ export class SupabaseStack extends FargateStack {
         ],
       },
     });
+
+    // Wait until the database migration is complete.
+    realtime.service.node.addDependency(db.migration.node.defaultChild!);
 
     // Allow each container to connect others in cluster
     realtime.connections.allowInternally(Port.allTraffic());
@@ -471,8 +499,8 @@ export class SupabaseStack extends FargateStack {
         containerPort: 8080,
         environment: {
           PG_META_PORT: '8080',
-          PG_META_DB_HOST: db.instance.dbInstanceEndpointAddress,
-          PG_META_DB_PORT: db.instance.dbInstanceEndpointPort,
+          PG_META_DB_HOST: db.cluster.clusterEndpoint.hostname,
+          PG_META_DB_PORT: db.cluster.clusterEndpoint.port.toString(),
         },
         secrets: {
           PG_META_DB_NAME: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'dbname'),
@@ -481,6 +509,9 @@ export class SupabaseStack extends FargateStack {
         },
       },
     });
+
+    // Wait until the database migration is complete.
+    meta.service.node.addDependency(db.migration.node.defaultChild!);
 
     // Add environment variables to kong-gateway
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_AUTH_URL', `${auth.endpoint}/`);
@@ -503,12 +534,12 @@ export class SupabaseStack extends FargateStack {
     storage.connections.allowToDefaultPort(imgproxy);
 
     // Allow some services to connect the database
-    auth.connections.allowToDefaultPort(db.instance);
-    rest.connections.allowToDefaultPort(db.instance);
-    gql.connections.allowToDefaultPort(db.instance);
-    realtime.connections.allowToDefaultPort(db.instance);
-    storage.connections.allowToDefaultPort(db.instance);
-    meta.connections.allowToDefaultPort(db.instance);
+    auth.connections.allowToDefaultPort(db.cluster);
+    rest.connections.allowToDefaultPort(db.cluster);
+    gql.connections.allowToDefaultPort(db.cluster);
+    realtime.connections.allowToDefaultPort(db.cluster);
+    storage.connections.allowToDefaultPort(db.cluster);
+    meta.connections.allowToDefaultPort(db.cluster);
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
     // for DB secret rotation
@@ -606,10 +637,10 @@ export class SupabaseStack extends FargateStack {
         {
           Label: { default: 'Infrastructure Settings - Database' },
           Parameters: [
-            db.cfnParameters.instanceClass.logicalId,
+            //db.cfnParameters.instanceClass.logicalId,
             //db.cfnParameters.instanceCount.logicalId,
-            //db.cfnParameters.minCapacity.logicalId,
-            //db.cfnParameters.maxCapacity.logicalId,
+            minACU.logicalId,
+            maxACU.logicalId,
           ],
         },
         {
@@ -701,10 +732,10 @@ export class SupabaseStack extends FargateStack {
         [imgproxyImageUri.logicalId]: { default: 'Imgproxy Image URI' },
         [postgresMetaImageUri.logicalId]: { default: 'Postgres Meta API Image URI' },
 
-        [db.cfnParameters.instanceClass.logicalId]: { default: 'DB Instance Class' },
+        //[db.cfnParameters.instanceClass.logicalId]: { default: 'DB Instance Class' },
         //[db.cfnParameters.instanceCount.logicalId]: { default: 'DB Instance Count' },
-        //[db.cfnParameters.minCapacity.logicalId]: { default: 'Minimum ACUs' },
-        //[db.cfnParameters.maxCapacity.logicalId]: { default: 'Maximum ACUs' },
+        [minACU.logicalId]: { default: 'Minimum ACUs' },
+        [maxACU.logicalId]: { default: 'Maximum ACUs' },
 
         [cdn.cfnParameters.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 

@@ -55,7 +55,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
   - [ECS Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) is used.
     - Each component is discovered as `***.supabase.internal`.
 - Database (PostgreSQL)
-  - [Amazon RDS for PostgreSQL](https://aws.amazon.com/rds/postgresql/) is used.
+  - [Amazon Aurora Serverless v2](https://aws.amazon.com/rds/aurora/serverless/) is used.
   - ~~DB password is automatically rotated every 30 days.~~
 - Supabase Studio
   - It is deployed on [Amplify Hosting](https://aws.amazon.com/amplify/hosting/).
