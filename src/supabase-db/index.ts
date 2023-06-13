@@ -19,14 +19,9 @@ interface SupabaseDatabaseProps {
 }
 
 export class SupabaseDatabase extends Construct {
-  instance: rds.DatabaseInstance;
-  //cluster: rds.DatabaseCluster;
-  cfnParameters: {
-    //minCapacity: cdk.CfnParameter;
-    //maxCapacity: cdk.CfnParameter;
-    instanceClass: cdk.CfnParameter;
-    //instanceCount: cdk.CfnParameter;
-  };
+  //instance: rds.DatabaseInstance;
+  /** Aurora Cluster */
+  cluster: rds.DatabaseCluster;
   /** Database migration */
   migration: cdk.CustomResource;
   /** Custom resource provider to generate user password */
@@ -38,42 +33,9 @@ export class SupabaseDatabase extends Construct {
 
     const { vpc } = props;
 
-    this.cfnParameters = {
-      instanceClass: new cdk.CfnParameter(this, 'InstanceClass', {
-        type: 'String',
-        default: 'db.t4g.micro',
-        allowedValues: [
-          //'db.serverless',
-          'db.t4g.micro', 'db.t4g.small', 'db.t4g.medium', 'db.t4g.large',
-          'db.m6gd.large', 'db.m6gd.xlarge', 'db.m6gd.2xlarge', 'db.m6gd.4xlarge', 'db.m6gd.8xlarge', 'db.m6gd.12xlarge', 'db.m6gd.16xlarge',
-          'db.r6gd.large', 'db.r6gd.xlarge', 'db.r6gd.2xlarge', 'db.r6gd.4xlarge', 'db.r6gd.8xlarge', 'db.r6gd.12xlarge', 'db.r6gd.16xlarge',
-        ],
-      }),
-      //instanceCount: new cdk.CfnParameter(this, 'InstanceCount', {
-      //  type: 'Number',
-      //  default: 1,
-      //  minValue: 1,
-      //  maxValue: 16,
-      //}),
-      //minCapacity: new cdk.CfnParameter(this, 'MinCapacity', {
-      //  description: 'The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
-      //  type: 'Number',
-      //  default: 0.5,
-      //  minValue: 0.5,
-      //  maxValue: 128,
-      //}),
-      //maxCapacity: new cdk.CfnParameter(this, 'MaxCapacity', {
-      //  description: 'The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
-      //  type: 'Number',
-      //  default: 32,
-      //  minValue: 0.5,
-      //  maxValue: 128,
-      //}),
-    };
-
     /** Database Engine */
-    const engine = rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_15 });
-    //const engine = rds.DatabaseClusterEngine.auroraPostgres({ version: rds.AuroraPostgresEngineVersion.VER_15_2 });
+    //const engine = rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_15 });
+    const engine = rds.DatabaseClusterEngine.auroraPostgres({ version: rds.AuroraPostgresEngineVersion.VER_15_2 });
 
     /** Parameter Group */
     const parameterGroup = new rds.ParameterGroup(this, 'ParameterGroup', {
@@ -81,50 +43,49 @@ export class SupabaseDatabase extends Construct {
       description: 'Parameter group for Supabase',
       parameters: {
         'rds.force_ssl': '0',
-        'shared_preload_libraries': 'pg_tle, plrust, pg_stat_statements, pgaudit, pg_cron',
+        'shared_preload_libraries': 'pg_tle, pg_stat_statements, pgaudit, pg_cron',
         'rds.logical_replication': '1',
         'max_slot_wal_keep_size': '1024', // https://github.com/supabase/realtime
       },
     });
 
-    this.instance = new rds.DatabaseInstance(this, 'Instance', {
+    this.cluster = new rds.DatabaseCluster(this, 'Cluster', {
       engine,
       parameterGroup,
+      writer: rds.ClusterInstance.serverlessV2('Instance1'),
+      readers: [
+        rds.ClusterInstance.serverlessV2('Instance2', { scaleWithWriter: true }),
+      ],
       vpc,
-      multiAz: true,
-      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.MICRO),
-      storageType: rds.StorageType.GP3,
-      allocatedStorage: 20,
-      maxAllocatedStorage: 200,
       credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', {
         secretName: `${cdk.Aws.STACK_NAME}-${id}-supabase_admin`,
       }),
-      databaseName: 'postgres',
+      defaultDatabaseName: 'postgres',
       storageEncrypted: true,
     });
 
-    /** CFn resource for overwrite */
-    const dbInstance = this.instance.node.defaultChild! as rds.CfnDBInstance;
 
-    // Overwrite instance class
-    dbInstance.dbInstanceClass = this.cfnParameters.instanceClass.valueAsString;
+    const dbInstance = this.cluster.node.findChild('Instance1') as rds.CfnDBInstance;
 
-    //const cluster = new rds.DatabaseCluster(this, 'Cluster', {
+    //this.instance = new rds.DatabaseInstance(this, 'Instance', {
     //  engine,
     //  parameterGroup,
-    //  serverlessV2MinCapacity: 0.5,
-    //  serverlessV2MaxCapacity: 32,
-    //  writer: rds.ClusterInstance.serverlessV2('Instance1'),
-    //  readers: [
-    //    rds.ClusterInstance.serverlessV2('Instance2', { scaleWithWriter: true }),
-    //  ],
     //  vpc,
+    //  multiAz: true,
+    //  instanceType: ec2.InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.MICRO),
+    //  storageType: rds.StorageType.GP3,
+    //  allocatedStorage: 20,
+    //  maxAllocatedStorage: 200,
     //  credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', {
     //    secretName: `${cdk.Aws.STACK_NAME}-${id}-supabase_admin`,
     //  }),
-    //  defaultDatabaseName: 'postgres',
+    //  databaseName: 'postgres',
     //  storageEncrypted: true,
     //});
+
+    /** CFn resource for overwrite */
+    //const dbInstance = this.instance.node.defaultChild! as rds.CfnDBInstance;
+
 
     /** Custom resource handler for database migration */
     const migrationFunction = new NodejsFunction(this, 'MigrationFunction', {
@@ -151,16 +112,16 @@ export class SupabaseDatabase extends Construct {
       runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(60),
       environment: {
-        DB_SECRET_ARN: this.instance.secret!.secretArn,
+        DB_SECRET_ARN: this.cluster.secret!.secretArn,
       },
       vpc,
     });
 
     // Allow a function to connect to database
-    migrationFunction.connections.allowToDefaultPort(this.instance);
+    migrationFunction.connections.allowToDefaultPort(this.cluster);
 
     // Allow a function to read db secret
-    this.instance.secret?.grantRead(migrationFunction);
+    this.cluster.secret?.grantRead(migrationFunction);
 
     /** Custom resource provider for database migration */
     const migrationProvider = new cr.Provider(this, 'MigrationProvider', { onEventHandler: migrationFunction });
@@ -187,7 +148,7 @@ export class SupabaseDatabase extends Construct {
       runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(10),
       environment: {
-        DB_SECRET_ARN: this.instance.secret!.secretArn,
+        DB_SECRET_ARN: this.cluster.secret!.secretArn,
       },
       initialPolicy: [
         new iam.PolicyStatement({
@@ -201,14 +162,14 @@ export class SupabaseDatabase extends Construct {
           notActions: [
             'secretsmanager:PutSecretValue',
           ],
-          resources: [this.instance.secret!.secretArn],
+          resources: [this.cluster.secret!.secretArn],
         }),
       ],
       vpc,
     });
 
     // Allow a function to connect to database
-    userPasswordFunction.connections.allowToDefaultPort(this.instance);
+    userPasswordFunction.connections.allowToDefaultPort(this.cluster);
 
     this.userPasswordProvider = new cr.Provider(this, 'UserPasswordProvider', { onEventHandler: userPasswordFunction });
   }

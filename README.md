@@ -55,10 +55,12 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
   - [ECS Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) is used.
     - Each component is discovered as `***.supabase.internal`.
 - Database (PostgreSQL)
-  - [Amazon RDS for PostgreSQL](https://aws.amazon.com/rds/postgresql/) is used.
-  - ~~DB password is automatically rotated every 30 days.~~
+  - [Amazon Aurora Serverless v2](https://aws.amazon.com/rds/aurora/serverless/) is used.
+  - If `dbdev` or `pg_graphql` is supported with RDS only, it will be changed to use RDS instead of Aurora.
+  - [ ] Todo: Add automatically password rotation.
 - Supabase Studio
   - It is deployed on [Amplify Hosting](https://aws.amazon.com/amplify/hosting/).
+  - [ ] Todo: Add option to deploy the studio in different regions.
 
 #### Fargate Task Size
 
