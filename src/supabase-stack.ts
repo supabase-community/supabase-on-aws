@@ -637,8 +637,6 @@ export class SupabaseStack extends FargateStack {
         {
           Label: { default: 'Infrastructure Settings - Database' },
           Parameters: [
-            //db.cfnParameters.instanceClass.logicalId,
-            //db.cfnParameters.instanceCount.logicalId,
             minACU.logicalId,
             maxACU.logicalId,
           ],
@@ -732,8 +730,6 @@ export class SupabaseStack extends FargateStack {
         [imgproxyImageUri.logicalId]: { default: 'Imgproxy Image URI' },
         [postgresMetaImageUri.logicalId]: { default: 'Postgres Meta API Image URI' },
 
-        //[db.cfnParameters.instanceClass.logicalId]: { default: 'DB Instance Class' },
-        //[db.cfnParameters.instanceCount.logicalId]: { default: 'DB Instance Count' },
         [minACU.logicalId]: { default: 'Minimum ACUs' },
         [maxACU.logicalId]: { default: 'Maximum ACUs' },
 

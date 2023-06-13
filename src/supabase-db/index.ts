@@ -33,39 +33,6 @@ export class SupabaseDatabase extends Construct {
 
     const { vpc } = props;
 
-    //this.cfnParameters = {
-    //instanceClass: new cdk.CfnParameter(this, 'InstanceClass', {
-    //  type: 'String',
-    //  default: 'db.t4g.micro',
-    //  allowedValues: [
-    //    //'db.serverless',
-    //    'db.t4g.micro', 'db.t4g.small', 'db.t4g.medium', 'db.t4g.large',
-    //    'db.m6gd.large', 'db.m6gd.xlarge', 'db.m6gd.2xlarge', 'db.m6gd.4xlarge', 'db.m6gd.8xlarge', 'db.m6gd.12xlarge', 'db.m6gd.16xlarge',
-    //    'db.r6gd.large', 'db.r6gd.xlarge', 'db.r6gd.2xlarge', 'db.r6gd.4xlarge', 'db.r6gd.8xlarge', 'db.r6gd.12xlarge', 'db.r6gd.16xlarge',
-    //  ],
-    //}),
-    //instanceCount: new cdk.CfnParameter(this, 'InstanceCount', {
-    //  type: 'Number',
-    //  default: 1,
-    //  minValue: 1,
-    //  maxValue: 16,
-    //}),
-    //minCapacity: new cdk.CfnParameter(this, 'MinCapacity', {
-    //  description: 'The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
-    //  type: 'Number',
-    //  default: 0.5,
-    //  minValue: 0.5,
-    //  maxValue: 128,
-    //}),
-    //maxCapacity: new cdk.CfnParameter(this, 'MaxCapacity', {
-    //  description: 'The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster.',
-    //  type: 'Number',
-    //  default: 32,
-    //  minValue: 0.5,
-    //  maxValue: 128,
-    //}),
-    //};
-
     /** Database Engine */
     //const engine = rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_15 });
     const engine = rds.DatabaseClusterEngine.auroraPostgres({ version: rds.AuroraPostgresEngineVersion.VER_15_2 });
