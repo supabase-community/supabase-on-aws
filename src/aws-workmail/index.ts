@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -14,6 +15,7 @@ interface StackProps extends cdk.NestedStackProps {
 export class WorkMailStack extends cdk.NestedStack {
   organization: Organization;
 
+  /** Nested stack to enable WorkMail */
   constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
 
@@ -27,12 +29,18 @@ interface OrganizationProps {
 }
 
 export class Organization extends Construct {
+  /** WorkMail Region */
   region: string;
+  /** WorkMail identifier */
   alias: string;
+  /** WorkMail domain */
   domain: string;
+  /** WorkMail organization ID */
   organizationId: string;
+  /** Custom resource provider to create user */
   createUserProvider: cr.Provider;
 
+  /** WorkMail Organization */
   constructor(scope: Construct, id: string, props: OrganizationProps) {
     super(scope, id);
 
@@ -40,9 +48,10 @@ export class Organization extends Construct {
     this.alias = props.alias;
     this.domain = `${this.alias}.awsapps.com`;
 
+    /** Custom resource handler to create a organization */
     const createOrgFunction = new NodejsFunction(this, 'CreateOrgFunction', {
       description: 'Supabase - Create WorkMail Org Function',
-      entry: './src/functions/create-workmail-org.ts',
+      entry: path.resolve(__dirname, 'cr-workmail-org.ts'),
       runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(10),
       initialPolicy: [
@@ -90,11 +99,13 @@ export class Organization extends Construct {
       ],
     });
 
+    /** Custom resource provider to create a organization */
     const createOrgProvider = new cr.Provider(this, 'CreateOrgProvider', {
       onEventHandler: createOrgFunction,
       isCompleteHandler: checkOrgFunction,
     });
 
+    /** The WorkMail Organization */
     const org = new cdk.CfnResource(this, 'Resource', {
       type: 'Custom::WorkMailOrganization',
       properties: {
@@ -105,9 +116,10 @@ export class Organization extends Construct {
     });
     this.organizationId = org.ref;
 
+    /** Custom resource handler to create a user */
     const createUserFunction = new NodejsFunction(this, 'CreateUserFunction', {
       description: 'Supabase - Create WorkMail User Function',
-      entry: './src/functions/create-workmail-user.ts',
+      entry: path.resolve(__dirname, 'cr-workmail-user.ts'),
       runtime: lambda.Runtime.NODEJS_18_X,
       timeout: cdk.Duration.seconds(10),
       initialPolicy: [
@@ -130,6 +142,7 @@ export class Organization extends Construct {
     });
   }
 
+  /** Add WorkMail User */
   addUser(username: string, password: string) {
     const user = new cdk.CfnResource(this, username, {
       type: 'Custom::WorkMailUser',

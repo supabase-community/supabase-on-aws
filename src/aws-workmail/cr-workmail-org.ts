@@ -1,6 +1,7 @@
 import { WorkMailClient, CreateOrganizationCommand, DeleteOrganizationCommand } from '@aws-sdk/client-workmail';
 import { CdkCustomResourceHandler } from 'aws-lambda';
 
+/** Create WorkMail Organization */
 const createOrg = async (region: string, alias: string) => {
   const client = new WorkMailClient({ region });
   const cmd = new CreateOrganizationCommand({ Alias: alias });
@@ -15,6 +16,7 @@ const createOrg = async (region: string, alias: string) => {
   }
 };
 
+/** Delete WorkMail Organization */
 const deleteOrg = async (region: string, organizationId: string) => {
   const client = new WorkMailClient({ region });
   const cmd = new DeleteOrganizationCommand({ OrganizationId: organizationId, DeleteDirectory: true });

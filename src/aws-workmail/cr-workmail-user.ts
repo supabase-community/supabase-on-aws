@@ -24,6 +24,7 @@ const getSecretValue = async (secretId: string) => {
   return value;
 };
 
+/** Describe the email domain of the WorkMail organization */
 const describeMailDomain = async (region: string, organizationId: string) => {
   const client = new WorkMailClient({ region });
   const cmd = new DescribeOrganizationCommand({ OrganizationId: organizationId });
@@ -40,6 +41,7 @@ const describeMailDomain = async (region: string, organizationId: string) => {
   return mailDomain;
 };
 
+/** Register the email address to the WorkMail organization */
 const registerToWorkMail = async (region: string, organizationId: string, entityId: string, email: string) => {
   const client = new WorkMailClient({ region });
   const cmd = new RegisterToWorkMailCommand({
@@ -57,6 +59,7 @@ const registerToWorkMail = async (region: string, organizationId: string, entity
   }
 };
 
+/** Deregister the email address to the WorkMail organization */
 const deregisterFromWorkMail = async (region: string, organizationId: string, entityId: string) => {
   const client = new WorkMailClient({ region });
   const cmd = new DeregisterFromWorkMailCommand({
@@ -73,6 +76,7 @@ const deregisterFromWorkMail = async (region: string, organizationId: string, en
   }
 };
 
+/** Create the user from the WorkMail organization */
 const createUser = async (region: string, organizationId: string, username: string, password: string) => {
   const mailDomain = await describeMailDomain(region, organizationId);
   const email = `${username.toLowerCase()}@${mailDomain}`;
@@ -97,6 +101,7 @@ const createUser = async (region: string, organizationId: string, username: stri
   return { userId, email };
 };
 
+/** Delete the user from the WorkMail organization */
 const deleteUser = async (region: string, organizationId: string, userId: string) => {
   const client = new WorkMailClient({ region });
   await deregisterFromWorkMail(region, organizationId, userId);
