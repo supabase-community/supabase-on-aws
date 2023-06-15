@@ -724,7 +724,7 @@ Object {
       },
       "Value": Object {
         "Fn::GetAtt": Array [
-          "JwtSecretAnonKeyTokenE92DEEB0",
+          "JwtSecretAnonKey63F37A1E",
           "Value",
         ],
       },
@@ -5327,6 +5327,24 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "JwtSecretAnonKey63F37A1E": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ExpiresIn": "10y",
+        "Issuer": "supabase",
+        "Payload": Object {
+          "role": "anon",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::JsonWebToken",
+      "UpdateReplacePolicy": "Delete",
+    },
     "JwtSecretAnonKeyParameter532DCC06": Object {
       "Properties": Object {
         "Description": Object {
@@ -5355,30 +5373,12 @@ Object {
         "Type": "String",
         "Value": Object {
           "Fn::GetAtt": Array [
-            "JwtSecretAnonKeyTokenE92DEEB0",
+            "JwtSecretAnonKey63F37A1E",
             "Value",
           ],
         },
       },
       "Type": "AWS::SSM::Parameter",
-    },
-    "JwtSecretAnonKeyTokenE92DEEB0": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "ExpiresIn": "10y",
-        "Issuer": "supabase",
-        "Payload": Object {
-          "role": "anon",
-        },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "Custom::JsonWebToken",
-      "UpdateReplacePolicy": "Delete",
     },
     "JwtSecretB8834B39": Object {
       "DeletionPolicy": "Delete",
@@ -5402,105 +5402,6 @@ Object {
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
     },
-    "JwtSecretGenerateTokenFunctionB37EE16F": Object {
-      "DependsOn": Array [
-        "JwtSecretGenerateTokenFunctionServiceRoleDefaultPolicy91E418F9",
-        "JwtSecretGenerateTokenFunctionServiceRole220DD241",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "49a4da4521fed06d10ad6c9d54a5e5db2b59a697400681dbb6a326d6cbcef94f.zip",
-        },
-        "Description": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              " - Generate token via jwt secret",
-            ],
-          ],
-        },
-        "Environment": Object {
-          "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "JWT_SECRET_ARN": Object {
-              "Ref": "JwtSecretB8834B39",
-            },
-          },
-        },
-        "Handler": "index.handler",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "JwtSecretGenerateTokenFunctionServiceRole220DD241",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs18.x",
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "JwtSecretGenerateTokenFunctionServiceRole220DD241": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "JwtSecretGenerateTokenFunctionServiceRoleDefaultPolicy91E418F9": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:DescribeSecret",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Ref": "JwtSecretB8834B39",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "JwtSecretGenerateTokenFunctionServiceRoleDefaultPolicy91E418F9",
-        "Roles": Array [
-          Object {
-            "Ref": "JwtSecretGenerateTokenFunctionServiceRole220DD241",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA": Object {
       "DependsOn": Array [
         "JwtSecretGenerateTokenProviderframeworkonEventServiceRoleDefaultPolicy14F466A4",
@@ -5518,7 +5419,7 @@ Object {
           "Variables": Object {
             "USER_ON_EVENT_FUNCTION_ARN": Object {
               "Fn::GetAtt": Array [
-                "JwtSecretGenerateTokenFunctionB37EE16F",
+                "JwtSecretJsonWebTokenFunctionF8BA9D2A",
                 "Arn",
               ],
             },
@@ -5577,7 +5478,7 @@ Object {
               "Resource": Array [
                 Object {
                   "Fn::GetAtt": Array [
-                    "JwtSecretGenerateTokenFunctionB37EE16F",
+                    "JwtSecretJsonWebTokenFunctionF8BA9D2A",
                     "Arn",
                   ],
                 },
@@ -5587,7 +5488,7 @@ Object {
                     Array [
                       Object {
                         "Fn::GetAtt": Array [
-                          "JwtSecretGenerateTokenFunctionB37EE16F",
+                          "JwtSecretJsonWebTokenFunctionF8BA9D2A",
                           "Arn",
                         ],
                       },
@@ -5608,6 +5509,123 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "JwtSecretJsonWebTokenFunctionF8BA9D2A": Object {
+      "DependsOn": Array [
+        "JwtSecretJsonWebTokenFunctionServiceRoleDefaultPolicyFEC3E7BA",
+        "JwtSecretJsonWebTokenFunctionServiceRole17CF8128",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "baf945a52f8e02b1131009f27d8b23a50b9eacc020ff363093145c8e6f5dbc01.zip",
+        },
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              " - Generate token via jwt secret",
+            ],
+          ],
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "JWT_SECRET_ARN": Object {
+              "Ref": "JwtSecretB8834B39",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretJsonWebTokenFunctionServiceRole17CF8128",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "JwtSecretJsonWebTokenFunctionServiceRole17CF8128": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "JwtSecretJsonWebTokenFunctionServiceRoleDefaultPolicyFEC3E7BA": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "JwtSecretB8834B39",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "JwtSecretJsonWebTokenFunctionServiceRoleDefaultPolicyFEC3E7BA",
+        "Roles": Array [
+          Object {
+            "Ref": "JwtSecretJsonWebTokenFunctionServiceRole17CF8128",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "JwtSecretServiceRoleKeyF0F6C193": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ExpiresIn": "10y",
+        "Issuer": "supabase",
+        "Payload": Object {
+          "role": "service_role",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::JsonWebToken",
+      "UpdateReplacePolicy": "Delete",
     },
     "JwtSecretServiceRoleKeyParameterB65536EB": Object {
       "Properties": Object {
@@ -5637,30 +5655,12 @@ Object {
         "Type": "String",
         "Value": Object {
           "Fn::GetAtt": Array [
-            "JwtSecretServiceRoleKeyToken50CB4154",
+            "JwtSecretServiceRoleKeyF0F6C193",
             "Value",
           ],
         },
       },
       "Type": "AWS::SSM::Parameter",
-    },
-    "JwtSecretServiceRoleKeyToken50CB4154": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "ExpiresIn": "10y",
-        "Issuer": "supabase",
-        "Payload": Object {
-          "role": "service_role",
-        },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "Custom::JsonWebToken",
-      "UpdateReplacePolicy": "Delete",
     },
     "KongLogs4BD50491": Object {
       "DeletionPolicy": "Delete",
@@ -9166,7 +9166,7 @@ applications:
             "Name": "SUPABASE_ANON_KEY",
             "Value": Object {
               "Fn::GetAtt": Array [
-                "JwtSecretAnonKeyTokenE92DEEB0",
+                "JwtSecretAnonKey63F37A1E",
                 "Value",
               ],
             },
@@ -9175,7 +9175,7 @@ applications:
             "Name": "SUPABASE_SERVICE_KEY",
             "Value": Object {
               "Fn::GetAtt": Array [
-                "JwtSecretServiceRoleKeyToken50CB4154",
+                "JwtSecretServiceRoleKeyF0F6C193",
                 "Value",
               ],
             },
