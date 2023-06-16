@@ -143,7 +143,7 @@ export class SupabaseStack extends FargateStack {
     });
 
     /** The region name for Amazon SES */
-    const sesRegion = new cdk.CfnParameter(this, 'Region', {
+    const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
       description: 'Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.',
       type: 'String',
       default: 'us-west-2',

@@ -377,7 +377,7 @@ Object {
           "Parameters": Array [
             "Email",
             "SenderName",
-            "Region",
+            "SesRegion",
             "EnableWorkMail",
           ],
         },
@@ -644,9 +644,6 @@ Object {
         "RedirectUrls": Object {
           "default": "Redirect URLs",
         },
-        "Region": Object {
-          "default": "Amazon SES Region",
-        },
         "RestImageUri": Object {
           "default": "Rest API Image URI - PostgREST",
         },
@@ -661,6 +658,9 @@ Object {
         },
         "SenderName": Object {
           "default": "Sender Name",
+        },
+        "SesRegion": Object {
+          "default": "Amazon SES Region",
         },
         "SiteUrl": Object {
           "default": "Site URL",
@@ -1111,30 +1111,6 @@ Object {
       "Description": "URLs that auth providers are permitted to redirect to post authentication",
       "Type": "String",
     },
-    "Region": Object {
-      "AllowedValues": Array [
-        "us-east-1",
-        "us-east-2",
-        "us-west-1",
-        "us-west-2",
-        "ap-south-1",
-        "ap-northeast-1",
-        "ap-northeast-2",
-        "ap-northeast-3",
-        "ap-southeast-1",
-        "ap-southeast-2",
-        "ca-central-1",
-        "eu-central-1",
-        "eu-west-1",
-        "eu-west-2",
-        "eu-west-3",
-        "eu-north-1",
-        "sa-east-1",
-      ],
-      "Default": "us-west-2",
-      "Description": "Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.",
-      "Type": "String",
-    },
     "RestImageUri": Object {
       "Default": "public.ecr.aws/supabase/postgrest:v10.1.2",
       "Description": "https://gallery.ecr.aws/supabase/postgrest",
@@ -1169,6 +1145,30 @@ Object {
     "SenderName": Object {
       "Default": "Supabase",
       "Description": "The From email sender name for all emails sent.",
+      "Type": "String",
+    },
+    "SesRegion": Object {
+      "AllowedValues": Array [
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2",
+        "ap-south-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "eu-north-1",
+        "sa-east-1",
+      ],
+      "Default": "us-west-2",
+      "Description": "Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.",
       "Type": "String",
     },
     "SiteUrl": Object {
@@ -1920,7 +1920,7 @@ Object {
                         Array [
                           "smtp.mail.",
                           Object {
-                            "Ref": "Region",
+                            "Ref": "SesRegion",
                           },
                           ".awsapps.com",
                         ],
@@ -1932,7 +1932,7 @@ Object {
                         Array [
                           "email-smtp.",
                           Object {
-                            "Ref": "Region",
+                            "Ref": "SesRegion",
                           },
                           ".amazonaws.com",
                         ],
@@ -7925,7 +7925,7 @@ Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Region": Object {
-          "Ref": "Region",
+          "Ref": "SesRegion",
         },
         "SecretAccessKey": Object {
           "Fn::GetAtt": Array [
@@ -8161,7 +8161,7 @@ Object {
                       Array [
                         "smtp.mail.",
                         Object {
-                          "Ref": "Region",
+                          "Ref": "SesRegion",
                         },
                         ".awsapps.com",
                       ],
@@ -8173,7 +8173,7 @@ Object {
                       Array [
                         "email-smtp.",
                         Object {
-                          "Ref": "Region",
+                          "Ref": "SesRegion",
                         },
                         ".amazonaws.com",
                       ],
@@ -8218,8 +8218,8 @@ Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Parameters": Object {
-          "referencetoSupabaseRegion386497C3Ref": Object {
-            "Ref": "Region",
+          "referencetoSupabaseSesRegion184A3193Ref": Object {
+            "Ref": "SesRegion",
           },
           "referencetoSupabaseSmtpPassword76B56B34Password": Object {
             "Fn::GetAtt": Array [
@@ -8244,7 +8244,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/8dcc222a2010aa781e92b0169875eb0ea7ec8f08ac0cb76ae67b8830fa51caee.json",
+              "/14bdec4b6b627991a1b28cf002b89694348c304d35f02b1f71b9445d364d7c7d.json",
             ],
           ],
         },
@@ -10165,7 +10165,7 @@ applications:
                 "eu-west-1",
               ],
               Object {
-                "Ref": "Region",
+                "Ref": "SesRegion",
               },
             ],
           },
