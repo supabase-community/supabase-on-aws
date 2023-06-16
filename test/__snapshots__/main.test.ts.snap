@@ -3549,7 +3549,7 @@ Object {
         "DatabaseClusterInstance1E154D1E9",
       ],
       "Properties": Object {
-        "Fingerprint": "3588f4b3167a4650ea4dfd3aea3e53facfba6a2fe38d749488dcb1623202b110",
+        "Fingerprint": "8c93a6a054416675e2c508c154922096f7d2e8a1cb823d2dc79fb766b59bccc1",
         "ServiceToken": Object {
           "Fn::GetAtt": Array [
             "DatabaseMigrationProviderframeworkonEvent48D76DDA",
@@ -3574,7 +3574,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "67a7f982847312f00fe63a7caafa9e6daaa88c8fb1a0a471e5a41bbf18d1aab6.zip",
+          "S3Key": "bc0bed1289fa834e8cb6526c1022fbbd3082f1801b987ba5c01248b3fabb3c42.zip",
         },
         "Description": "Supabase - Database migration function",
         "Environment": Object {
