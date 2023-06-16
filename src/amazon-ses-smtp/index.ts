@@ -69,14 +69,21 @@ export class SesSmtp extends Construct {
       description: 'Amazon WorkMail for Test Domain',
       organization: { region: region, alias: stackId },
     });
+    // Add condition
+    (workMail.node.defaultChild as cdk.CfnStack).cfnOptions.condition = workMailEnabled;
 
     /** The mail user on WorkMail */
     const workMailUser = workMail.organization.addUser('Supabase', password.getAttString('Password'));
-    (workMail.node.defaultChild as cdk.CfnStack).cfnOptions.condition = workMailEnabled;
 
     this.host = cdk.Fn.conditionIf(workMailEnabled.logicalId, `smtp.mail.${region}.awsapps.com`, `email-smtp.${region}.amazonaws.com`).toString();
     this.port = 465;
     this.email = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.getAtt('Email'), email).toString();
+
+    /**
+     * SMTP username
+     *
+     * If WorkMail is enabled, use the WorkMail user's email address.
+     */
     const username = cdk.Fn.conditionIf(workMailEnabled.logicalId, workMailUser.getAtt('Email'), accessKey.ref).toString();
 
     this.secret = new Secret(this, 'Secret', {
