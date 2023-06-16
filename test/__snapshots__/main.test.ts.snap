@@ -103,20 +103,20 @@ Object {
         "0",
       ],
     },
-    "SmtpWorkMailEnabled0A4066BB": Object {
-      "Fn::Equals": Array [
-        Object {
-          "Ref": "SmtpEnableTestDomain9DFEAF4D",
-        },
-        "true",
-      ],
-    },
     "StorageServiceDisabled05C15E2C": Object {
       "Fn::Equals": Array [
         Object {
           "Ref": "StorageMinTaskCount07E65703",
         },
         "0",
+      ],
+    },
+    "WorkMailEnabled": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Ref": "EnableWorkMail",
+        },
+        "true",
       ],
     },
   },
@@ -375,10 +375,10 @@ Object {
             "default": "Supabase - Auth E-mail Settings",
           },
           "Parameters": Array [
-            "SmtpEmailC79E1B85",
+            "Email",
             "SenderName",
-            "SmtpRegionC7E863E7",
-            "SmtpEnableTestDomain9DFEAF4D",
+            "Region",
+            "EnableWorkMail",
           ],
         },
         Object {
@@ -569,6 +569,12 @@ Object {
         "DisableSignup": Object {
           "default": "Disable User Signups",
         },
+        "Email": Object {
+          "default": "Sender Email Address",
+        },
+        "EnableWorkMail": Object {
+          "default": "Enable Test E-mail Domain (via Amazon WorkMail)",
+        },
         "GraphQLMaxTaskCount62412A02": Object {
           "default": "Maximum Fargate Task Count",
         },
@@ -638,6 +644,9 @@ Object {
         "RedirectUrls": Object {
           "default": "Redirect URLs",
         },
+        "Region": Object {
+          "default": "Amazon SES Region",
+        },
         "RestImageUri": Object {
           "default": "Rest API Image URI - PostgREST",
         },
@@ -655,15 +664,6 @@ Object {
         },
         "SiteUrl": Object {
           "default": "Site URL",
-        },
-        "SmtpEmailC79E1B85": Object {
-          "default": "Sender Email Address",
-        },
-        "SmtpEnableTestDomain9DFEAF4D": Object {
-          "default": "Enable Test E-mail Domain (via Amazon WorkMail)",
-        },
-        "SmtpRegionC7E863E7": Object {
-          "default": "Amazon SES Region",
         },
         "StorageImageUri": Object {
           "default": "Storage API Image URI",
@@ -917,6 +917,22 @@ Object {
       "Description": "When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.",
       "Type": "String",
     },
+    "Email": Object {
+      "AllowedPattern": "^[\\\\x20-\\\\x45]?[\\\\w-\\\\+]+(\\\\.[\\\\w]+)*@[\\\\w-]+(\\\\.[\\\\w]+)*(\\\\.[a-z]{2,})$",
+      "ConstraintDescription": "must be a valid email address",
+      "Default": "noreply@example.com",
+      "Description": "This is the email address the emails are sent from. If Amazon WorkMail is enabled, it set \\"noreply@supabase-<account_id>.awsapps.com\\"",
+      "Type": "String",
+    },
+    "EnableWorkMail": Object {
+      "AllowedValues": Array [
+        "true",
+        "false",
+      ],
+      "Default": "false",
+      "Description": "Enable test e-mail domain \\"xxx.awsapps.com\\" with Amazon WorkMail.",
+      "Type": "String",
+    },
     "GraphQLMaxTaskCount62412A02": Object {
       "Default": 20,
       "Description": "Maximum fargate task count",
@@ -1095,6 +1111,30 @@ Object {
       "Description": "URLs that auth providers are permitted to redirect to post authentication",
       "Type": "String",
     },
+    "Region": Object {
+      "AllowedValues": Array [
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2",
+        "ap-south-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "eu-north-1",
+        "sa-east-1",
+      ],
+      "Default": "us-west-2",
+      "Description": "Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.",
+      "Type": "String",
+    },
     "RestImageUri": Object {
       "Default": "public.ecr.aws/supabase/postgrest:v10.1.2",
       "Description": "https://gallery.ecr.aws/supabase/postgrest",
@@ -1134,46 +1174,6 @@ Object {
     "SiteUrl": Object {
       "Default": "http://localhost:3000",
       "Description": "The base URL your site is located at. Currently used in combination with other settings to construct URLs used in emails.",
-      "Type": "String",
-    },
-    "SmtpEmailC79E1B85": Object {
-      "AllowedPattern": "^[\\\\x20-\\\\x45]?[\\\\w-\\\\+]+(\\\\.[\\\\w]+)*@[\\\\w-]+(\\\\.[\\\\w]+)*(\\\\.[a-z]{2,})$",
-      "ConstraintDescription": "must be a valid email address",
-      "Default": "noreply@example.com",
-      "Description": "This is the email address the emails are sent from. If Amazon WorkMail is enabled, it set \\"noreply@supabase-<account_id>.awsapps.com\\"",
-      "Type": "String",
-    },
-    "SmtpEnableTestDomain9DFEAF4D": Object {
-      "AllowedValues": Array [
-        "true",
-        "false",
-      ],
-      "Default": "false",
-      "Description": "Enable test e-mail domain \\"xxx.awsapps.com\\" with Amazon WorkMail.",
-      "Type": "String",
-    },
-    "SmtpRegionC7E863E7": Object {
-      "AllowedValues": Array [
-        "us-east-1",
-        "us-east-2",
-        "us-west-1",
-        "us-west-2",
-        "ap-south-1",
-        "ap-northeast-1",
-        "ap-northeast-2",
-        "ap-northeast-3",
-        "ap-southeast-1",
-        "ap-southeast-2",
-        "ca-central-1",
-        "eu-central-1",
-        "eu-west-1",
-        "eu-west-2",
-        "eu-west-3",
-        "eu-north-1",
-        "sa-east-1",
-      ],
-      "Default": "us-west-2",
-      "Description": "Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.",
       "Type": "String",
     },
     "StorageImageUri": Object {
@@ -1896,7 +1896,7 @@ Object {
                 "Name": "GOTRUE_SMTP_ADMIN_EMAIL",
                 "Value": Object {
                   "Fn::If": Array [
-                    "SmtpWorkMailEnabled0A4066BB",
+                    "WorkMailEnabled",
                     Object {
                       "Fn::GetAtt": Array [
                         "SmtpWorkMailNestedStackWorkMailNestedStackResource042ECB25",
@@ -1904,7 +1904,7 @@ Object {
                       ],
                     },
                     Object {
-                      "Ref": "SmtpEmailC79E1B85",
+                      "Ref": "Email",
                     },
                   ],
                 },
@@ -1913,14 +1913,14 @@ Object {
                 "Name": "GOTRUE_SMTP_HOST",
                 "Value": Object {
                   "Fn::If": Array [
-                    "SmtpWorkMailEnabled0A4066BB",
+                    "WorkMailEnabled",
                     Object {
                       "Fn::Join": Array [
                         "",
                         Array [
                           "smtp.mail.",
                           Object {
-                            "Ref": "SmtpRegionC7E863E7",
+                            "Ref": "Region",
                           },
                           ".awsapps.com",
                         ],
@@ -1932,7 +1932,7 @@ Object {
                         Array [
                           "email-smtp.",
                           Object {
-                            "Ref": "SmtpRegionC7E863E7",
+                            "Ref": "Region",
                           },
                           ".amazonaws.com",
                         ],
@@ -7921,16 +7921,38 @@ Object {
       },
       "Type": "AWS::IAM::AccessKey",
     },
-    "SmtpGenPasswordFunction54B1181B": Object {
+    "SmtpPasswordBA01E518": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Region": Object {
+          "Ref": "Region",
+        },
+        "SecretAccessKey": Object {
+          "Fn::GetAtt": Array [
+            "SmtpAccessKeyCCAD8B7D",
+            "SecretAccessKey",
+          ],
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "SmtpPasswordProviderframeworkonEvent430EB845",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::Password",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "SmtpPasswordFunctionDC49B7CC": Object {
       "DependsOn": Array [
-        "SmtpGenPasswordFunctionServiceRole670F2216",
+        "SmtpPasswordFunctionServiceRoleA0A9C3A3",
       ],
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f313788ca3f2fa052e96d53301df52b707c280b900d594a906b624fac83c5505.zip",
+          "S3Key": "cbb9c0c24fa0ee781b61f07de9aab9f7fbd9d5fec8eed79f7c53870781adaf38.zip",
         },
         "Description": "Supabase - Generate SMTP Password Function",
         "Environment": Object {
@@ -7941,7 +7963,7 @@ Object {
         "Handler": "index.handler",
         "Role": Object {
           "Fn::GetAtt": Array [
-            "SmtpGenPasswordFunctionServiceRole670F2216",
+            "SmtpPasswordFunctionServiceRoleA0A9C3A3",
             "Arn",
           ],
         },
@@ -7949,7 +7971,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "SmtpGenPasswordFunctionServiceRole670F2216": Object {
+    "SmtpPasswordFunctionServiceRoleA0A9C3A3": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -7980,10 +8002,10 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "SmtpGenPasswordProviderframeworkonEvent4C861253": Object {
+    "SmtpPasswordProviderframeworkonEvent430EB845": Object {
       "DependsOn": Array [
-        "SmtpGenPasswordProviderframeworkonEventServiceRoleDefaultPolicy2D91E6D6",
-        "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632",
+        "SmtpPasswordProviderframeworkonEventServiceRoleDefaultPolicyD17BD380",
+        "SmtpPasswordProviderframeworkonEventServiceRoleF0717454",
       ],
       "Properties": Object {
         "Code": Object {
@@ -7992,12 +8014,12 @@ Object {
           },
           "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
         },
-        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/GenPasswordProvider)",
+        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/PasswordProvider)",
         "Environment": Object {
           "Variables": Object {
             "USER_ON_EVENT_FUNCTION_ARN": Object {
               "Fn::GetAtt": Array [
-                "SmtpGenPasswordFunction54B1181B",
+                "SmtpPasswordFunctionDC49B7CC",
                 "Arn",
               ],
             },
@@ -8006,7 +8028,7 @@ Object {
         "Handler": "framework.onEvent",
         "Role": Object {
           "Fn::GetAtt": Array [
-            "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632",
+            "SmtpPasswordProviderframeworkonEventServiceRoleF0717454",
             "Arn",
           ],
         },
@@ -8015,38 +8037,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "SmtpGenPasswordProviderframeworkonEventServiceRoleDefaultPolicy2D91E6D6": Object {
+    "SmtpPasswordProviderframeworkonEventServiceRoleDefaultPolicyD17BD380": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -8056,7 +8047,7 @@ Object {
               "Resource": Array [
                 Object {
                   "Fn::GetAtt": Array [
-                    "SmtpGenPasswordFunction54B1181B",
+                    "SmtpPasswordFunctionDC49B7CC",
                     "Arn",
                   ],
                 },
@@ -8066,7 +8057,7 @@ Object {
                     Array [
                       Object {
                         "Fn::GetAtt": Array [
-                          "SmtpGenPasswordFunction54B1181B",
+                          "SmtpPasswordFunctionDC49B7CC",
                           "Arn",
                         ],
                       },
@@ -8079,36 +8070,45 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "SmtpGenPasswordProviderframeworkonEventServiceRoleDefaultPolicy2D91E6D6",
+        "PolicyName": "SmtpPasswordProviderframeworkonEventServiceRoleDefaultPolicyD17BD380",
         "Roles": Array [
           Object {
-            "Ref": "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632",
+            "Ref": "SmtpPasswordProviderframeworkonEventServiceRoleF0717454",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "SmtpPasswordBA01E518": Object {
-      "DeletionPolicy": "Delete",
+    "SmtpPasswordProviderframeworkonEventServiceRoleF0717454": Object {
       "Properties": Object {
-        "Region": Object {
-          "Ref": "SmtpRegionC7E863E7",
-        },
-        "SecretAccessKey": Object {
-          "Fn::GetAtt": Array [
-            "SmtpAccessKeyCCAD8B7D",
-            "SecretAccessKey",
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
           ],
+          "Version": "2012-10-17",
         },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "SmtpGenPasswordProviderframeworkonEvent4C861253",
-            "Arn",
-          ],
-        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
       },
-      "Type": "Custom::Password",
-      "UpdateReplacePolicy": "Delete",
+      "Type": "AWS::IAM::Role",
     },
     "SmtpSecretF89CC16B": Object {
       "DeletionPolicy": "Delete",
@@ -8132,7 +8132,7 @@ Object {
               "{\\"username\\":\\"",
               Object {
                 "Fn::If": Array [
-                  "SmtpWorkMailEnabled0A4066BB",
+                  "WorkMailEnabled",
                   Object {
                     "Fn::GetAtt": Array [
                       "SmtpWorkMailNestedStackWorkMailNestedStackResource042ECB25",
@@ -8154,14 +8154,14 @@ Object {
               "\\",\\"host\\":\\"",
               Object {
                 "Fn::If": Array [
-                  "SmtpWorkMailEnabled0A4066BB",
+                  "WorkMailEnabled",
                   Object {
                     "Fn::Join": Array [
                       "",
                       Array [
                         "smtp.mail.",
                         Object {
-                          "Ref": "SmtpRegionC7E863E7",
+                          "Ref": "Region",
                         },
                         ".awsapps.com",
                       ],
@@ -8173,7 +8173,7 @@ Object {
                       Array [
                         "email-smtp.",
                         Object {
-                          "Ref": "SmtpRegionC7E863E7",
+                          "Ref": "Region",
                         },
                         ".amazonaws.com",
                       ],
@@ -8214,18 +8214,18 @@ Object {
       "Type": "AWS::IAM::User",
     },
     "SmtpWorkMailNestedStackWorkMailNestedStackResource042ECB25": Object {
-      "Condition": "SmtpWorkMailEnabled0A4066BB",
+      "Condition": "WorkMailEnabled",
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Parameters": Object {
+          "referencetoSupabaseRegion386497C3Ref": Object {
+            "Ref": "Region",
+          },
           "referencetoSupabaseSmtpPassword76B56B34Password": Object {
             "Fn::GetAtt": Array [
               "SmtpPasswordBA01E518",
               "Password",
             ],
-          },
-          "referencetoSupabaseSmtpRegion60DF7AC5Ref": Object {
-            "Ref": "SmtpRegionC7E863E7",
           },
         },
         "TemplateURL": Object {
@@ -8244,7 +8244,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/1a3d0d3aa98dee7a568addbbca4c8fbad57d036f0cd8d38840d1c8f604157613.json",
+              "/8dcc222a2010aa781e92b0169875eb0ea7ec8f08ac0cb76ae67b8830fa51caee.json",
             ],
           ],
         },
@@ -10154,7 +10154,7 @@ applications:
         },
       ],
     },
-    "SmtpCheckWorkMailRegion2094F9E6": Object {
+    "CheckWorkMailRegion": Object {
       "Assertions": Array [
         Object {
           "Assert": Object {
@@ -10165,7 +10165,7 @@ applications:
                 "eu-west-1",
               ],
               Object {
-                "Ref": "SmtpRegionC7E863E7",
+                "Ref": "Region",
               },
             ],
           },
@@ -10175,7 +10175,7 @@ applications:
       "RuleCondition": Object {
         "Fn::Equals": Array [
           Object {
-            "Ref": "SmtpEnableTestDomain9DFEAF4D",
+            "Ref": "EnableWorkMail",
           },
           "true",
         ],
