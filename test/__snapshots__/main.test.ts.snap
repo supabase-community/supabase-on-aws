@@ -103,20 +103,20 @@ Object {
         "0",
       ],
     },
-    "SmtpWorkMailEnabled0A4066BB": Object {
-      "Fn::Equals": Array [
-        Object {
-          "Ref": "SmtpEnableTestDomain9DFEAF4D",
-        },
-        "true",
-      ],
-    },
     "StorageServiceDisabled05C15E2C": Object {
       "Fn::Equals": Array [
         Object {
           "Ref": "StorageMinTaskCount07E65703",
         },
         "0",
+      ],
+    },
+    "WorkMailEnabled": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Ref": "EnableWorkMail",
+        },
+        "true",
       ],
     },
   },
@@ -375,10 +375,10 @@ Object {
             "default": "Supabase - Auth E-mail Settings",
           },
           "Parameters": Array [
-            "SmtpEmailC79E1B85",
+            "Email",
             "SenderName",
-            "SmtpRegionC7E863E7",
-            "SmtpEnableTestDomain9DFEAF4D",
+            "SesRegion",
+            "EnableWorkMail",
           ],
         },
         Object {
@@ -569,6 +569,12 @@ Object {
         "DisableSignup": Object {
           "default": "Disable User Signups",
         },
+        "Email": Object {
+          "default": "Sender Email Address",
+        },
+        "EnableWorkMail": Object {
+          "default": "Enable Test E-mail Domain (via Amazon WorkMail)",
+        },
         "GraphQLMaxTaskCount62412A02": Object {
           "default": "Maximum Fargate Task Count",
         },
@@ -653,17 +659,11 @@ Object {
         "SenderName": Object {
           "default": "Sender Name",
         },
+        "SesRegion": Object {
+          "default": "Amazon SES Region",
+        },
         "SiteUrl": Object {
           "default": "Site URL",
-        },
-        "SmtpEmailC79E1B85": Object {
-          "default": "Sender Email Address",
-        },
-        "SmtpEnableTestDomain9DFEAF4D": Object {
-          "default": "Enable Test E-mail Domain (via Amazon WorkMail)",
-        },
-        "SmtpRegionC7E863E7": Object {
-          "default": "Amazon SES Region",
         },
         "StorageImageUri": Object {
           "default": "Storage API Image URI",
@@ -724,7 +724,7 @@ Object {
       },
       "Value": Object {
         "Fn::GetAtt": Array [
-          "JwtSecretAnonKeyTokenE92DEEB0",
+          "JwtSecretAnonKey63F37A1E",
           "Value",
         ],
       },
@@ -915,6 +915,22 @@ Object {
       ],
       "Default": "false",
       "Description": "When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.",
+      "Type": "String",
+    },
+    "Email": Object {
+      "AllowedPattern": "^[\\\\x20-\\\\x45]?[\\\\w-\\\\+]+(\\\\.[\\\\w]+)*@[\\\\w-]+(\\\\.[\\\\w]+)*(\\\\.[a-z]{2,})$",
+      "ConstraintDescription": "must be a valid email address",
+      "Default": "noreply@example.com",
+      "Description": "This is the email address the emails are sent from. If Amazon WorkMail is enabled, it set \\"noreply@supabase-<account_id>.awsapps.com\\"",
+      "Type": "String",
+    },
+    "EnableWorkMail": Object {
+      "AllowedValues": Array [
+        "true",
+        "false",
+      ],
+      "Default": "false",
+      "Description": "Enable test e-mail domain \\"xxx.awsapps.com\\" with Amazon WorkMail.",
       "Type": "String",
     },
     "GraphQLMaxTaskCount62412A02": Object {
@@ -1131,28 +1147,7 @@ Object {
       "Description": "The From email sender name for all emails sent.",
       "Type": "String",
     },
-    "SiteUrl": Object {
-      "Default": "http://localhost:3000",
-      "Description": "The base URL your site is located at. Currently used in combination with other settings to construct URLs used in emails.",
-      "Type": "String",
-    },
-    "SmtpEmailC79E1B85": Object {
-      "AllowedPattern": "^[\\\\x20-\\\\x45]?[\\\\w-\\\\+]+(\\\\.[\\\\w]+)*@[\\\\w-]+(\\\\.[\\\\w]+)*(\\\\.[a-z]{2,})$",
-      "ConstraintDescription": "must be a valid email address",
-      "Default": "noreply@example.com",
-      "Description": "This is the email address the emails are sent from. If Amazon WorkMail is enabled, it set \\"noreply@supabase-<account_id>.awsapps.com\\"",
-      "Type": "String",
-    },
-    "SmtpEnableTestDomain9DFEAF4D": Object {
-      "AllowedValues": Array [
-        "true",
-        "false",
-      ],
-      "Default": "false",
-      "Description": "Enable test e-mail domain \\"xxx.awsapps.com\\" with Amazon WorkMail.",
-      "Type": "String",
-    },
-    "SmtpRegionC7E863E7": Object {
+    "SesRegion": Object {
       "AllowedValues": Array [
         "us-east-1",
         "us-east-2",
@@ -1174,6 +1169,11 @@ Object {
       ],
       "Default": "us-west-2",
       "Description": "Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.",
+      "Type": "String",
+    },
+    "SiteUrl": Object {
+      "Default": "http://localhost:3000",
+      "Description": "The base URL your site is located at. Currently used in combination with other settings to construct URLs used in emails.",
       "Type": "String",
     },
     "StorageImageUri": Object {
@@ -1896,7 +1896,7 @@ Object {
                 "Name": "GOTRUE_SMTP_ADMIN_EMAIL",
                 "Value": Object {
                   "Fn::If": Array [
-                    "SmtpWorkMailEnabled0A4066BB",
+                    "WorkMailEnabled",
                     Object {
                       "Fn::GetAtt": Array [
                         "SmtpWorkMailNestedStackWorkMailNestedStackResource042ECB25",
@@ -1904,7 +1904,7 @@ Object {
                       ],
                     },
                     Object {
-                      "Ref": "SmtpEmailC79E1B85",
+                      "Ref": "Email",
                     },
                   ],
                 },
@@ -1913,14 +1913,14 @@ Object {
                 "Name": "GOTRUE_SMTP_HOST",
                 "Value": Object {
                   "Fn::If": Array [
-                    "SmtpWorkMailEnabled0A4066BB",
+                    "WorkMailEnabled",
                     Object {
                       "Fn::Join": Array [
                         "",
                         Array [
                           "smtp.mail.",
                           Object {
-                            "Ref": "SmtpRegionC7E863E7",
+                            "Ref": "SesRegion",
                           },
                           ".awsapps.com",
                         ],
@@ -1932,7 +1932,7 @@ Object {
                         Array [
                           "email-smtp.",
                           Object {
-                            "Ref": "SmtpRegionC7E863E7",
+                            "Ref": "SesRegion",
                           },
                           ".amazonaws.com",
                         ],
@@ -3168,7 +3168,7 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "DatabaseCluster5B53A178": Object {
-      "DeletionPolicy": "Snapshot",
+      "DeletionPolicy": "Delete",
       "Properties": Object {
         "CopyTagsToSnapshot": true,
         "DBClusterParameterGroupName": Object {
@@ -3213,7 +3213,7 @@ Object {
         ],
       },
       "Type": "AWS::RDS::DBCluster",
-      "UpdateReplacePolicy": "Snapshot",
+      "UpdateReplacePolicy": "Delete",
     },
     "DatabaseClusterInstance1E154D1E9": Object {
       "DeletionPolicy": "Delete",
@@ -5327,6 +5327,24 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "JwtSecretAnonKey63F37A1E": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ExpiresIn": "10y",
+        "Issuer": "supabase",
+        "Payload": Object {
+          "role": "anon",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::JsonWebToken",
+      "UpdateReplacePolicy": "Delete",
+    },
     "JwtSecretAnonKeyParameter532DCC06": Object {
       "Properties": Object {
         "Description": Object {
@@ -5355,30 +5373,12 @@ Object {
         "Type": "String",
         "Value": Object {
           "Fn::GetAtt": Array [
-            "JwtSecretAnonKeyTokenE92DEEB0",
+            "JwtSecretAnonKey63F37A1E",
             "Value",
           ],
         },
       },
       "Type": "AWS::SSM::Parameter",
-    },
-    "JwtSecretAnonKeyTokenE92DEEB0": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "ExpiresIn": "10y",
-        "Issuer": "supabase",
-        "Payload": Object {
-          "role": "anon",
-        },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "Custom::JsonWebToken",
-      "UpdateReplacePolicy": "Delete",
     },
     "JwtSecretB8834B39": Object {
       "DeletionPolicy": "Delete",
@@ -5402,105 +5402,6 @@ Object {
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
     },
-    "JwtSecretGenerateTokenFunctionB37EE16F": Object {
-      "DependsOn": Array [
-        "JwtSecretGenerateTokenFunctionServiceRoleDefaultPolicy91E418F9",
-        "JwtSecretGenerateTokenFunctionServiceRole220DD241",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "49a4da4521fed06d10ad6c9d54a5e5db2b59a697400681dbb6a326d6cbcef94f.zip",
-        },
-        "Description": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              Object {
-                "Ref": "AWS::StackName",
-              },
-              " - Generate token via jwt secret",
-            ],
-          ],
-        },
-        "Environment": Object {
-          "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "JWT_SECRET_ARN": Object {
-              "Ref": "JwtSecretB8834B39",
-            },
-          },
-        },
-        "Handler": "index.handler",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "JwtSecretGenerateTokenFunctionServiceRole220DD241",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs18.x",
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "JwtSecretGenerateTokenFunctionServiceRole220DD241": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "JwtSecretGenerateTokenFunctionServiceRoleDefaultPolicy91E418F9": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:DescribeSecret",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Ref": "JwtSecretB8834B39",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "JwtSecretGenerateTokenFunctionServiceRoleDefaultPolicy91E418F9",
-        "Roles": Array [
-          Object {
-            "Ref": "JwtSecretGenerateTokenFunctionServiceRole220DD241",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA": Object {
       "DependsOn": Array [
         "JwtSecretGenerateTokenProviderframeworkonEventServiceRoleDefaultPolicy14F466A4",
@@ -5518,7 +5419,7 @@ Object {
           "Variables": Object {
             "USER_ON_EVENT_FUNCTION_ARN": Object {
               "Fn::GetAtt": Array [
-                "JwtSecretGenerateTokenFunctionB37EE16F",
+                "JwtSecretJsonWebTokenFunctionF8BA9D2A",
                 "Arn",
               ],
             },
@@ -5577,7 +5478,7 @@ Object {
               "Resource": Array [
                 Object {
                   "Fn::GetAtt": Array [
-                    "JwtSecretGenerateTokenFunctionB37EE16F",
+                    "JwtSecretJsonWebTokenFunctionF8BA9D2A",
                     "Arn",
                   ],
                 },
@@ -5587,7 +5488,7 @@ Object {
                     Array [
                       Object {
                         "Fn::GetAtt": Array [
-                          "JwtSecretGenerateTokenFunctionB37EE16F",
+                          "JwtSecretJsonWebTokenFunctionF8BA9D2A",
                           "Arn",
                         ],
                       },
@@ -5608,6 +5509,123 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "JwtSecretJsonWebTokenFunctionF8BA9D2A": Object {
+      "DependsOn": Array [
+        "JwtSecretJsonWebTokenFunctionServiceRoleDefaultPolicyFEC3E7BA",
+        "JwtSecretJsonWebTokenFunctionServiceRole17CF8128",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "baf945a52f8e02b1131009f27d8b23a50b9eacc020ff363093145c8e6f5dbc01.zip",
+        },
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              " - Generate token via jwt secret",
+            ],
+          ],
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "JWT_SECRET_ARN": Object {
+              "Ref": "JwtSecretB8834B39",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretJsonWebTokenFunctionServiceRole17CF8128",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "JwtSecretJsonWebTokenFunctionServiceRole17CF8128": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "JwtSecretJsonWebTokenFunctionServiceRoleDefaultPolicyFEC3E7BA": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "JwtSecretB8834B39",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "JwtSecretJsonWebTokenFunctionServiceRoleDefaultPolicyFEC3E7BA",
+        "Roles": Array [
+          Object {
+            "Ref": "JwtSecretJsonWebTokenFunctionServiceRole17CF8128",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "JwtSecretServiceRoleKeyF0F6C193": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ExpiresIn": "10y",
+        "Issuer": "supabase",
+        "Payload": Object {
+          "role": "service_role",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::JsonWebToken",
+      "UpdateReplacePolicy": "Delete",
     },
     "JwtSecretServiceRoleKeyParameterB65536EB": Object {
       "Properties": Object {
@@ -5637,30 +5655,12 @@ Object {
         "Type": "String",
         "Value": Object {
           "Fn::GetAtt": Array [
-            "JwtSecretServiceRoleKeyToken50CB4154",
+            "JwtSecretServiceRoleKeyF0F6C193",
             "Value",
           ],
         },
       },
       "Type": "AWS::SSM::Parameter",
-    },
-    "JwtSecretServiceRoleKeyToken50CB4154": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "ExpiresIn": "10y",
-        "Issuer": "supabase",
-        "Payload": Object {
-          "role": "service_role",
-        },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "JwtSecretGenerateTokenProviderframeworkonEvent34DD1AAA",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "Custom::JsonWebToken",
-      "UpdateReplacePolicy": "Delete",
     },
     "KongLogs4BD50491": Object {
       "DeletionPolicy": "Delete",
@@ -7921,16 +7921,38 @@ Object {
       },
       "Type": "AWS::IAM::AccessKey",
     },
-    "SmtpGenPasswordFunction54B1181B": Object {
+    "SmtpPasswordBA01E518": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Region": Object {
+          "Ref": "SesRegion",
+        },
+        "SecretAccessKey": Object {
+          "Fn::GetAtt": Array [
+            "SmtpAccessKeyCCAD8B7D",
+            "SecretAccessKey",
+          ],
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "SmtpPasswordProviderframeworkonEvent430EB845",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::Password",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "SmtpPasswordFunctionDC49B7CC": Object {
       "DependsOn": Array [
-        "SmtpGenPasswordFunctionServiceRole670F2216",
+        "SmtpPasswordFunctionServiceRoleA0A9C3A3",
       ],
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f313788ca3f2fa052e96d53301df52b707c280b900d594a906b624fac83c5505.zip",
+          "S3Key": "cbb9c0c24fa0ee781b61f07de9aab9f7fbd9d5fec8eed79f7c53870781adaf38.zip",
         },
         "Description": "Supabase - Generate SMTP Password Function",
         "Environment": Object {
@@ -7941,7 +7963,7 @@ Object {
         "Handler": "index.handler",
         "Role": Object {
           "Fn::GetAtt": Array [
-            "SmtpGenPasswordFunctionServiceRole670F2216",
+            "SmtpPasswordFunctionServiceRoleA0A9C3A3",
             "Arn",
           ],
         },
@@ -7949,7 +7971,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "SmtpGenPasswordFunctionServiceRole670F2216": Object {
+    "SmtpPasswordFunctionServiceRoleA0A9C3A3": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -7980,10 +8002,10 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "SmtpGenPasswordProviderframeworkonEvent4C861253": Object {
+    "SmtpPasswordProviderframeworkonEvent430EB845": Object {
       "DependsOn": Array [
-        "SmtpGenPasswordProviderframeworkonEventServiceRoleDefaultPolicy2D91E6D6",
-        "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632",
+        "SmtpPasswordProviderframeworkonEventServiceRoleDefaultPolicyD17BD380",
+        "SmtpPasswordProviderframeworkonEventServiceRoleF0717454",
       ],
       "Properties": Object {
         "Code": Object {
@@ -7992,12 +8014,12 @@ Object {
           },
           "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
         },
-        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/GenPasswordProvider)",
+        "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/PasswordProvider)",
         "Environment": Object {
           "Variables": Object {
             "USER_ON_EVENT_FUNCTION_ARN": Object {
               "Fn::GetAtt": Array [
-                "SmtpGenPasswordFunction54B1181B",
+                "SmtpPasswordFunctionDC49B7CC",
                 "Arn",
               ],
             },
@@ -8006,7 +8028,7 @@ Object {
         "Handler": "framework.onEvent",
         "Role": Object {
           "Fn::GetAtt": Array [
-            "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632",
+            "SmtpPasswordProviderframeworkonEventServiceRoleF0717454",
             "Arn",
           ],
         },
@@ -8015,38 +8037,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "SmtpGenPasswordProviderframeworkonEventServiceRoleDefaultPolicy2D91E6D6": Object {
+    "SmtpPasswordProviderframeworkonEventServiceRoleDefaultPolicyD17BD380": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -8056,7 +8047,7 @@ Object {
               "Resource": Array [
                 Object {
                   "Fn::GetAtt": Array [
-                    "SmtpGenPasswordFunction54B1181B",
+                    "SmtpPasswordFunctionDC49B7CC",
                     "Arn",
                   ],
                 },
@@ -8066,7 +8057,7 @@ Object {
                     Array [
                       Object {
                         "Fn::GetAtt": Array [
-                          "SmtpGenPasswordFunction54B1181B",
+                          "SmtpPasswordFunctionDC49B7CC",
                           "Arn",
                         ],
                       },
@@ -8079,36 +8070,45 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "SmtpGenPasswordProviderframeworkonEventServiceRoleDefaultPolicy2D91E6D6",
+        "PolicyName": "SmtpPasswordProviderframeworkonEventServiceRoleDefaultPolicyD17BD380",
         "Roles": Array [
           Object {
-            "Ref": "SmtpGenPasswordProviderframeworkonEventServiceRoleAF796632",
+            "Ref": "SmtpPasswordProviderframeworkonEventServiceRoleF0717454",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "SmtpPasswordBA01E518": Object {
-      "DeletionPolicy": "Delete",
+    "SmtpPasswordProviderframeworkonEventServiceRoleF0717454": Object {
       "Properties": Object {
-        "Region": Object {
-          "Ref": "SmtpRegionC7E863E7",
-        },
-        "SecretAccessKey": Object {
-          "Fn::GetAtt": Array [
-            "SmtpAccessKeyCCAD8B7D",
-            "SecretAccessKey",
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
           ],
+          "Version": "2012-10-17",
         },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "SmtpGenPasswordProviderframeworkonEvent4C861253",
-            "Arn",
-          ],
-        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
       },
-      "Type": "Custom::Password",
-      "UpdateReplacePolicy": "Delete",
+      "Type": "AWS::IAM::Role",
     },
     "SmtpSecretF89CC16B": Object {
       "DeletionPolicy": "Delete",
@@ -8132,7 +8132,7 @@ Object {
               "{\\"username\\":\\"",
               Object {
                 "Fn::If": Array [
-                  "SmtpWorkMailEnabled0A4066BB",
+                  "WorkMailEnabled",
                   Object {
                     "Fn::GetAtt": Array [
                       "SmtpWorkMailNestedStackWorkMailNestedStackResource042ECB25",
@@ -8154,14 +8154,14 @@ Object {
               "\\",\\"host\\":\\"",
               Object {
                 "Fn::If": Array [
-                  "SmtpWorkMailEnabled0A4066BB",
+                  "WorkMailEnabled",
                   Object {
                     "Fn::Join": Array [
                       "",
                       Array [
                         "smtp.mail.",
                         Object {
-                          "Ref": "SmtpRegionC7E863E7",
+                          "Ref": "SesRegion",
                         },
                         ".awsapps.com",
                       ],
@@ -8173,7 +8173,7 @@ Object {
                       Array [
                         "email-smtp.",
                         Object {
-                          "Ref": "SmtpRegionC7E863E7",
+                          "Ref": "SesRegion",
                         },
                         ".amazonaws.com",
                       ],
@@ -8214,18 +8214,18 @@ Object {
       "Type": "AWS::IAM::User",
     },
     "SmtpWorkMailNestedStackWorkMailNestedStackResource042ECB25": Object {
-      "Condition": "SmtpWorkMailEnabled0A4066BB",
+      "Condition": "WorkMailEnabled",
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Parameters": Object {
+          "referencetoSupabaseSesRegion184A3193Ref": Object {
+            "Ref": "SesRegion",
+          },
           "referencetoSupabaseSmtpPassword76B56B34Password": Object {
             "Fn::GetAtt": Array [
               "SmtpPasswordBA01E518",
               "Password",
             ],
-          },
-          "referencetoSupabaseSmtpRegion60DF7AC5Ref": Object {
-            "Ref": "SmtpRegionC7E863E7",
           },
         },
         "TemplateURL": Object {
@@ -8244,7 +8244,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/1a3d0d3aa98dee7a568addbbca4c8fbad57d036f0cd8d38840d1c8f604157613.json",
+              "/14bdec4b6b627991a1b28cf002b89694348c304d35f02b1f71b9445d364d7c7d.json",
             ],
           ],
         },
@@ -9166,7 +9166,7 @@ applications:
             "Name": "SUPABASE_ANON_KEY",
             "Value": Object {
               "Fn::GetAtt": Array [
-                "JwtSecretAnonKeyTokenE92DEEB0",
+                "JwtSecretAnonKey63F37A1E",
                 "Value",
               ],
             },
@@ -9175,7 +9175,7 @@ applications:
             "Name": "SUPABASE_SERVICE_KEY",
             "Value": Object {
               "Fn::GetAtt": Array [
-                "JwtSecretServiceRoleKeyToken50CB4154",
+                "JwtSecretServiceRoleKeyF0F6C193",
                 "Value",
               ],
             },
@@ -10154,7 +10154,7 @@ applications:
         },
       ],
     },
-    "SmtpCheckWorkMailRegion2094F9E6": Object {
+    "CheckWorkMailRegion": Object {
       "Assertions": Array [
         Object {
           "Assert": Object {
@@ -10165,7 +10165,7 @@ applications:
                 "eu-west-1",
               ],
               Object {
-                "Ref": "SmtpRegionC7E863E7",
+                "Ref": "SesRegion",
               },
             ],
           },
@@ -10175,7 +10175,7 @@ applications:
       "RuleCondition": Object {
         "Fn::Equals": Array [
           Object {
-            "Ref": "SmtpEnableTestDomain9DFEAF4D",
+            "Ref": "EnableWorkMail",
           },
           "true",
         ],

@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -7,8 +8,10 @@ import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
 export class JwtSecret extends Secret {
+  /** Custom resource provider to generate a json web token */
   genTokenProvider: cr.Provider;
 
+  /** Creates a new jwt secret in AWS SecretsManager. */
   constructor(scope: Construct, id: string, props?: SecretProps) {
     super(scope, id, {
       description: `${cdk.Aws.STACK_NAME} - Json Web Token Secret`,
@@ -19,17 +22,23 @@ export class JwtSecret extends Secret {
       ...props,
     });
 
-    const genTokenFunction = new NodejsFunction(this, 'GenerateTokenFunction', {
+    /** Custom resource handler to generate a json web token */
+    const jwtFunction = new NodejsFunction(this, 'JsonWebTokenFunction', {
       description: `${cdk.Aws.STACK_NAME} - Generate token via jwt secret`,
-      entry: './src/functions/gen-json-web-token.ts',
+      entry: path.resolve(__dirname, 'cr-json-web-token.ts'),
       runtime: lambda.Runtime.NODEJS_18_X,
-      environment: { JWT_SECRET_ARN: this.secretArn },
+      environment: {
+        JWT_SECRET_ARN: this.secretArn,
+      },
     });
-    this.grantRead(genTokenFunction);
 
-    this.genTokenProvider = new cr.Provider(this, 'GenerateTokenProvider', { onEventHandler: genTokenFunction });
+    /** Allow the function to read the jwt secret */
+    this.grantRead(jwtFunction);
+
+    this.genTokenProvider = new cr.Provider(this, 'GenerateTokenProvider', { onEventHandler: jwtFunction });
   }
 
+  /** Generate a new token in ParameterStore. */
   genApiKey(id: string, props: ApiKeyProps) {
     const apiKey = new ApiKey(this, id, props);
     return apiKey;
@@ -43,9 +52,12 @@ interface ApiKeyProps {
 }
 
 class ApiKey extends Construct {
+  /** Token value */
   value: string;
+  /** ParameterStore of the token */
   ssmParameter: ssm.StringParameter;
 
+  /** Json Web Token */
   constructor(scope: JwtSecret, id: string, props: ApiKeyProps) {
     super(scope, id);
 
@@ -54,7 +66,8 @@ class ApiKey extends Construct {
     const issuer = props.issuer;
     const expiresIn = props.expiresIn;
 
-    const token = new cdk.CustomResource(this, 'Token', {
+    /** String value of Json Web Token */
+    const token = new cdk.CustomResource(this, 'Resource', {
       serviceToken: jwtSecret.genTokenProvider.serviceToken,
       resourceType: 'Custom::JsonWebToken',
       properties: {
@@ -63,6 +76,7 @@ class ApiKey extends Construct {
         ExpiresIn: expiresIn,
       },
     });
+
     this.value = token.getAttString('Value');
 
     this.ssmParameter = new ssm.StringParameter(this, 'Parameter', {

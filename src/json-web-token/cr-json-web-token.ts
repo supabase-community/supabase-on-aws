@@ -9,6 +9,7 @@ interface Payload extends Object {
   role: string;
 }
 
+/** Get the JWT secret */
 const getJwtSecret = async (secretId: string) => {
   const client = new SecretsManagerClient({ region });
   const cmd = new GetSecretValueCommand({ SecretId: secretId });
@@ -18,6 +19,7 @@ const getJwtSecret = async (secretId: string) => {
   return SecretString!;
 };
 
+/** Generate a json web token */
 const generateToken = async (payload: object, secretId: string, issuer?: string, expiresIn?: string) => {
   const jwtSecret = await getJwtSecret(secretId);
   const token = jwt.sign(payload, jwtSecret, { issuer, expiresIn });

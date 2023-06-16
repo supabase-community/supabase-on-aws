@@ -8,7 +8,7 @@ import * as rds from 'aws-cdk-lib/aws-rds';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
-import { Smtp } from './amazon-ses-smtp';
+import { SesSmtp } from './amazon-ses-smtp';
 import { AmplifyHosting } from './aws-amplify-hosting';
 import { PrefixList } from './aws-prefix-list';
 import { ForceDeployJob } from './ecs-force-deploy-job';
@@ -79,6 +79,14 @@ export class SupabaseStack extends FargateStack {
       maxValue: 128,
     });
 
+    const senderEmail = new cdk.CfnParameter(this, 'Email', {
+      description: 'This is the email address the emails are sent from. If Amazon WorkMail is enabled, it set "noreply@supabase-<account_id>.awsapps.com"',
+      type: 'String',
+      default: 'noreply@example.com',
+      allowedPattern: '^[\\x20-\\x45]?[\\w-\\+]+(\\.[\\w]+)*@[\\w-]+(\\.[\\w]+)*(\\.[a-z]{2,})$',
+      constraintDescription: 'must be a valid email address',
+    });
+
     const senderName = new cdk.CfnParameter(this, 'SenderName', {
       description: 'The From email sender name for all emails sent.',
       type: 'String',
@@ -134,6 +142,33 @@ export class SupabaseStack extends FargateStack {
       maxValue: 128,
     });
 
+    /** The region name for Amazon SES */
+    const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
+      description: 'Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.',
+      type: 'String',
+      default: 'us-west-2',
+      allowedValues: ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2', 'ap-south-1', 'ap-northeast-1', 'ap-northeast-2', 'ap-northeast-3', 'ap-southeast-1', 'ap-southeast-2', 'ca-central-1', 'eu-central-1', 'eu-west-1', 'eu-west-2', 'eu-west-3', 'eu-north-1', 'sa-east-1'],
+    });
+
+    /** The flag for Amazon WorkMail */
+    const enableWorkMail = new cdk.CfnParameter(this, 'EnableWorkMail', {
+      description: 'Enable test e-mail domain "xxx.awsapps.com" with Amazon WorkMail.',
+      type: 'String',
+      default: 'false',
+      allowedValues: ['true', 'false'],
+    });
+    /** CFn condition for Amazon WorkMail */
+    const workMailEnabled = new cdk.CfnCondition(this, 'WorkMailEnabled', { expression: cdk.Fn.conditionEquals(enableWorkMail, 'true') });
+
+    /** CFn rule for Amazon WorkMail region */
+    new cdk.CfnRule(this, 'CheckWorkMailRegion', {
+      ruleCondition: workMailEnabled.expression,
+      assertions: [{
+        assert: cdk.Fn.conditionContains(['us-east-1', 'us-west-2', 'eu-west-1'], sesRegion.valueAsString),
+        assertDescription: 'Amazon WorkMail is supported only in us-east-1, us-west-2 or eu-west-1. Please change Amazon SES Region.',
+      }],
+    });
+
     /** VPC for Containers and Database */
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
@@ -151,11 +186,15 @@ export class SupabaseStack extends FargateStack {
       vpc,
     });
 
-    /** SMTP Credentials */
-    const smtp = new Smtp(this, 'Smtp');
-
     /** PostgreSQL Database with Secrets */
     const db = new SupabaseDatabase(this, 'Database', { vpc });
+
+    /** SMTP Credentials */
+    const smtp = new SesSmtp(this, 'Smtp', {
+      region: sesRegion.valueAsString,
+      email: senderEmail.valueAsString,
+      workMailEnabled: workMailEnabled,
+    });
 
     // Overwrite ACU
     (db.cluster.node.defaultChild as rds.CfnDBCluster).serverlessV2ScalingConfiguration = {
@@ -616,10 +655,10 @@ export class SupabaseStack extends FargateStack {
         {
           Label: { default: 'Supabase - Auth E-mail Settings' },
           Parameters: [
-            smtp.cfnParameters.email.logicalId,
+            senderEmail.logicalId,
             senderName.logicalId,
-            smtp.cfnParameters.region.logicalId,
-            smtp.cfnParameters.enableTestDomain.logicalId,
+            sesRegion.logicalId,
+            enableWorkMail.logicalId,
           ],
         },
         {
@@ -718,10 +757,10 @@ export class SupabaseStack extends FargateStack {
         [redirectUrls.logicalId]: { default: 'Redirect URLs' },
         [jwtExpiryLimit.logicalId]: { default: 'JWT expiry limit' },
         [passwordMinLength.logicalId]: { default: 'Min password length' },
-        [smtp.cfnParameters.email.logicalId]: { default: 'Sender Email Address' },
+        [senderEmail.logicalId]: { default: 'Sender Email Address' },
         [senderName.logicalId]: { default: 'Sender Name' },
-        [smtp.cfnParameters.region.logicalId]: { default: 'Amazon SES Region' },
-        [smtp.cfnParameters.enableTestDomain.logicalId]: { default: 'Enable Test E-mail Domain (via Amazon WorkMail)' },
+        [sesRegion.logicalId]: { default: 'Amazon SES Region' },
+        [enableWorkMail.logicalId]: { default: 'Enable Test E-mail Domain (via Amazon WorkMail)' },
 
         [authImageUri.logicalId]: { default: 'Auth API Image URI - GoTrue' },
         [restImageUri.logicalId]: { default: 'Rest API Image URI - PostgREST' },
