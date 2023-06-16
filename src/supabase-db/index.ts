@@ -50,13 +50,14 @@ export class SupabaseDatabase extends Construct {
     });
 
     this.cluster = new rds.DatabaseCluster(this, 'Cluster', {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
       engine,
       parameterGroup,
+      vpc,
       writer: rds.ClusterInstance.serverlessV2('Instance1'),
       readers: [
         rds.ClusterInstance.serverlessV2('Instance2', { scaleWithWriter: true }),
       ],
-      vpc,
       credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', {
         secretName: `${cdk.Aws.STACK_NAME}-${id}-supabase_admin`,
       }),

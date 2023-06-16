@@ -3168,7 +3168,7 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "DatabaseCluster5B53A178": Object {
-      "DeletionPolicy": "Snapshot",
+      "DeletionPolicy": "Delete",
       "Properties": Object {
         "CopyTagsToSnapshot": true,
         "DBClusterParameterGroupName": Object {
@@ -3213,7 +3213,7 @@ Object {
         ],
       },
       "Type": "AWS::RDS::DBCluster",
-      "UpdateReplacePolicy": "Snapshot",
+      "UpdateReplacePolicy": "Delete",
     },
     "DatabaseClusterInstance1E154D1E9": Object {
       "DeletionPolicy": "Delete",
