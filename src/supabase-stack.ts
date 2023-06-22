@@ -105,7 +105,7 @@ export class SupabaseStack extends FargateStack {
     });
     const realtimeImageUri = new cdk.CfnParameter(this, 'RealtimeImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/realtime:v2.5.1',
+      default: 'public.ecr.aws/supabase/realtime:v2.15.0',
       description: 'https://gallery.ecr.aws/supabase/realtime',
     });
     const storageImageUri = new cdk.CfnParameter(this, 'StorageImageUri', {
@@ -440,12 +440,7 @@ export class SupabaseStack extends FargateStack {
           SECRET_KEY_BASE: ecs.Secret.fromSecretsManager(cookieSigningSecret),
         },
         entryPoint: ['/usr/bin/tini', '-s', '-g', '--'], // ignore /app/limits.sh
-        command: [
-          'sh',
-          '-c',
-          // Todo: Remove the use of sed
-          '/bin/sed -i -e "s/127.0.0.1/$(grep $HOSTNAME /etc/hosts | cut -f 1 -d " ")/" /app/releases/*/env.sh && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server',
-        ],
+        command: ['sh', '-c', '/app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server'],
       },
     });
 
