@@ -7212,7 +7212,9 @@ Object {
               },
             ],
             "Essential": true,
-            "Image": "public.ecr.aws/supabase/realtime:v2.15.0",
+            "Image": Object {
+              "Ref": "RealtimeImageUri",
+            },
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
               "Options": Object {
