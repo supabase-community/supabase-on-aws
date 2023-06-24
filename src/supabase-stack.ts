@@ -457,8 +457,8 @@ export class SupabaseStack extends FargateStack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
-    /** API & Queue for Cache Manager */
-    //const cacheManager = cdn.addCacheManager();
+    /** API & Queue of Cache Manager */
+    const cacheManager = cdn.addCacheManager();
 
     /** Image Transformer for Storage */
     const imgproxy = new AutoScalingFargateService(this, 'Imgproxy', {

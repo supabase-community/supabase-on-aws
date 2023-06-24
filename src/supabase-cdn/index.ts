@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as apigw from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import * as cdk from 'aws-cdk-lib';
@@ -10,7 +11,7 @@ import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import { WebAcl } from './aws-waf-for-cloudfront';
+import { WebAcl } from '../aws-waf';
 
 interface SupabaseCdnProps {
   origin: string|elb.ILoadBalancerV2;
@@ -32,6 +33,7 @@ export class SupabaseCdn extends Construct {
   constructor(scope: Construct, id: string, props: SupabaseCdnProps) {
     super(scope, id);
 
+    /** Origin Server */
     const origin = (typeof props.origin == 'string')
       ? new HttpOrigin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY })
       : new LoadBalancerV2Origin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY });
@@ -47,9 +49,11 @@ export class SupabaseCdn extends Construct {
 
     const webAclUndefined = new cdk.CfnCondition(this, 'WebAclUndefined', { expression: cdk.Fn.conditionEquals(this.cfnParameters.webAclArn, '') });
 
+    /** Default Web ACL */
     const webAcl = new WebAcl(this, 'WebAcl', { description: 'Supabase Standard WebAcl' });
     (webAcl.node.defaultChild as cdk.CfnStack).cfnOptions.condition = webAclUndefined;
 
+    /** Web ACL ID */
     const webAclId = cdk.Fn.conditionIf(webAclUndefined.logicalId, webAcl.webAclArn, this.cfnParameters.webAclArn.valueAsString);
 
     const cachePolicy = new cf.CachePolicy(this, 'CachePolicy', {
@@ -133,6 +137,7 @@ interface CacheManagerProps {
 class CacheManager extends Construct {
   url: string;
 
+  /** Webhook receiver to purge chache for Storage */
   constructor(scope: Construct, id: string, props: CacheManagerProps) {
     super(scope, id);
 
@@ -140,12 +145,10 @@ class CacheManager extends Construct {
 
     const queue = new sqs.Queue(this, 'Queue');
 
+    /** API handler */
     const apiFunction = new NodejsFunction(this, 'ApiFunction', {
       description: `${this.node.path}/ApiFunction`,
-      entry: './src/functions/cdn-cache-manager/api.ts',
-      bundling: {
-        externalModules: ['@aws-sdk/*'],
-      },
+      entry: path.resolve(__dirname, 'cache-manager/api.ts'),
       runtime: lambda.Runtime.NODEJS_18_X,
       architecture: lambda.Architecture.ARM_64,
       environment: {
@@ -155,12 +158,10 @@ class CacheManager extends Construct {
     });
     queue.grantSendMessages(apiFunction);
 
+    /** SQS consumer */
     const queueConsumer = new NodejsFunction(this, 'QueueConsumer', {
       description: `${this.node.path}/QueueConsumer`,
-      entry: './src/functions/cdn-cache-manager/queue-consumer.ts',
-      bundling: {
-        externalModules: ['@aws-sdk/*'],
-      },
+      entry: path.resolve(__dirname, 'cache-manager/queue-consumer.ts'),
       runtime: lambda.Runtime.NODEJS_18_X,
       architecture: lambda.Architecture.ARM_64,
       environment: {
@@ -178,6 +179,7 @@ class CacheManager extends Construct {
       tracing: lambda.Tracing.ACTIVE,
     });
 
+    /** API Gateway */
     const api = new apigw.HttpApi(this, 'Api', {
       apiName: this.node.path.replace(/\//g, '') + 'Api',
       defaultIntegration: new HttpLambdaIntegration('Function', apiFunction),
