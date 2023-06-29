@@ -5302,6 +5302,11 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
+hono@^3.2.6:
+  version "3.2.6"
+  resolved "https://registry.yarnpkg.com/hono/-/hono-3.2.6.tgz#b4927ed20b2edf165277f3e2b787a4e4948223f6"
+  integrity sha512-jUf9SgkTW/H3Pd9oPwFgf3j05RXUbILWm96WlHll56t2Jkv8tVXyfLeBzYwdTzB7JE/hx+DWMXrVJ06UdfcKng==
+
 html-escaper@^2.0.0:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/html-escaper/-/html-escaper-2.0.2.tgz#dfd60027da36a36dfcbe236262c00a5822681453"

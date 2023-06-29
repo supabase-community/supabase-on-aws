@@ -23,6 +23,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     '@databases/pg',
     '@types/aws-lambda',
     'cdk-bootstrapless-synthesizer@^2.2.2',
+    'hono@^3.2.6',
     'jsonwebtoken@^8.5.1',
     'utf8',
   ],

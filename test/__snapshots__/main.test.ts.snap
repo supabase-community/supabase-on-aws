@@ -2865,6 +2865,323 @@ Object {
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Delete",
     },
+    "CdnCacheManagerApiFunction8F3CC846": Object {
+      "DependsOn": Array [
+        "CdnCacheManagerApiFunctionServiceRoleDefaultPolicy74947A18",
+        "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
+      ],
+      "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "a5c085c05e8f429a73832bce0752abca10cf1b2f38d503e6b579b3b16b2b8af2.zip",
+        },
+        "Description": "Supabase/Cdn/CacheManager/ApiFunction",
+        "Environment": Object {
+          "Variables": Object {
+            "API_KEY": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "CdnCacheManagerApiKey137D2795",
+                  },
+                  ":SecretString:::}}",
+                ],
+              ],
+            },
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "EVENT_LIST": "ObjectRemoved:Delete,ObjectRemoved:Move,ObjectUpdated:Metadata",
+            "QUEUE_URL": Object {
+              "Ref": "CdnCacheManagerQueue786D7FA2",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "TracingConfig": Object {
+          "Mode": "Active",
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CdnCacheManagerApiFunctionFunctionUrl37928FC6": Object {
+      "Properties": Object {
+        "AuthType": "NONE",
+        "TargetFunctionArn": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerApiFunction8F3CC846",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Url",
+    },
+    "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CdnCacheManagerApiFunctionServiceRoleDefaultPolicy74947A18": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": Array [
+                "sqs:SendMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "CdnCacheManagerQueue786D7FA2",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CdnCacheManagerApiFunctionServiceRoleDefaultPolicy74947A18",
+        "Roles": Array [
+          Object {
+            "Ref": "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CdnCacheManagerApiFunctioninvokefunctionurl25D0AB1E": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunctionUrl",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerApiFunction8F3CC846",
+            "Arn",
+          ],
+        },
+        "FunctionUrlAuthType": "NONE",
+        "Principal": "*",
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "CdnCacheManagerApiKey137D2795": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": "Supabase - API key for CDN cache manager",
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-CDN-CacheManager-ApiKey",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "CdnCacheManagerQueue786D7FA2": Object {
+      "DeletionPolicy": "Delete",
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "CdnCacheManagerQueueConsumerA50B36C1": Object {
+      "DependsOn": Array [
+        "CdnCacheManagerQueueConsumerServiceRoleDefaultPolicy2DE8002E",
+        "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
+      ],
+      "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "6a4515fb3dde9aa6ab2534dfa252ee7a77a26076992bcd53b5a3508447298b98.zip",
+        },
+        "Description": "Supabase/Cdn/CacheManager/QueueConsumer",
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "DISTRIBUTION_ID": Object {
+              "Ref": "CdnDistribution149FA6C8",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "TracingConfig": Object {
+          "Mode": "Active",
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CdnCacheManagerQueueConsumerServiceRole273BAAFA": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CdnCacheManagerQueueConsumerServiceRoleDefaultPolicy2DE8002E": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "cloudfront:CreateInvalidation",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:cloudfront::",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":distribution/",
+                    Object {
+                      "Ref": "CdnDistribution149FA6C8",
+                    },
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": Array [
+                "sqs:ReceiveMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:GetQueueUrl",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "CdnCacheManagerQueue786D7FA2",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CdnCacheManagerQueueConsumerServiceRoleDefaultPolicy2DE8002E",
+        "Roles": Array [
+          Object {
+            "Ref": "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CdnCacheManagerQueueConsumerSqsEventSourceSupabaseCdnCacheManagerQueue31D5861E48E96905": Object {
+      "Properties": Object {
+        "BatchSize": 100,
+        "EventSourceArn": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerQueue786D7FA2",
+            "Arn",
+          ],
+        },
+        "FunctionName": Object {
+          "Ref": "CdnCacheManagerQueueConsumerA50B36C1",
+        },
+        "MaximumBatchingWindowInSeconds": 5,
+      },
+      "Type": "AWS::Lambda::EventSourceMapping",
+    },
     "CdnCachePolicy957D7474": Object {
       "Properties": Object {
         "CachePolicyConfig": Object {
@@ -3061,7 +3378,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/391252b994fa3420099062853e5215c915a83bdefdd1adc9396a6a8a0da973dc.json",
+              "/ba9bddc91e6877cd649a7a9325179bbfbdd2c97b72a2f25a9f36c87e52b48ab4.json",
             ],
           ],
         },
@@ -8540,6 +8857,15 @@ Object {
                 "Value": "http://imgproxy.supabase.internal:5001",
               },
               Object {
+                "Name": "WEBHOOK_URL",
+                "Value": Object {
+                  "Fn::GetAtt": Array [
+                    "CdnCacheManagerApiFunctionFunctionUrl37928FC6",
+                    "FunctionUrl",
+                  ],
+                },
+              },
+              Object {
                 "Name": "ENABLE_QUEUE_EVENTS",
                 "Value": "false",
               },
@@ -8652,6 +8978,12 @@ Object {
                       ":uri::",
                     ],
                   ],
+                },
+              },
+              Object {
+                "Name": "WEBHOOK_API_KEY",
+                "ValueFrom": Object {
+                  "Ref": "CdnCacheManagerApiKey137D2795",
                 },
               },
             ],
@@ -8822,6 +9154,16 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Ref": "DatabasesupabasestorageadminSecret88C76AA3",
+              },
+            },
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "CdnCacheManagerApiKey137D2795",
               },
             },
           ],

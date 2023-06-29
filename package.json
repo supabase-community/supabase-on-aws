@@ -62,6 +62,7 @@
     "aws-cdk-lib": "^2.83.1",
     "cdk-bootstrapless-synthesizer": "^2.2.2",
     "constructs": "^10.0.5",
+    "hono": "^3.2.6",
     "jsonwebtoken": "^8.5.1",
     "utf8": "^3.0.0"
   },

@@ -457,8 +457,8 @@ export class SupabaseStack extends FargateStack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
-    /** API & Queue for Cache Manager */
-    //const cacheManager = cdn.addCacheManager();
+    /** API & Queue of Cache Manager */
+    const cacheManager = cdn.addCacheManager();
 
     /** Image Transformer for Storage */
     const imgproxy = new AutoScalingFargateService(this, 'Imgproxy', {
@@ -508,8 +508,8 @@ export class SupabaseStack extends FargateStack {
           // Image Transformation
           ENABLE_IMAGE_TRANSFORMATION: 'true',
           IMGPROXY_URL: imgproxy.endpoint,
-          // Queue for Smart CDN
-          //WEBHOOK_URL: cacheManager.url,
+          // Smart CDN Caching
+          WEBHOOK_URL: cacheManager.url,
           ENABLE_QUEUE_EVENTS: 'false',
         },
         secrets: {
@@ -517,6 +517,7 @@ export class SupabaseStack extends FargateStack {
           SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
           DATABASE_URL: ecs.Secret.fromSecretsManager(supabaseStorageAdminSecret, 'uri'),
+          WEBHOOK_API_KEY: ecs.Secret.fromSecretsManager(cacheManager.apiKey),
         },
       },
       cpuArchitecture: 'X86_64', // storage-api does not work on ARM64
