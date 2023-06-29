@@ -10,6 +10,7 @@ const logger = new Logger();
 const tracer = new Tracer();
 const cloudfront = tracer.captureAWSv3Client(new CloudFrontClient({ region: 'us-east-1' }));
 
+/** Create CloudFront invalidation. */
 const createInvalidation = async(paths: string[], callerReference: string) => {
   const cmd = new CreateInvalidationCommand({
     DistributionId: distributionId,
@@ -25,6 +26,7 @@ const createInvalidation = async(paths: string[], callerReference: string) => {
   return output;
 };
 
+/** Convert webhook event to CloudFront paths. */
 const eventToPath = (event: WebhookEvent): string[] => {
   const bucketId = event.event.payload.bucketId;
   const objectName = event.event.payload.name;
