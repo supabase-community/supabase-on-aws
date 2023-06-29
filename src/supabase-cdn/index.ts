@@ -169,6 +169,11 @@ class CacheManager extends Construct {
       environment: {
         QUEUE_URL: queue.queueUrl,
         API_KEY: this.apiKey.secretValue.toString(),
+        EVENT_LIST: [
+          'ObjectRemoved:Delete',
+          'ObjectRemoved:Move',
+          'ObjectUpdated:Metadata',
+        ].join(','),
       },
       tracing: lambda.Tracing.ACTIVE,
     });

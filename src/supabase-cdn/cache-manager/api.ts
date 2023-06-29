@@ -10,6 +10,7 @@ import { WebhookEvent } from './types';
 const region = process.env.AWS_REGION;
 const queueUrl = process.env.QUEUE_URL;
 const token = process.env.API_KEY!;
+const eventList = process.env.EVENT_LIST!.split(',');
 
 const logger = new Logger();
 const tracer = new Tracer();
@@ -36,7 +37,7 @@ app.post('/', bearerAuth({ token }), async (c) => {
   const body: WebhookEvent = await c.req.json();
   console.log(JSON.stringify(body));
 
-  if (['ObjectRemoved:Delete', 'ObjectRemoved:Move', 'ObjectUpdated:Metadata'].includes(body.event.type)) {
+  if (eventList.includes(body.event.type)) {
     await enqueue(body);
   }
   return c.text('Accepted', 202);
