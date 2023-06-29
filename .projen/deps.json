@@ -159,6 +159,11 @@
       "type": "runtime"
     },
     {
+      "name": "hono",
+      "version": "^3.2.6",
+      "type": "runtime"
+    },
+    {
       "name": "jsonwebtoken",
       "version": "^8.5.1",
       "type": "runtime"

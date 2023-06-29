@@ -10,7 +10,7 @@ export type ObjectMetadata = {
   httpStatusCode: number;
 }
 
-// https://github.com/supabase/storage-api/blob/master/src/queue/events/base-event.ts#L10
+// https://github.com/supabase/storage-api/blob/master/src/queue/events/base-event.ts
 export interface BasePayload {
   $version: string;
   tenant: {
@@ -19,27 +19,34 @@ export interface BasePayload {
   };
 }
 
+// https://github.com/supabase/storage-api/blob/master/src/queue/events/object-created.ts
 interface ObjectCreatedEvent extends BasePayload {
   name: string;
   bucketId: string;
   metadata: ObjectMetadata;
 }
+
+// https://github.com/supabase/storage-api/blob/master/src/queue/events/object-removed.ts
 interface ObjectRemovedEvent extends BasePayload {
   name: string;
   bucketId: string;
 }
+
+// https://github.com/supabase/storage-api/blob/master/src/queue/events/object-updated.ts
 interface ObjectUpdatedMetadataEvent extends BasePayload {
   name: string;
   bucketId: string;
   metadata: ObjectMetadata;
 }
 
+type EventName = 'ObjectCreated:Put'|'ObjectCreated:Post'|'ObjectCreated:Copy'|'ObjectCreated:Move'|'ObjectRemoved:Delete'|'ObjectRemoved:Move'|'ObjectUpdated:Metadata'
+
 // https://github.com/supabase/storage-api/blob/master/src/queue/events/webhook.ts#L9
 export interface WebhookEvent {
   type: string;
   event: {
     $version: string;
-    type: string;
+    type: EventName;
     payload: ObjectCreatedEvent|ObjectRemovedEvent|ObjectUpdatedMetadataEvent;
     applyTime: number;
   };

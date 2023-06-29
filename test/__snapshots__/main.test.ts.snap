@@ -2969,11 +2969,23 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "01550671319673053ac1eebffcb8c513e9def258ddcd6bc4baaf9427b1230547.zip",
+          "S3Key": "423c55bc3bb9e6ea6673bd9f630c7e141c1ed160c1a859b89ca73645c15e8faa.zip",
         },
         "Description": "Supabase/Cdn/CacheManager/ApiFunction",
         "Environment": Object {
           "Variables": Object {
+            "API_KEY": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "CdnCacheManagerApiKey137D2795",
+                  },
+                  ":SecretString:::}}",
+                ],
+              ],
+            },
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "QUEUE_URL": Object {
               "Ref": "CdnCacheManagerQueue786D7FA2",
@@ -3063,6 +3075,28 @@ Object {
       },
       "Type": "AWS::IAM::Policy",
     },
+    "CdnCacheManagerApiKey137D2795": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": "Supabase - API key for CDN cache manager",
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-CDN-CacheManager-ApiKey",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
     "CdnCacheManagerQueue786D7FA2": Object {
       "DeletionPolicy": "Delete",
       "Type": "AWS::SQS::Queue",
@@ -3081,7 +3115,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "d6da7c87354e6a774e192067f54771f1924aa72eeb3cf4e0466801f6ef3c9d6d.zip",
+          "S3Key": "6a4515fb3dde9aa6ab2534dfa252ee7a77a26076992bcd53b5a3508447298b98.zip",
         },
         "Description": "Supabase/Cdn/CacheManager/QueueConsumer",
         "Environment": Object {
@@ -8887,6 +8921,29 @@ Object {
                 "Value": "http://imgproxy.supabase.internal:5001",
               },
               Object {
+                "Name": "WEBHOOK_URL",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "https://",
+                      Object {
+                        "Ref": "CdnCacheManagerApi61CD317D",
+                      },
+                      ".execute-api.",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ".",
+                      Object {
+                        "Ref": "AWS::URLSuffix",
+                      },
+                      "/",
+                    ],
+                  ],
+                },
+              },
+              Object {
                 "Name": "ENABLE_QUEUE_EVENTS",
                 "Value": "false",
               },
@@ -8999,6 +9056,12 @@ Object {
                       ":uri::",
                     ],
                   ],
+                },
+              },
+              Object {
+                "Name": "WEBHOOK_API_KEY",
+                "ValueFrom": Object {
+                  "Ref": "CdnCacheManagerApiKey137D2795",
                 },
               },
             ],
@@ -9169,6 +9232,16 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Ref": "DatabasesupabasestorageadminSecret88C76AA3",
+              },
+            },
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "CdnCacheManagerApiKey137D2795",
               },
             },
           ],

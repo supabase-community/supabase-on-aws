@@ -28,7 +28,12 @@ const createInvalidation = async(paths: string[], callerReference: string) => {
 const eventToPath = (event: WebhookEvent): string[] => {
   const bucketId = event.event.payload.bucketId;
   const objectName = event.event.payload.name;
-  return [`/storage/v1/object/${bucketId}/${objectName}`, `/storage/v1/object/public/${bucketId}/${objectName}`];
+  const objectPaths = [
+    `/storage/v1/object/${bucketId}/${objectName}*`,
+    `/storage/v1/object/sign/${bucketId}/${objectName}*`,
+    `/storage/v1/object/public/${bucketId}/${objectName}*`,
+  ];
+  return objectPaths;
 };
 
 export const handler: SQSHandler = async (event, context) => {

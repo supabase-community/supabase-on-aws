@@ -9,6 +9,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 import { WebAcl } from '../aws-waf';
@@ -136,12 +137,24 @@ interface CacheManagerProps {
 
 class CacheManager extends Construct {
   url: string;
+  apiKey: Secret;
 
-  /** Webhook receiver to purge chache for Storage */
+  /**
+   * Webhook receiver for Smart CDN Caching
+   * https://supabase.com/docs/guides/storage/cdn#smart-cdn-caching
+   */
   constructor(scope: Construct, id: string, props: CacheManagerProps) {
     super(scope, id);
 
     const distribution = props.distribution;
+
+    this.apiKey = new Secret(this, 'ApiKey', {
+      secretName: `${cdk.Aws.STACK_NAME}-CDN-CacheManager-ApiKey`,
+      description: 'Supabase - API key for CDN cache manager',
+      generateSecretString: {
+        excludePunctuation: true,
+      },
+    });
 
     const queue = new sqs.Queue(this, 'Queue');
 
@@ -153,9 +166,12 @@ class CacheManager extends Construct {
       architecture: lambda.Architecture.ARM_64,
       environment: {
         QUEUE_URL: queue.queueUrl,
+        API_KEY: this.apiKey.secretValue.toString(),
       },
       tracing: lambda.Tracing.ACTIVE,
     });
+
+    // Allow API function to send messages to SQS
     queue.grantSendMessages(apiFunction);
 
     /** SQS consumer */
