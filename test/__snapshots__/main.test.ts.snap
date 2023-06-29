@@ -2865,97 +2865,6 @@ Object {
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Delete",
     },
-    "CdnCacheManagerApi61CD317D": Object {
-      "Properties": Object {
-        "Name": "SupabaseCdnCacheManagerApi",
-        "ProtocolType": "HTTP",
-      },
-      "Type": "AWS::ApiGatewayV2::Api",
-    },
-    "CdnCacheManagerApiDefaultRouteBD85B774": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "CdnCacheManagerApi61CD317D",
-        },
-        "AuthorizationType": "NONE",
-        "RouteKey": "$default",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "CdnCacheManagerApiDefaultRouteFunction628BE32B",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "CdnCacheManagerApiDefaultRouteFunction628BE32B": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "CdnCacheManagerApi61CD317D",
-        },
-        "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": Object {
-          "Fn::GetAtt": Array [
-            "CdnCacheManagerApiFunction8F3CC846",
-            "Arn",
-          ],
-        },
-        "PayloadFormatVersion": "2.0",
-      },
-      "Type": "AWS::ApiGatewayV2::Integration",
-    },
-    "CdnCacheManagerApiDefaultRouteFunctionPermissionF8438DCF": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "CdnCacheManagerApiFunction8F3CC846",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "CdnCacheManagerApi61CD317D",
-              },
-              "/*/*",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "CdnCacheManagerApiDefaultStage559673B5": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "CdnCacheManagerApi61CD317D",
-        },
-        "AutoDeploy": true,
-        "StageName": "$default",
-      },
-      "Type": "AWS::ApiGatewayV2::Stage",
-    },
     "CdnCacheManagerApiFunction8F3CC846": Object {
       "DependsOn": Array [
         "CdnCacheManagerApiFunctionServiceRoleDefaultPolicy74947A18",
@@ -2969,7 +2878,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "423c55bc3bb9e6ea6673bd9f630c7e141c1ed160c1a859b89ca73645c15e8faa.zip",
+          "S3Key": "4acacf6ab2a1a9b38fba6fb974f0539194425a46624cb9caba3618ffb2e5207f.zip",
         },
         "Description": "Supabase/Cdn/CacheManager/ApiFunction",
         "Environment": Object {
@@ -3005,6 +2914,18 @@ Object {
         },
       },
       "Type": "AWS::Lambda::Function",
+    },
+    "CdnCacheManagerApiFunctionFunctionUrl37928FC6": Object {
+      "Properties": Object {
+        "AuthType": "NONE",
+        "TargetFunctionArn": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerApiFunction8F3CC846",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Url",
     },
     "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB": Object {
       "Properties": Object {
@@ -3074,6 +2995,20 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "CdnCacheManagerApiFunctioninvokefunctionurl25D0AB1E": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunctionUrl",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "CdnCacheManagerApiFunction8F3CC846",
+            "Arn",
+          ],
+        },
+        "FunctionUrlAuthType": "NONE",
+        "Principal": "*",
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "CdnCacheManagerApiKey137D2795": Object {
       "DeletionPolicy": "Delete",
@@ -8923,23 +8858,9 @@ Object {
               Object {
                 "Name": "WEBHOOK_URL",
                 "Value": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "https://",
-                      Object {
-                        "Ref": "CdnCacheManagerApi61CD317D",
-                      },
-                      ".execute-api.",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ".",
-                      Object {
-                        "Ref": "AWS::URLSuffix",
-                      },
-                      "/",
-                    ],
+                  "Fn::GetAtt": Array [
+                    "CdnCacheManagerApiFunctionFunctionUrl37928FC6",
+                    "FunctionUrl",
                   ],
                 },
               },

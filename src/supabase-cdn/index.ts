@@ -136,7 +136,9 @@ interface CacheManagerProps {
 }
 
 class CacheManager extends Construct {
+  /** API endpoint for CDN cache manager */
   url: string;
+  /** Bearer token for CDN cache manager */
   apiKey: Secret;
 
   /**
@@ -195,12 +197,9 @@ class CacheManager extends Construct {
       tracing: lambda.Tracing.ACTIVE,
     });
 
-    /** API Gateway */
-    const api = new apigw.HttpApi(this, 'Api', {
-      apiName: this.node.path.replace(/\//g, '') + 'Api',
-      defaultIntegration: new HttpLambdaIntegration('Function', apiFunction),
-    });
+    /** Function URL */
+    const functionUrl = apiFunction.addFunctionUrl({ authType: lambda.FunctionUrlAuthType.NONE });
 
-    this.url = api.url!;
+    this.url = functionUrl.url;
   }
 }
