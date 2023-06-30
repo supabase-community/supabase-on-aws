@@ -7,10 +7,12 @@ import { handle } from 'hono/aws-lambda';
 import { bearerAuth } from 'hono/bearer-auth';
 import { WebhookEvent } from './types';
 
+/** AWS region */
 const region = process.env.AWS_REGION;
+/** SQS queue URL */
 const queueUrl = process.env.QUEUE_URL;
+/** Bearer token */
 const token = process.env.API_KEY!;
-const eventList = process.env.EVENT_LIST!.split(',');
 
 const logger = new Logger();
 const tracer = new Tracer();
@@ -26,7 +28,8 @@ const enqueue = async (message: object) => {
     QueueUrl: queueUrl,
     MessageBody: JSON.stringify(message),
   });
-  await sqs.send(cmd);
+  const output = await sqs.send(cmd);
+  return output;
 };
 
 /** Hono app */
@@ -37,9 +40,7 @@ app.post('/', bearerAuth({ token }), async (c) => {
   const body: WebhookEvent = await c.req.json();
   console.log(JSON.stringify(body));
 
-  if (eventList.includes(body.event.type)) {
-    await enqueue(body);
-  }
+  await enqueue(body);
   return c.text('Accepted', 202);
 });
 
