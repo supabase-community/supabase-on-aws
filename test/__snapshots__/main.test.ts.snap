@@ -2878,7 +2878,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "a5c085c05e8f429a73832bce0752abca10cf1b2f38d503e6b579b3b16b2b8af2.zip",
+          "S3Key": "c5262d3e09aa048d82079fb474d2d22741a0167637c7a6ac66e07a9a2f36c9dc.zip",
         },
         "Description": "Supabase/Cdn/CacheManager/ApiFunction",
         "Environment": Object {
@@ -2896,7 +2896,6 @@ Object {
               ],
             },
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "EVENT_LIST": "ObjectRemoved:Delete,ObjectRemoved:Move,ObjectUpdated:Metadata",
             "QUEUE_URL": Object {
               "Ref": "CdnCacheManagerQueue786D7FA2",
             },
