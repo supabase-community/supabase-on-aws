@@ -4,7 +4,11 @@ _Launch in minutes. Scale to millions._
 
 This repo includes a template of starting Supabase stack on AWS via CloudFormation/CDK. This template use managed services such as Amazon ECS and Amazon Aurora etc...
 
+## Architecture
+
 ![architecture-diagram](docs/images/architecture-diagram.png)
+
+![smart-cdn-caching](docs/images/smart-cdn-caching.png)
 
 ## Deploy via CloudFormation template
 
