@@ -16,6 +16,7 @@ const excludeCharacters = '%+~`#$&*()|[]{}:;<>?!\'/@\"\\=^,'; // for Password
 
 interface SupabaseDatabaseProps {
   vpc: ec2.IVpc;
+  highAvailability?: cdk.CfnCondition;
 }
 
 export class SupabaseDatabase extends Construct {
@@ -31,7 +32,7 @@ export class SupabaseDatabase extends Construct {
   constructor(scope: Construct, id: string, props: SupabaseDatabaseProps) {
     super(scope, id);
 
-    const { vpc } = props;
+    const { vpc, highAvailability } = props;
 
     /** Database Engine */
     //const engine = rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_15 });
@@ -65,8 +66,12 @@ export class SupabaseDatabase extends Construct {
       storageEncrypted: true,
     });
 
+    const instance1 = this.cluster.node.findChild('Instance1').node.defaultChild as rds.CfnDBInstance;
+    const instance2 = this.cluster.node.findChild('Instance2').node.defaultChild as rds.CfnDBInstance;
 
-    const dbInstance = this.cluster.node.findChild('Instance1') as rds.CfnDBInstance;
+    if (typeof highAvailability !== 'undefined') {
+      instance2.cfnOptions.condition = highAvailability;
+    }
 
     //this.instance = new rds.DatabaseInstance(this, 'Instance', {
     //  engine,
@@ -137,7 +142,7 @@ export class SupabaseDatabase extends Construct {
     });
 
     // Wait until the database is ready.
-    this.migration.node.addDependency(dbInstance);
+    this.migration.node.addDependency(instance1);
 
     /** Custom resource handler to modify db user password */
     const userPasswordFunction = new NodejsFunction(this, 'UserPasswordFunction', {

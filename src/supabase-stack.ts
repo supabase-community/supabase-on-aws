@@ -26,6 +26,7 @@ export class FargateStack extends cdk.Stack {
 
     this.taskSizeMapping = new cdk.CfnMapping(this, 'TaskSize', {
       mapping: {
+        'none': { cpu: 256, memory: 1024 },
         'micro': { cpu: 256, memory: 1024 },
         'small': { cpu: 512, memory: 1024 },
         'medium': { cpu: 1024, memory: 2048 },
@@ -124,6 +125,24 @@ export class SupabaseStack extends FargateStack {
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
+    /** The flag for High Availability */
+    const enableHighAvailability = new cdk.CfnParameter(this, 'EnableHighAvailability', {
+      description: 'Enable auto-scaling and clustering (Multi-AZ).',
+      type: 'String',
+      default: 'false',
+      allowedValues: ['true', 'false'],
+    });
+    /** CFn condition for High Availability */
+    const highAvailability = new cdk.CfnCondition(this, 'HighAvailability', { expression: cdk.Fn.conditionEquals(enableHighAvailability, 'true') });
+
+    /** Web ACL for CloudFront */
+    const webAclArn = new cdk.CfnParameter(this, 'WebAclArn', {
+      description: 'Web ACL for CloudFront.',
+      type: 'String',
+      default: '',
+      allowedPattern: '^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\w-]+/[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$|',
+    });
+
     /** The minimum number of aurora capacity units */
     const minACU = new cdk.CfnParameter(this, 'MinACU', {
       description: 'The minimum number of Aurora capacity units (ACU) for a DB instance in an Aurora Serverless v2 cluster.',
@@ -187,7 +206,10 @@ export class SupabaseStack extends FargateStack {
     });
 
     /** PostgreSQL Database with Secrets */
-    const db = new SupabaseDatabase(this, 'Database', { vpc });
+    const db = new SupabaseDatabase(this, 'Database', {
+      vpc,
+      highAvailability,
+    });
 
     /** SMTP Credentials */
     const smtp = new SesSmtp(this, 'Smtp', {
@@ -244,7 +266,10 @@ export class SupabaseStack extends FargateStack {
     loadBalancer.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(80), 'CloudFront');
 
     /** CloudFront */
-    const cdn = new SupabaseCdn(this, 'Cdn', { origin: loadBalancer });
+    const cdn = new SupabaseCdn(this, 'Cdn', {
+      origin: loadBalancer,
+      webAclArn,
+    });
 
     /**
      * Supabase API URL
@@ -279,6 +304,7 @@ export class SupabaseStack extends FargateStack {
           SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
         },
       },
+      highAvailability,
     });
 
     /** TargetGroup for kong-gateway */
@@ -358,6 +384,7 @@ export class SupabaseStack extends FargateStack {
           GOTRUE_SMTP_PASS: ecs.Secret.fromSecretsManager(smtp.secret, 'password'),
         },
       },
+      highAvailability,
     });
     const authProviders = auth.addExternalAuthProviders(`${apiExternalUrl}/auth/v1/callback`, 3);
 
@@ -377,6 +404,7 @@ export class SupabaseStack extends FargateStack {
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
         },
       },
+      highAvailability,
     });
 
     /** GraphQL API for any PostgreSQL Database */
@@ -402,6 +430,7 @@ export class SupabaseStack extends FargateStack {
           JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
         },
       },
+      highAvailability,
     });
 
     /**  Secret used by the server to sign cookies. Recommended: 64 characters. */
@@ -442,6 +471,7 @@ export class SupabaseStack extends FargateStack {
         entryPoint: ['/usr/bin/tini', '-s', '-g', '--'], // ignore /app/limits.sh
         command: ['sh', '-c', '/app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server'],
       },
+      highAvailability,
     });
 
     // Wait until the database migration is complete.
@@ -479,6 +509,7 @@ export class SupabaseStack extends FargateStack {
           IMGPROXY_ENABLE_WEBP_DETECTION: 'true',
         },
       },
+      highAvailability,
     });
 
     /** S3 compatible object storage API that stores metadata in Postgres */
@@ -521,6 +552,7 @@ export class SupabaseStack extends FargateStack {
         },
       },
       cpuArchitecture: 'X86_64', // storage-api does not work on ARM64
+      highAvailability,
     });
 
     // Allow storage-api to read and write to the bucket
@@ -543,6 +575,7 @@ export class SupabaseStack extends FargateStack {
           PG_META_DB_PASSWORD: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'password'),
         },
       },
+      highAvailability,
     });
 
     // Wait until the database migration is complete.
@@ -649,7 +682,7 @@ export class SupabaseStack extends FargateStack {
           ],
         },
         {
-          Label: { default: 'Supabase - Auth E-mail Settings' },
+          Label: { default: 'Supabase - SMTP Settings' },
           Parameters: [
             senderEmail.logicalId,
             senderName.logicalId,
@@ -658,7 +691,7 @@ export class SupabaseStack extends FargateStack {
           ],
         },
         {
-          Label: { default: 'Supabase - Container Image URIs' },
+          Label: { default: 'Supabase - Versions (Container Images)' },
           Parameters: [
             authImageUri.logicalId,
             restImageUri.logicalId,
@@ -670,6 +703,13 @@ export class SupabaseStack extends FargateStack {
           ],
         },
         {
+          Label: { default: 'Infrastructure Settings' },
+          Parameters: [
+            enableHighAvailability.logicalId,
+            webAclArn.logicalId,
+          ],
+        },
+        {
           Label: { default: 'Infrastructure Settings - Database' },
           Parameters: [
             minACU.logicalId,
@@ -677,73 +717,16 @@ export class SupabaseStack extends FargateStack {
           ],
         },
         {
-          Label: { default: 'Infrastructure Settings - Security' },
+          Label: { default: 'Infrastructure Settings - Containers' },
           Parameters: [
-            cdn.cfnParameters.webAclArn.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure Settings - Kong (API Gateway)' },
-          Parameters: [
-            kong.cfnParameters.taskSize.logicalId,
-            kong.cfnParameters.minTaskCount.logicalId,
-            kong.cfnParameters.maxTaskCount.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure Settings - Auth API (GoTrue)' },
-          Parameters: [
-            auth.cfnParameters.taskSize.logicalId,
-            auth.cfnParameters.minTaskCount.logicalId,
-            auth.cfnParameters.maxTaskCount.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure Settings - RESTful API (PostgREST)' },
-          Parameters: [
-            rest.cfnParameters.taskSize.logicalId,
-            rest.cfnParameters.minTaskCount.logicalId,
-            rest.cfnParameters.maxTaskCount.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure Settings - GraphQL API (PostGraphile)' },
-          Parameters: [
-            gql.cfnParameters.taskSize.logicalId,
-            gql.cfnParameters.minTaskCount.logicalId,
-            gql.cfnParameters.maxTaskCount.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure Settings - Realtime API' },
-          Parameters: [
-            realtime.cfnParameters.taskSize.logicalId,
-            realtime.cfnParameters.minTaskCount.logicalId,
-            realtime.cfnParameters.maxTaskCount.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure Settings - Storage API' },
-          Parameters: [
-            storage.cfnParameters.taskSize.logicalId,
-            storage.cfnParameters.minTaskCount.logicalId,
-            storage.cfnParameters.maxTaskCount.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure Settings - Imgproxy' },
-          Parameters: [
-            imgproxy.cfnParameters.taskSize.logicalId,
-            imgproxy.cfnParameters.minTaskCount.logicalId,
-            imgproxy.cfnParameters.maxTaskCount.logicalId,
-          ],
-        },
-        {
-          Label: { default: 'Infrastructure Settings - Postgres Meta API' },
-          Parameters: [
-            meta.cfnParameters.taskSize.logicalId,
-            meta.cfnParameters.minTaskCount.logicalId,
-            meta.cfnParameters.maxTaskCount.logicalId,
+            kong.taskSize.logicalId,
+            auth.taskSize.logicalId,
+            rest.taskSize.logicalId,
+            gql.taskSize.logicalId,
+            realtime.taskSize.logicalId,
+            storage.taskSize.logicalId,
+            imgproxy.taskSize.logicalId,
+            meta.taskSize.logicalId,
           ],
         },
       ],
@@ -758,49 +741,27 @@ export class SupabaseStack extends FargateStack {
         [sesRegion.logicalId]: { default: 'Amazon SES Region' },
         [enableWorkMail.logicalId]: { default: 'Enable Test E-mail Domain (via Amazon WorkMail)' },
 
-        [authImageUri.logicalId]: { default: 'Auth API Image URI - GoTrue' },
-        [restImageUri.logicalId]: { default: 'Rest API Image URI - PostgREST' },
-        [realtimeImageUri.logicalId]: { default: 'Realtime API Image URI' },
-        [storageImageUri.logicalId]: { default: 'Storage API Image URI' },
-        [imgproxyImageUri.logicalId]: { default: 'Imgproxy Image URI' },
-        [postgresMetaImageUri.logicalId]: { default: 'Postgres Meta API Image URI' },
+        [authImageUri.logicalId]: { default: 'Image URI - GoTrue' },
+        [restImageUri.logicalId]: { default: 'Image URI - PostgREST' },
+        [realtimeImageUri.logicalId]: { default: 'Image URI - Realtime' },
+        [storageImageUri.logicalId]: { default: 'Image URI - Storage' },
+        [imgproxyImageUri.logicalId]: { default: 'Image URI - imgproxy' },
+        [postgresMetaImageUri.logicalId]: { default: 'Image URI - postgres-meta' },
+
+        [enableHighAvailability.logicalId]: { default: 'High Availability (HA)' },
+        [webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
         [minACU.logicalId]: { default: 'Minimum ACUs' },
         [maxACU.logicalId]: { default: 'Maximum ACUs' },
 
-        [cdn.cfnParameters.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
-
-        [kong.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
-        [kong.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [kong.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
-
-        [auth.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
-        [auth.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [auth.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
-
-        [rest.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
-        [rest.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [rest.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
-
-        [gql.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
-        [gql.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [gql.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
-
-        [realtime.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
-        [realtime.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [realtime.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
-
-        [storage.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
-        [storage.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [storage.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
-
-        [imgproxy.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
-        [imgproxy.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [imgproxy.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
-
-        [meta.cfnParameters.taskSize.logicalId]: { default: 'Fargate Task Size' },
-        [meta.cfnParameters.minTaskCount.logicalId]: { default: 'Minimum Fargate Task Count' },
-        [meta.cfnParameters.maxTaskCount.logicalId]: { default: 'Maximum Fargate Task Count' },
+        [kong.taskSize.logicalId]: { default: 'Task Size - Kong' },
+        [auth.taskSize.logicalId]: { default: 'Task Size - GoTrue' },
+        [rest.taskSize.logicalId]: { default: 'Task Size - PostgREST' },
+        [gql.taskSize.logicalId]: { default: 'Task Size - PostGraphile' },
+        [realtime.taskSize.logicalId]: { default: 'Task Size - Realtime' },
+        [storage.taskSize.logicalId]: { default: 'Task Size - Storage' },
+        [imgproxy.taskSize.logicalId]: { default: 'Task Size - imgproxy' },
+        [meta.taskSize.logicalId]: { default: 'Task Size - postgres-meta' },
 
         [studioBranch.logicalId]: { default: 'Supabase Studio Branch' },
       },

@@ -3,6 +3,16 @@
 exports[`Snapshot 1`] = `
 Object {
   "Conditions": Object {
+    "AuthAutoScalingEnabled0CD7354E": Object {
+      "Fn::And": Array [
+        Object {
+          "Condition": "AuthServiceEnabled3234D87F",
+        },
+        Object {
+          "Condition": "HighAvailability",
+        },
+      ],
+    },
     "AuthProvider1Enabled983DA6B5": Object {
       "Fn::Not": Array [
         Object {
@@ -39,76 +49,186 @@ Object {
         },
       ],
     },
-    "AuthServiceDisabledB6209B31": Object {
-      "Fn::Equals": Array [
+    "AuthServiceEnabled3234D87F": Object {
+      "Fn::Not": Array [
         Object {
-          "Ref": "AuthMinTaskCount998F20C4",
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "AuthTaskSize9895C206",
+            },
+            "none",
+          ],
         },
-        "0",
       ],
     },
-    "CdnWebAclUndefinedCAA325A4": Object {
+    "CdnDefaultWebAclEnabled46EA1324": Object {
       "Fn::Equals": Array [
         Object {
-          "Ref": "CdnWebAclArn5923748A",
+          "Ref": "WebAclArn",
         },
         "",
       ],
     },
-    "GraphQLServiceDisabled2040BDFB": Object {
-      "Fn::Equals": Array [
+    "GraphQLAutoScalingEnabled686BA277": Object {
+      "Fn::And": Array [
         Object {
-          "Ref": "GraphQLMinTaskCount0807D92D",
+          "Condition": "GraphQLServiceEnabledC2BD6E3B",
         },
-        "0",
+        Object {
+          "Condition": "HighAvailability",
+        },
       ],
     },
-    "ImgproxyServiceDisabledE6934A15": Object {
-      "Fn::Equals": Array [
+    "GraphQLServiceEnabledC2BD6E3B": Object {
+      "Fn::Not": Array [
         Object {
-          "Ref": "ImgproxyMinTaskCount7B881431",
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "GraphQLTaskSize228AD0D2",
+            },
+            "none",
+          ],
         },
-        "0",
       ],
     },
-    "KongServiceDisabled5CB631B8": Object {
+    "HighAvailability": Object {
       "Fn::Equals": Array [
         Object {
-          "Ref": "KongMinTaskCount4451EF4C",
+          "Ref": "EnableHighAvailability",
         },
-        "0",
+        "true",
       ],
     },
-    "MetaServiceDisabled3B808F33": Object {
-      "Fn::Equals": Array [
+    "ImgproxyAutoScalingEnabled44E9E87F": Object {
+      "Fn::And": Array [
         Object {
-          "Ref": "MetaMinTaskCountEA12F444",
+          "Condition": "ImgproxyServiceEnabled64E773FC",
         },
-        "0",
+        Object {
+          "Condition": "HighAvailability",
+        },
       ],
     },
-    "RealtimeServiceDisabledD3DB8A99": Object {
-      "Fn::Equals": Array [
+    "ImgproxyServiceEnabled64E773FC": Object {
+      "Fn::Not": Array [
         Object {
-          "Ref": "RealtimeMinTaskCount306F67E8",
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "ImgproxyTaskSize5D0DD9F6",
+            },
+            "none",
+          ],
         },
-        "0",
       ],
     },
-    "RestServiceDisabled280508EE": Object {
-      "Fn::Equals": Array [
+    "KongAutoScalingEnabled41DC2F80": Object {
+      "Fn::And": Array [
         Object {
-          "Ref": "RestMinTaskCount073959EA",
+          "Condition": "KongServiceEnabled5CB62A18",
         },
-        "0",
+        Object {
+          "Condition": "HighAvailability",
+        },
       ],
     },
-    "StorageServiceDisabled05C15E2C": Object {
-      "Fn::Equals": Array [
+    "KongServiceEnabled5CB62A18": Object {
+      "Fn::Not": Array [
         Object {
-          "Ref": "StorageMinTaskCount07E65703",
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "KongTaskSize93C195E9",
+            },
+            "none",
+          ],
         },
-        "0",
+      ],
+    },
+    "MetaAutoScalingEnabledCF28EDB1": Object {
+      "Fn::And": Array [
+        Object {
+          "Condition": "MetaServiceEnabled094DCF06",
+        },
+        Object {
+          "Condition": "HighAvailability",
+        },
+      ],
+    },
+    "MetaServiceEnabled094DCF06": Object {
+      "Fn::Not": Array [
+        Object {
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "MetaTaskSize556D36D9",
+            },
+            "none",
+          ],
+        },
+      ],
+    },
+    "RealtimeAutoScalingEnabled7991ED3B": Object {
+      "Fn::And": Array [
+        Object {
+          "Condition": "RealtimeServiceEnabled18ED891C",
+        },
+        Object {
+          "Condition": "HighAvailability",
+        },
+      ],
+    },
+    "RealtimeServiceEnabled18ED891C": Object {
+      "Fn::Not": Array [
+        Object {
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "RealtimeTaskSize6077FE1F",
+            },
+            "none",
+          ],
+        },
+      ],
+    },
+    "RestAutoScalingEnabled69452861": Object {
+      "Fn::And": Array [
+        Object {
+          "Condition": "RestServiceEnabledD6F99FCE",
+        },
+        Object {
+          "Condition": "HighAvailability",
+        },
+      ],
+    },
+    "RestServiceEnabledD6F99FCE": Object {
+      "Fn::Not": Array [
+        Object {
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "RestTaskSize14E11A14",
+            },
+            "none",
+          ],
+        },
+      ],
+    },
+    "StorageAutoScalingEnabled4D34646B": Object {
+      "Fn::And": Array [
+        Object {
+          "Condition": "StorageServiceEnabled58819374",
+        },
+        Object {
+          "Condition": "HighAvailability",
+        },
+      ],
+    },
+    "StorageServiceEnabled58819374": Object {
+      "Fn::Not": Array [
+        Object {
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "StorageTaskSizeB82D9CFB",
+            },
+            "none",
+          ],
+        },
       ],
     },
     "WorkMailEnabled": Object {
@@ -345,6 +465,10 @@ Object {
         "cpu": 256,
         "memory": 1024,
       },
+      "none": Object {
+        "cpu": 256,
+        "memory": 1024,
+      },
       "small": Object {
         "cpu": 512,
         "memory": 1024,
@@ -372,7 +496,7 @@ Object {
         },
         Object {
           "Label": Object {
-            "default": "Supabase - Auth E-mail Settings",
+            "default": "Supabase - SMTP Settings",
           },
           "Parameters": Array [
             "Email",
@@ -383,7 +507,7 @@ Object {
         },
         Object {
           "Label": Object {
-            "default": "Supabase - Container Image URIs",
+            "default": "Supabase - Versions (Container Images)",
           },
           "Parameters": Array [
             "AuthImageUri",
@@ -397,6 +521,15 @@ Object {
         },
         Object {
           "Label": Object {
+            "default": "Infrastructure Settings",
+          },
+          "Parameters": Array [
+            "EnableHighAvailability",
+            "WebAclArn",
+          ],
+        },
+        Object {
+          "Label": Object {
             "default": "Infrastructure Settings - Database",
           },
           "Parameters": Array [
@@ -406,90 +539,17 @@ Object {
         },
         Object {
           "Label": Object {
-            "default": "Infrastructure Settings - Security",
-          },
-          "Parameters": Array [
-            "CdnWebAclArn5923748A",
-          ],
-        },
-        Object {
-          "Label": Object {
-            "default": "Infrastructure Settings - Kong (API Gateway)",
+            "default": "Infrastructure Settings - Containers",
           },
           "Parameters": Array [
             "KongTaskSize93C195E9",
-            "KongMinTaskCount4451EF4C",
-            "KongMaxTaskCountA4145D65",
-          ],
-        },
-        Object {
-          "Label": Object {
-            "default": "Infrastructure Settings - Auth API (GoTrue)",
-          },
-          "Parameters": Array [
             "AuthTaskSize9895C206",
-            "AuthMinTaskCount998F20C4",
-            "AuthMaxTaskCount9E585BDA",
-          ],
-        },
-        Object {
-          "Label": Object {
-            "default": "Infrastructure Settings - RESTful API (PostgREST)",
-          },
-          "Parameters": Array [
             "RestTaskSize14E11A14",
-            "RestMinTaskCount073959EA",
-            "RestMaxTaskCount1D2E84B9",
-          ],
-        },
-        Object {
-          "Label": Object {
-            "default": "Infrastructure Settings - GraphQL API (PostGraphile)",
-          },
-          "Parameters": Array [
             "GraphQLTaskSize228AD0D2",
-            "GraphQLMinTaskCount0807D92D",
-            "GraphQLMaxTaskCount62412A02",
-          ],
-        },
-        Object {
-          "Label": Object {
-            "default": "Infrastructure Settings - Realtime API",
-          },
-          "Parameters": Array [
             "RealtimeTaskSize6077FE1F",
-            "RealtimeMinTaskCount306F67E8",
-            "RealtimeMaxTaskCountE72E1120",
-          ],
-        },
-        Object {
-          "Label": Object {
-            "default": "Infrastructure Settings - Storage API",
-          },
-          "Parameters": Array [
             "StorageTaskSizeB82D9CFB",
-            "StorageMinTaskCount07E65703",
-            "StorageMaxTaskCount372C6914",
-          ],
-        },
-        Object {
-          "Label": Object {
-            "default": "Infrastructure Settings - Imgproxy",
-          },
-          "Parameters": Array [
             "ImgproxyTaskSize5D0DD9F6",
-            "ImgproxyMinTaskCount7B881431",
-            "ImgproxyMaxTaskCount4DF8AF60",
-          ],
-        },
-        Object {
-          "Label": Object {
-            "default": "Infrastructure Settings - Postgres Meta API",
-          },
-          "Parameters": Array [
             "MetaTaskSize556D36D9",
-            "MetaMinTaskCountEA12F444",
-            "MetaMaxTaskCount2749DE86",
           ],
         },
         Object {
@@ -525,13 +585,7 @@ Object {
       ],
       "ParameterLabels": Object {
         "AuthImageUri": Object {
-          "default": "Auth API Image URI - GoTrue",
-        },
-        "AuthMaxTaskCount9E585BDA": Object {
-          "default": "Maximum Fargate Task Count",
-        },
-        "AuthMinTaskCount998F20C4": Object {
-          "default": "Minimum Fargate Task Count",
+          "default": "Image URI - GoTrue",
         },
         "AuthProvider1ClientId5614D178": Object {
           "default": "Client ID",
@@ -561,10 +615,7 @@ Object {
           "default": "Client Secret",
         },
         "AuthTaskSize9895C206": Object {
-          "default": "Fargate Task Size",
-        },
-        "CdnWebAclArn5923748A": Object {
-          "default": "Web ACL ARN (AWS WAF)",
+          "default": "Task Size - GoTrue",
         },
         "DisableSignup": Object {
           "default": "Disable User Signups",
@@ -572,53 +623,32 @@ Object {
         "Email": Object {
           "default": "Sender Email Address",
         },
+        "EnableHighAvailability": Object {
+          "default": "High Availability (HA)",
+        },
         "EnableWorkMail": Object {
           "default": "Enable Test E-mail Domain (via Amazon WorkMail)",
         },
-        "GraphQLMaxTaskCount62412A02": Object {
-          "default": "Maximum Fargate Task Count",
-        },
-        "GraphQLMinTaskCount0807D92D": Object {
-          "default": "Minimum Fargate Task Count",
-        },
         "GraphQLTaskSize228AD0D2": Object {
-          "default": "Fargate Task Size",
+          "default": "Task Size - PostGraphile",
         },
         "ImgproxyImageUri": Object {
-          "default": "Imgproxy Image URI",
-        },
-        "ImgproxyMaxTaskCount4DF8AF60": Object {
-          "default": "Maximum Fargate Task Count",
-        },
-        "ImgproxyMinTaskCount7B881431": Object {
-          "default": "Minimum Fargate Task Count",
+          "default": "Image URI - imgproxy",
         },
         "ImgproxyTaskSize5D0DD9F6": Object {
-          "default": "Fargate Task Size",
+          "default": "Task Size - imgproxy",
         },
         "JwtExpiryLimit": Object {
           "default": "JWT expiry limit",
         },
-        "KongMaxTaskCountA4145D65": Object {
-          "default": "Maximum Fargate Task Count",
-        },
-        "KongMinTaskCount4451EF4C": Object {
-          "default": "Minimum Fargate Task Count",
-        },
         "KongTaskSize93C195E9": Object {
-          "default": "Fargate Task Size",
+          "default": "Task Size - Kong",
         },
         "MaxACU": Object {
           "default": "Maximum ACUs",
         },
-        "MetaMaxTaskCount2749DE86": Object {
-          "default": "Maximum Fargate Task Count",
-        },
-        "MetaMinTaskCountEA12F444": Object {
-          "default": "Minimum Fargate Task Count",
-        },
         "MetaTaskSize556D36D9": Object {
-          "default": "Fargate Task Size",
+          "default": "Task Size - postgres-meta",
         },
         "MinACU": Object {
           "default": "Minimum ACUs",
@@ -627,34 +657,22 @@ Object {
           "default": "Min password length",
         },
         "PostgresMetaImageUri": Object {
-          "default": "Postgres Meta API Image URI",
+          "default": "Image URI - postgres-meta",
         },
         "RealtimeImageUri": Object {
-          "default": "Realtime API Image URI",
-        },
-        "RealtimeMaxTaskCountE72E1120": Object {
-          "default": "Maximum Fargate Task Count",
-        },
-        "RealtimeMinTaskCount306F67E8": Object {
-          "default": "Minimum Fargate Task Count",
+          "default": "Image URI - Realtime",
         },
         "RealtimeTaskSize6077FE1F": Object {
-          "default": "Fargate Task Size",
+          "default": "Task Size - Realtime",
         },
         "RedirectUrls": Object {
           "default": "Redirect URLs",
         },
         "RestImageUri": Object {
-          "default": "Rest API Image URI - PostgREST",
-        },
-        "RestMaxTaskCount1D2E84B9": Object {
-          "default": "Maximum Fargate Task Count",
-        },
-        "RestMinTaskCount073959EA": Object {
-          "default": "Minimum Fargate Task Count",
+          "default": "Image URI - PostgREST",
         },
         "RestTaskSize14E11A14": Object {
-          "default": "Fargate Task Size",
+          "default": "Task Size - PostgREST",
         },
         "SenderName": Object {
           "default": "Sender Name",
@@ -666,19 +684,16 @@ Object {
           "default": "Site URL",
         },
         "StorageImageUri": Object {
-          "default": "Storage API Image URI",
-        },
-        "StorageMaxTaskCount372C6914": Object {
-          "default": "Maximum Fargate Task Count",
-        },
-        "StorageMinTaskCount07E65703": Object {
-          "default": "Minimum Fargate Task Count",
+          "default": "Image URI - Storage",
         },
         "StorageTaskSizeB82D9CFB": Object {
-          "default": "Fargate Task Size",
+          "default": "Task Size - Storage",
         },
         "StudioBranch": Object {
           "default": "Supabase Studio Branch",
+        },
+        "WebAclArn": Object {
+          "default": "Web ACL ARN (AWS WAF)",
         },
       },
     },
@@ -765,18 +780,6 @@ Object {
       "Default": "public.ecr.aws/supabase/gotrue:v2.69.2",
       "Description": "https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
-    },
-    "AuthMaxTaskCount9E585BDA": Object {
-      "Default": 20,
-      "Description": "Maximum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
-    "AuthMinTaskCount998F20C4": Object {
-      "Default": 1,
-      "Description": "Minimum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
     },
     "AuthProvider1ClientId5614D178": Object {
       "Default": "",
@@ -885,6 +888,7 @@ Object {
     },
     "AuthTaskSize9895C206": Object {
       "AllowedValues": Array [
+        "none",
         "micro",
         "small",
         "medium",
@@ -893,7 +897,7 @@ Object {
         "2xlarge",
         "4xlarge",
       ],
-      "Default": "micro",
+      "Default": "medium",
       "Description": "Fargare task size",
       "Type": "String",
     },
@@ -901,12 +905,6 @@ Object {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
-    },
-    "CdnWebAclArn5923748A": Object {
-      "AllowedPattern": "^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\\\w-]+/[\\\\w]{8}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{12}$|",
-      "Default": "",
-      "Description": "Web ACL for CloudFront.",
-      "Type": "String",
     },
     "DisableSignup": Object {
       "AllowedValues": Array [
@@ -924,6 +922,15 @@ Object {
       "Description": "This is the email address the emails are sent from. If Amazon WorkMail is enabled, it set \\"noreply@supabase-<account_id>.awsapps.com\\"",
       "Type": "String",
     },
+    "EnableHighAvailability": Object {
+      "AllowedValues": Array [
+        "true",
+        "false",
+      ],
+      "Default": "false",
+      "Description": "Enable auto-scaling and clustering (Multi-AZ).",
+      "Type": "String",
+    },
     "EnableWorkMail": Object {
       "AllowedValues": Array [
         "true",
@@ -933,20 +940,9 @@ Object {
       "Description": "Enable test e-mail domain \\"xxx.awsapps.com\\" with Amazon WorkMail.",
       "Type": "String",
     },
-    "GraphQLMaxTaskCount62412A02": Object {
-      "Default": 20,
-      "Description": "Maximum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
-    "GraphQLMinTaskCount0807D92D": Object {
-      "Default": 1,
-      "Description": "Minimum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
     "GraphQLTaskSize228AD0D2": Object {
       "AllowedValues": Array [
+        "none",
         "micro",
         "small",
         "medium",
@@ -955,7 +951,7 @@ Object {
         "2xlarge",
         "4xlarge",
       ],
-      "Default": "micro",
+      "Default": "medium",
       "Description": "Fargare task size",
       "Type": "String",
     },
@@ -964,20 +960,9 @@ Object {
       "Description": "https://gallery.ecr.aws/supabase/imgproxy",
       "Type": "String",
     },
-    "ImgproxyMaxTaskCount4DF8AF60": Object {
-      "Default": 20,
-      "Description": "Maximum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
-    "ImgproxyMinTaskCount7B881431": Object {
-      "Default": 1,
-      "Description": "Minimum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
     "ImgproxyTaskSize5D0DD9F6": Object {
       "AllowedValues": Array [
+        "none",
         "micro",
         "small",
         "medium",
@@ -986,7 +971,7 @@ Object {
         "2xlarge",
         "4xlarge",
       ],
-      "Default": "micro",
+      "Default": "medium",
       "Description": "Fargare task size",
       "Type": "String",
     },
@@ -997,20 +982,9 @@ Object {
       "MinValue": 300,
       "Type": "Number",
     },
-    "KongMaxTaskCountA4145D65": Object {
-      "Default": 20,
-      "Description": "Maximum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
-    "KongMinTaskCount4451EF4C": Object {
-      "Default": 1,
-      "Description": "Minimum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
     "KongTaskSize93C195E9": Object {
       "AllowedValues": Array [
+        "none",
         "micro",
         "small",
         "medium",
@@ -1019,7 +993,7 @@ Object {
         "2xlarge",
         "4xlarge",
       ],
-      "Default": "micro",
+      "Default": "medium",
       "Description": "Fargare task size",
       "Type": "String",
     },
@@ -1030,20 +1004,9 @@ Object {
       "MinValue": 0.5,
       "Type": "Number",
     },
-    "MetaMaxTaskCount2749DE86": Object {
-      "Default": 20,
-      "Description": "Maximum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
-    "MetaMinTaskCountEA12F444": Object {
-      "Default": 1,
-      "Description": "Minimum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
     "MetaTaskSize556D36D9": Object {
       "AllowedValues": Array [
+        "none",
         "micro",
         "small",
         "medium",
@@ -1052,7 +1015,7 @@ Object {
         "2xlarge",
         "4xlarge",
       ],
-      "Default": "micro",
+      "Default": "medium",
       "Description": "Fargare task size",
       "Type": "String",
     },
@@ -1080,20 +1043,9 @@ Object {
       "Description": "https://gallery.ecr.aws/supabase/realtime",
       "Type": "String",
     },
-    "RealtimeMaxTaskCountE72E1120": Object {
-      "Default": 20,
-      "Description": "Maximum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
-    "RealtimeMinTaskCount306F67E8": Object {
-      "Default": 1,
-      "Description": "Minimum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
     "RealtimeTaskSize6077FE1F": Object {
       "AllowedValues": Array [
+        "none",
         "micro",
         "small",
         "medium",
@@ -1102,7 +1054,7 @@ Object {
         "2xlarge",
         "4xlarge",
       ],
-      "Default": "micro",
+      "Default": "medium",
       "Description": "Fargare task size",
       "Type": "String",
     },
@@ -1116,20 +1068,9 @@ Object {
       "Description": "https://gallery.ecr.aws/supabase/postgrest",
       "Type": "String",
     },
-    "RestMaxTaskCount1D2E84B9": Object {
-      "Default": 20,
-      "Description": "Maximum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
-    "RestMinTaskCount073959EA": Object {
-      "Default": 1,
-      "Description": "Minimum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
     "RestTaskSize14E11A14": Object {
       "AllowedValues": Array [
+        "none",
         "micro",
         "small",
         "medium",
@@ -1138,7 +1079,7 @@ Object {
         "2xlarge",
         "4xlarge",
       ],
-      "Default": "micro",
+      "Default": "medium",
       "Description": "Fargare task size",
       "Type": "String",
     },
@@ -1181,20 +1122,9 @@ Object {
       "Description": "https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
     },
-    "StorageMaxTaskCount372C6914": Object {
-      "Default": 20,
-      "Description": "Maximum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
-    "StorageMinTaskCount07E65703": Object {
-      "Default": 1,
-      "Description": "Minimum fargate task count",
-      "MinValue": 0,
-      "Type": "Number",
-    },
     "StorageTaskSizeB82D9CFB": Object {
       "AllowedValues": Array [
+        "none",
         "micro",
         "small",
         "medium",
@@ -1203,13 +1133,19 @@ Object {
         "2xlarge",
         "4xlarge",
       ],
-      "Default": "micro",
+      "Default": "medium",
       "Description": "Fargare task size",
       "Type": "String",
     },
     "StudioBranch": Object {
       "Default": "v0.23.04",
       "Description": "Branch or tag - https://github.com/supabase/supabase/tags",
+      "Type": "String",
+    },
+    "WebAclArn": Object {
+      "AllowedPattern": "^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\\\w-]+/[\\\\w]{8}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{12}$|",
+      "Default": "",
+      "Description": "Web ACL for CloudFront.",
       "Type": "String",
     },
   },
@@ -1592,11 +1528,11 @@ Object {
         },
         "DesiredCount": Object {
           "Fn::If": Array [
-            "AuthServiceDisabledB6209B31",
-            0,
+            "AuthServiceEnabled3234D87F",
             Object {
               "Ref": "AWS::NoValue",
             },
+            0,
           ],
         },
         "EnableECSManagedTags": true,
@@ -1740,13 +1676,10 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "AuthServiceTaskCountTarget07A8CCD2": Object {
+      "Condition": "AuthAutoScalingEnabled0CD7354E",
       "Properties": Object {
-        "MaxCapacity": Object {
-          "Ref": "AuthMaxTaskCount9E585BDA",
-        },
-        "MinCapacity": Object {
-          "Ref": "AuthMinTaskCount998F20C4",
-        },
+        "MaxCapacity": 20,
+        "MinCapacity": 2,
         "ResourceId": Object {
           "Fn::Join": Array [
             "",
@@ -1787,6 +1720,7 @@ Object {
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
     "AuthServiceTaskCountTargetScaleOnCpu0847ACEC": Object {
+      "Condition": "AuthAutoScalingEnabled0CD7354E",
       "Properties": Object {
         "PolicyName": "SupabaseAuthServiceTaskCountTargetScaleOnCpu253117F9",
         "PolicyType": "TargetTrackingScaling",
@@ -3224,6 +3158,34 @@ Object {
       },
       "Type": "AWS::CloudFront::CachePolicy",
     },
+    "CdnDefaultWebAclNestedStackDefaultWebAclNestedStackResource663284CA": Object {
+      "Condition": "CdnDefaultWebAclEnabled46EA1324",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "TemplateURL": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "https://s3.",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ".",
+              Object {
+                "Ref": "AWS::URLSuffix",
+              },
+              "/",
+              Object {
+                "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+              },
+              "/e80cb6c3c32610200a4d46711e67c7e759a066534a83f2cc6d493c51fceecfd4.json",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::Stack",
+      "UpdateReplacePolicy": "Delete",
+    },
     "CdnDistribution149FA6C8": Object {
       "Properties": Object {
         "DistributionConfig": Object {
@@ -3310,15 +3272,15 @@ Object {
           ],
           "WebACLId": Object {
             "Fn::If": Array [
-              "CdnWebAclUndefinedCAA325A4",
+              "CdnDefaultWebAclEnabled46EA1324",
               Object {
                 "Fn::GetAtt": Array [
-                  "CdnWebAclNestedStackWebAclNestedStackResourceFDB876C0",
-                  "Outputs.SupabaseCdnWebAcl5ECF61CDArn",
+                  "CdnDefaultWebAclNestedStackDefaultWebAclNestedStackResource663284CA",
+                  "Outputs.SupabaseCdnDefaultWebAcl261D81EEArn",
                 ],
               },
               Object {
-                "Ref": "CdnWebAclArn5923748A",
+                "Ref": "WebAclArn",
               },
             ],
           },
@@ -3356,34 +3318,6 @@ Object {
         },
       },
       "Type": "AWS::CloudFront::ResponseHeadersPolicy",
-    },
-    "CdnWebAclNestedStackWebAclNestedStackResourceFDB876C0": Object {
-      "Condition": "CdnWebAclUndefinedCAA325A4",
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "TemplateURL": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "https://s3.",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ".",
-              Object {
-                "Ref": "AWS::URLSuffix",
-              },
-              "/",
-              Object {
-                "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-              },
-              "/ba9bddc91e6877cd649a7a9325179bbfbdd2c97b72a2f25a9f36c87e52b48ab4.json",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::CloudFormation::Stack",
-      "UpdateReplacePolicy": "Delete",
     },
     "CloudFrontPrefixList22014EFD": Object {
       "DeletionPolicy": "Delete",
@@ -3551,6 +3485,7 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "DatabaseClusterInstance2D6BCD1AC": Object {
+      "Condition": "HighAvailability",
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
@@ -4814,11 +4749,11 @@ Object {
         },
         "DesiredCount": Object {
           "Fn::If": Array [
-            "GraphQLServiceDisabled2040BDFB",
-            0,
+            "GraphQLServiceEnabledC2BD6E3B",
             Object {
               "Ref": "AWS::NoValue",
             },
+            0,
           ],
         },
         "EnableECSManagedTags": true,
@@ -4962,13 +4897,10 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "GraphQLServiceTaskCountTargetD74EBB91": Object {
+      "Condition": "GraphQLAutoScalingEnabled686BA277",
       "Properties": Object {
-        "MaxCapacity": Object {
-          "Ref": "GraphQLMaxTaskCount62412A02",
-        },
-        "MinCapacity": Object {
-          "Ref": "GraphQLMinTaskCount0807D92D",
-        },
+        "MaxCapacity": 20,
+        "MinCapacity": 2,
         "ResourceId": Object {
           "Fn::Join": Array [
             "",
@@ -5009,6 +4941,7 @@ Object {
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
     "GraphQLServiceTaskCountTargetScaleOnCpu65C9F8E9": Object {
+      "Condition": "GraphQLAutoScalingEnabled686BA277",
       "Properties": Object {
         "PolicyName": "SupabaseGraphQLServiceTaskCountTargetScaleOnCpuE8FC1CFC",
         "PolicyType": "TargetTrackingScaling",
@@ -5261,11 +5194,11 @@ Object {
         },
         "DesiredCount": Object {
           "Fn::If": Array [
-            "ImgproxyServiceDisabledE6934A15",
-            0,
+            "ImgproxyServiceEnabled64E773FC",
             Object {
               "Ref": "AWS::NoValue",
             },
+            0,
           ],
         },
         "EnableECSManagedTags": true,
@@ -5409,13 +5342,10 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "ImgproxyServiceTaskCountTargetC19355BF": Object {
+      "Condition": "ImgproxyAutoScalingEnabled44E9E87F",
       "Properties": Object {
-        "MaxCapacity": Object {
-          "Ref": "ImgproxyMaxTaskCount4DF8AF60",
-        },
-        "MinCapacity": Object {
-          "Ref": "ImgproxyMinTaskCount7B881431",
-        },
+        "MaxCapacity": 20,
+        "MinCapacity": 2,
         "ResourceId": Object {
           "Fn::Join": Array [
             "",
@@ -5456,6 +5386,7 @@ Object {
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
     "ImgproxyServiceTaskCountTargetScaleOnCpuADE19FC6": Object {
+      "Condition": "ImgproxyAutoScalingEnabled44E9E87F",
       "Properties": Object {
         "PolicyName": "SupabaseImgproxyServiceTaskCountTargetScaleOnCpu2F1B6C7E",
         "PolicyType": "TargetTrackingScaling",
@@ -6007,11 +5938,11 @@ Object {
         },
         "DesiredCount": Object {
           "Fn::If": Array [
-            "KongServiceDisabled5CB631B8",
-            0,
+            "KongServiceEnabled5CB62A18",
             Object {
               "Ref": "AWS::NoValue",
             },
+            0,
           ],
         },
         "EnableECSManagedTags": true,
@@ -6186,13 +6117,10 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "KongServiceTaskCountTarget5CD21EEB": Object {
+      "Condition": "KongAutoScalingEnabled41DC2F80",
       "Properties": Object {
-        "MaxCapacity": Object {
-          "Ref": "KongMaxTaskCountA4145D65",
-        },
-        "MinCapacity": Object {
-          "Ref": "KongMinTaskCount4451EF4C",
-        },
+        "MaxCapacity": 20,
+        "MinCapacity": 2,
         "ResourceId": Object {
           "Fn::Join": Array [
             "",
@@ -6233,6 +6161,7 @@ Object {
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
     "KongServiceTaskCountTargetScaleOnCpuE9FBE5E2": Object {
+      "Condition": "KongAutoScalingEnabled41DC2F80",
       "Properties": Object {
         "PolicyName": "SupabaseKongServiceTaskCountTargetScaleOnCpu7C47F3C3",
         "PolicyType": "TargetTrackingScaling",
@@ -6735,11 +6664,11 @@ Object {
         },
         "DesiredCount": Object {
           "Fn::If": Array [
-            "MetaServiceDisabled3B808F33",
-            0,
+            "MetaServiceEnabled094DCF06",
             Object {
               "Ref": "AWS::NoValue",
             },
+            0,
           ],
         },
         "EnableECSManagedTags": true,
@@ -6892,16 +6821,13 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "MetaServiceTaskCountTarget124C5BFA": Object {
+      "Condition": "MetaAutoScalingEnabledCF28EDB1",
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
       ],
       "Properties": Object {
-        "MaxCapacity": Object {
-          "Ref": "MetaMaxTaskCount2749DE86",
-        },
-        "MinCapacity": Object {
-          "Ref": "MetaMinTaskCountEA12F444",
-        },
+        "MaxCapacity": 20,
+        "MinCapacity": 2,
         "ResourceId": Object {
           "Fn::Join": Array [
             "",
@@ -6942,6 +6868,7 @@ Object {
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
     "MetaServiceTaskCountTargetScaleOnCpuBFDCF132": Object {
+      "Condition": "MetaAutoScalingEnabledCF28EDB1",
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
       ],
@@ -7211,11 +7138,11 @@ Object {
         },
         "DesiredCount": Object {
           "Fn::If": Array [
-            "RealtimeServiceDisabledD3DB8A99",
-            0,
+            "RealtimeServiceEnabled18ED891C",
             Object {
               "Ref": "AWS::NoValue",
             },
+            0,
           ],
         },
         "EnableECSManagedTags": true,
@@ -7390,16 +7317,13 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "RealtimeServiceTaskCountTarget89349CD4": Object {
+      "Condition": "RealtimeAutoScalingEnabled7991ED3B",
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
       ],
       "Properties": Object {
-        "MaxCapacity": Object {
-          "Ref": "RealtimeMaxTaskCountE72E1120",
-        },
-        "MinCapacity": Object {
-          "Ref": "RealtimeMinTaskCount306F67E8",
-        },
+        "MaxCapacity": 20,
+        "MinCapacity": 2,
         "ResourceId": Object {
           "Fn::Join": Array [
             "",
@@ -7440,6 +7364,7 @@ Object {
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
     "RealtimeServiceTaskCountTargetScaleOnCpu764115FF": Object {
+      "Condition": "RealtimeAutoScalingEnabled7991ED3B",
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
       ],
@@ -7777,11 +7702,11 @@ Object {
         },
         "DesiredCount": Object {
           "Fn::If": Array [
-            "RestServiceDisabled280508EE",
-            0,
+            "RestServiceEnabledD6F99FCE",
             Object {
               "Ref": "AWS::NoValue",
             },
+            0,
           ],
         },
         "EnableECSManagedTags": true,
@@ -7967,13 +7892,10 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "RestServiceTaskCountTarget8C6E8E1E": Object {
+      "Condition": "RestAutoScalingEnabled69452861",
       "Properties": Object {
-        "MaxCapacity": Object {
-          "Ref": "RestMaxTaskCount1D2E84B9",
-        },
-        "MinCapacity": Object {
-          "Ref": "RestMinTaskCount073959EA",
-        },
+        "MaxCapacity": 20,
+        "MinCapacity": 2,
         "ResourceId": Object {
           "Fn::Join": Array [
             "",
@@ -8014,6 +7936,7 @@ Object {
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
     "RestServiceTaskCountTargetScaleOnCpuE9845870": Object {
+      "Condition": "RestAutoScalingEnabled69452861",
       "Properties": Object {
         "PolicyName": "SupabaseRestServiceTaskCountTargetScaleOnCpuB529B263",
         "PolicyType": "TargetTrackingScaling",
@@ -8594,11 +8517,11 @@ Object {
         },
         "DesiredCount": Object {
           "Fn::If": Array [
-            "StorageServiceDisabled05C15E2C",
-            0,
+            "StorageServiceEnabled58819374",
             Object {
               "Ref": "AWS::NoValue",
             },
+            0,
           ],
         },
         "EnableECSManagedTags": true,
@@ -8742,13 +8665,10 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "StorageServiceTaskCountTargetAF72160A": Object {
+      "Condition": "StorageAutoScalingEnabled4D34646B",
       "Properties": Object {
-        "MaxCapacity": Object {
-          "Ref": "StorageMaxTaskCount372C6914",
-        },
-        "MinCapacity": Object {
-          "Ref": "StorageMinTaskCount07E65703",
-        },
+        "MaxCapacity": 20,
+        "MinCapacity": 2,
         "ResourceId": Object {
           "Fn::Join": Array [
             "",
@@ -8789,6 +8709,7 @@ Object {
       "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
     },
     "StorageServiceTaskCountTargetScaleOnCpuDB3B903C": Object {
+      "Condition": "StorageAutoScalingEnabled4D34646B",
       "Properties": Object {
         "PolicyName": "SupabaseStorageServiceTaskCountTargetScaleOnCpuE2C72C87",
         "PolicyType": "TargetTrackingScaling",
