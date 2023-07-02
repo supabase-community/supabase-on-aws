@@ -109,14 +109,13 @@ export class AmplifyHosting extends Construct {
         AMPLIFY_MONOREPO_APP_ROOT: appRoot,
         AMPLIFY_DIFF_DEPLOY: 'false',
       },
+      customRules: [
+        { source: '/<*>', target: '/index.html', status: amplify.RedirectStatus.NOT_FOUND_REWRITE },
+      ],
     });
-    (this.app.node.defaultChild as cdk.CfnResource).addPropertyOverride('Platform', 'WEB_COMPUTE');
 
-    this.app.addEnvironment('NODE_OPTIONS', '--max-old-space-size=4096');
-    this.app.addEnvironment('AMPLIFY_MONOREPO_APP_ROOT', appRoot);
-    this.app.addEnvironment('AMPLIFY_DIFF_DEPLOY', 'false');
-
-    this.app.addCustomRule({ source: '/<*>', target: '/index.html', status: amplify.RedirectStatus.NOT_FOUND_REWRITE });
+    const cfnApp = this.app.node.defaultChild as cdk.aws_amplify.CfnApp;
+    cfnApp.addPropertyOverride('Platform', 'WEB_COMPUTE');
 
     this.prodBranch = this.app.addBranch('ProdBranch', {
       branchName: 'main',
