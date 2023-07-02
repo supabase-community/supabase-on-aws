@@ -70,7 +70,7 @@ export class SupabaseDatabase extends Construct {
     const instance2 = this.cluster.node.findChild('Instance2').node.defaultChild as rds.CfnDBInstance;
 
     if (typeof highAvailability !== 'undefined') {
-      instance2.cfnOptions.condition = highAvailability; 
+      instance2.cfnOptions.condition = highAvailability;
     }
 
     //this.instance = new rds.DatabaseInstance(this, 'Instance', {
