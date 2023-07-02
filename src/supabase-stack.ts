@@ -124,6 +124,16 @@ export class SupabaseStack extends FargateStack {
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
+    /** The flag for High Availability */
+    const enableHA = new cdk.CfnParameter(this, 'EnableHighAvailability', {
+      description: 'Enable auto-scaling and clustering (Multi-AZ).',
+      type: 'String',
+      default: 'false',
+      allowedValues: ['true', 'false'],
+    });
+    /** CFn condition for High Availability */
+    const highAvailability = new cdk.CfnCondition(this, 'HighAvailability', { expression: cdk.Fn.conditionEquals(enableHA, 'true') });
+
     /** The minimum number of aurora capacity units */
     const minACU = new cdk.CfnParameter(this, 'MinACU', {
       description: 'The minimum number of Aurora capacity units (ACU) for a DB instance in an Aurora Serverless v2 cluster.',
@@ -187,7 +197,10 @@ export class SupabaseStack extends FargateStack {
     });
 
     /** PostgreSQL Database with Secrets */
-    const db = new SupabaseDatabase(this, 'Database', { vpc });
+    const db = new SupabaseDatabase(this, 'Database', {
+      vpc,
+      highAvailability,
+    });
 
     /** SMTP Credentials */
     const smtp = new SesSmtp(this, 'Smtp', {

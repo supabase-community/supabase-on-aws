@@ -63,6 +63,14 @@ Object {
         "0",
       ],
     },
+    "HighAvailability": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Ref": "EnableHighAvailability",
+        },
+        "true",
+      ],
+    },
     "ImgproxyServiceDisabledE6934A15": Object {
       "Fn::Equals": Array [
         Object {
@@ -922,6 +930,15 @@ Object {
       "ConstraintDescription": "must be a valid email address",
       "Default": "noreply@example.com",
       "Description": "This is the email address the emails are sent from. If Amazon WorkMail is enabled, it set \\"noreply@supabase-<account_id>.awsapps.com\\"",
+      "Type": "String",
+    },
+    "EnableHighAvailability": Object {
+      "AllowedValues": Array [
+        "true",
+        "false",
+      ],
+      "Default": "false",
+      "Description": "Enable auto-scaling and clustering (Multi-AZ).",
       "Type": "String",
     },
     "EnableWorkMail": Object {
@@ -3551,6 +3568,7 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "DatabaseClusterInstance2D6BCD1AC": Object {
+      "Condition": "HighAvailability",
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
         "VPCPrivateSubnet1DefaultRouteAE1D6490",
