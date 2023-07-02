@@ -61,10 +61,10 @@ Object {
         },
       ],
     },
-    "CdnWebAclUndefinedCAA325A4": Object {
+    "CdnDefaultWebAclEnabled46EA1324": Object {
       "Fn::Equals": Array [
         Object {
-          "Ref": "CdnWebAclArn5923748A",
+          "Ref": "WebAclArn",
         },
         "",
       ],
@@ -525,7 +525,7 @@ Object {
           },
           "Parameters": Array [
             "EnableHighAvailability",
-            "CdnWebAclArn5923748A",
+            "WebAclArn",
           ],
         },
         Object {
@@ -617,9 +617,6 @@ Object {
         "AuthTaskSize9895C206": Object {
           "default": "Task Size - GoTrue",
         },
-        "CdnWebAclArn5923748A": Object {
-          "default": "Web ACL ARN (AWS WAF)",
-        },
         "DisableSignup": Object {
           "default": "Disable User Signups",
         },
@@ -694,6 +691,9 @@ Object {
         },
         "StudioBranch": Object {
           "default": "Supabase Studio Branch",
+        },
+        "WebAclArn": Object {
+          "default": "Web ACL ARN (AWS WAF)",
         },
       },
     },
@@ -905,12 +905,6 @@ Object {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
-    },
-    "CdnWebAclArn5923748A": Object {
-      "AllowedPattern": "^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\\\w-]+/[\\\\w]{8}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{12}$|",
-      "Default": "",
-      "Description": "Web ACL for CloudFront.",
-      "Type": "String",
     },
     "DisableSignup": Object {
       "AllowedValues": Array [
@@ -1146,6 +1140,12 @@ Object {
     "StudioBranch": Object {
       "Default": "v0.23.04",
       "Description": "Branch or tag - https://github.com/supabase/supabase/tags",
+      "Type": "String",
+    },
+    "WebAclArn": Object {
+      "AllowedPattern": "^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\\\w-]+/[\\\\w]{8}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{4}-[\\\\w]{12}$|",
+      "Default": "",
+      "Description": "Web ACL for CloudFront.",
       "Type": "String",
     },
   },
@@ -3158,6 +3158,34 @@ Object {
       },
       "Type": "AWS::CloudFront::CachePolicy",
     },
+    "CdnDefaultWebAclNestedStackDefaultWebAclNestedStackResource663284CA": Object {
+      "Condition": "CdnDefaultWebAclEnabled46EA1324",
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "TemplateURL": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "https://s3.",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ".",
+              Object {
+                "Ref": "AWS::URLSuffix",
+              },
+              "/",
+              Object {
+                "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+              },
+              "/e80cb6c3c32610200a4d46711e67c7e759a066534a83f2cc6d493c51fceecfd4.json",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::CloudFormation::Stack",
+      "UpdateReplacePolicy": "Delete",
+    },
     "CdnDistribution149FA6C8": Object {
       "Properties": Object {
         "DistributionConfig": Object {
@@ -3244,15 +3272,15 @@ Object {
           ],
           "WebACLId": Object {
             "Fn::If": Array [
-              "CdnWebAclUndefinedCAA325A4",
+              "CdnDefaultWebAclEnabled46EA1324",
               Object {
                 "Fn::GetAtt": Array [
-                  "CdnWebAclNestedStackWebAclNestedStackResourceFDB876C0",
-                  "Outputs.SupabaseCdnWebAcl5ECF61CDArn",
+                  "CdnDefaultWebAclNestedStackDefaultWebAclNestedStackResource663284CA",
+                  "Outputs.SupabaseCdnDefaultWebAcl261D81EEArn",
                 ],
               },
               Object {
-                "Ref": "CdnWebAclArn5923748A",
+                "Ref": "WebAclArn",
               },
             ],
           },
@@ -3290,34 +3318,6 @@ Object {
         },
       },
       "Type": "AWS::CloudFront::ResponseHeadersPolicy",
-    },
-    "CdnWebAclNestedStackWebAclNestedStackResourceFDB876C0": Object {
-      "Condition": "CdnWebAclUndefinedCAA325A4",
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "TemplateURL": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "https://s3.",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ".",
-              Object {
-                "Ref": "AWS::URLSuffix",
-              },
-              "/",
-              Object {
-                "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-              },
-              "/ba9bddc91e6877cd649a7a9325179bbfbdd2c97b72a2f25a9f36c87e52b48ab4.json",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::CloudFormation::Stack",
-      "UpdateReplacePolicy": "Delete",
     },
     "CloudFrontPrefixList22014EFD": Object {
       "DeletionPolicy": "Delete",

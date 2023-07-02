@@ -135,6 +135,14 @@ export class SupabaseStack extends FargateStack {
     /** CFn condition for High Availability */
     const highAvailability = new cdk.CfnCondition(this, 'HighAvailability', { expression: cdk.Fn.conditionEquals(enableHighAvailability, 'true') });
 
+    /** Web ACL for CloudFront */
+    const webAclArn = new cdk.CfnParameter(this, 'WebAclArn', {
+      description: 'Web ACL for CloudFront.',
+      type: 'String',
+      default: '',
+      allowedPattern: '^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\w-]+/[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$|',
+    });
+
     /** The minimum number of aurora capacity units */
     const minACU = new cdk.CfnParameter(this, 'MinACU', {
       description: 'The minimum number of Aurora capacity units (ACU) for a DB instance in an Aurora Serverless v2 cluster.',
@@ -258,7 +266,10 @@ export class SupabaseStack extends FargateStack {
     loadBalancer.connections.allowFrom(Peer.prefixList(cfPrefixList.prefixListId), Port.tcp(80), 'CloudFront');
 
     /** CloudFront */
-    const cdn = new SupabaseCdn(this, 'Cdn', { origin: loadBalancer });
+    const cdn = new SupabaseCdn(this, 'Cdn', {
+      origin: loadBalancer,
+      webAclArn,
+    });
 
     /**
      * Supabase API URL
@@ -695,7 +706,7 @@ export class SupabaseStack extends FargateStack {
           Label: { default: 'Infrastructure Settings' },
           Parameters: [
             enableHighAvailability.logicalId,
-            cdn.cfnParameters.webAclArn.logicalId,
+            webAclArn.logicalId,
           ],
         },
         {
@@ -738,7 +749,7 @@ export class SupabaseStack extends FargateStack {
         [postgresMetaImageUri.logicalId]: { default: 'Image URI - postgres-meta' },
 
         [enableHighAvailability.logicalId]: { default: 'High Availability (HA)' },
-        [cdn.cfnParameters.webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
+        [webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
 
         [minACU.logicalId]: { default: 'Minimum ACUs' },
         [maxACU.logicalId]: { default: 'Maximum ACUs' },

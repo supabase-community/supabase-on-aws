@@ -16,6 +16,7 @@ import { WebAcl } from '../aws-waf';
 
 interface SupabaseCdnProps {
   origin: string|elb.ILoadBalancerV2;
+  webAclArn: cdk.CfnParameter;
 }
 
 interface BehaviorProps {
@@ -26,9 +27,6 @@ interface BehaviorProps {
 export class SupabaseCdn extends Construct {
   distribution: cf.Distribution;
   defaultBehaviorOptions: cf.AddBehaviorOptions;
-  cfnParameters: {
-    webAclArn: cdk.CfnParameter;
-  };
 
   /** Construct for CloudFront and WAF */
   constructor(scope: Construct, id: string, props: SupabaseCdnProps) {
@@ -39,23 +37,14 @@ export class SupabaseCdn extends Construct {
       ? new HttpOrigin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY })
       : new LoadBalancerV2Origin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY });
 
-    this.cfnParameters = {
-      webAclArn: new cdk.CfnParameter(this, 'WebAclArn', {
-        description: 'Web ACL for CloudFront.',
-        type: 'String',
-        default: '',
-        allowedPattern: '^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\w-]+/[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$|',
-      }),
-    };
-
-    const webAclUndefined = new cdk.CfnCondition(this, 'WebAclUndefined', { expression: cdk.Fn.conditionEquals(this.cfnParameters.webAclArn, '') });
+    const defaultWebAclEnabled = new cdk.CfnCondition(this, 'DefaultWebAclEnabled', { expression: cdk.Fn.conditionEquals(props.webAclArn, '') });
 
     /** Default Web ACL */
-    const webAcl = new WebAcl(this, 'WebAcl', { description: 'Supabase Standard WebAcl' });
-    (webAcl.node.defaultChild as cdk.CfnStack).cfnOptions.condition = webAclUndefined;
+    const defaultWebAcl = new WebAcl(this, 'DefaultWebAcl', { description: 'Default Web ACL' });
+    (defaultWebAcl.node.defaultChild as cdk.CfnStack).cfnOptions.condition = defaultWebAclEnabled;
 
     /** Web ACL ID */
-    const webAclId = cdk.Fn.conditionIf(webAclUndefined.logicalId, webAcl.webAclArn, this.cfnParameters.webAclArn.valueAsString);
+    const webAclId = cdk.Fn.conditionIf(defaultWebAclEnabled.logicalId, defaultWebAcl.webAclArn, props.webAclArn.valueAsString);
 
     const cachePolicy = new cf.CachePolicy(this, 'CachePolicy', {
       cachePolicyName: `${cdk.Aws.STACK_NAME}-CachePolicy-${cdk.Aws.REGION}`,
