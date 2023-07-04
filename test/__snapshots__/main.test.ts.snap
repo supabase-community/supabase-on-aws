@@ -9454,6 +9454,10 @@ applications:
             "Name": "AMPLIFY_DIFF_DEPLOY",
             "Value": "false",
           },
+          Object {
+            "Name": "_CUSTOM_IMAGE",
+            "Value": "public.ecr.aws/sam/build-nodejs18.x:latest",
+          },
         ],
         "IAMServiceRole": Object {
           "Fn::GetAtt": Array [

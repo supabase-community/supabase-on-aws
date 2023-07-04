@@ -108,14 +108,15 @@ export class AmplifyHosting extends Construct {
         NODE_OPTIONS: '--max-old-space-size=4096',
         AMPLIFY_MONOREPO_APP_ROOT: appRoot,
         AMPLIFY_DIFF_DEPLOY: 'false',
+        _CUSTOM_IMAGE: 'public.ecr.aws/sam/build-nodejs18.x:latest',
       },
       customRules: [
         { source: '/<*>', target: '/index.html', status: amplify.RedirectStatus.NOT_FOUND_REWRITE },
       ],
     });
 
-    const cfnApp = this.app.node.defaultChild as cdk.aws_amplify.CfnApp;
-    cfnApp.addPropertyOverride('Platform', 'WEB_COMPUTE');
+    /** SSR v2 */
+    (this.app.node.defaultChild as cdk.CfnResource).addPropertyOverride('Platform', 'WEB_COMPUTE');
 
     this.prodBranch = this.app.addBranch('ProdBranch', {
       branchName: 'main',
