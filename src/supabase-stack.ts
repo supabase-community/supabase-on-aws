@@ -9,13 +9,13 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import { SesSmtp } from './amazon-ses-smtp';
-import { AmplifyHosting } from './aws-amplify-hosting';
 import { PrefixList } from './aws-prefix-list';
 import { ForceDeployJob } from './ecs-force-deploy-job';
 import { AutoScalingFargateService } from './ecs-patterns';
 import { JwtSecret } from './json-web-token';
 import { SupabaseCdn } from './supabase-cdn';
 import { SupabaseDatabase } from './supabase-db';
+import { SupabaseStudio } from './supabase-studio';
 
 export class FargateStack extends cdk.Stack {
   /** ECS Fargate task size mappings */
@@ -232,6 +232,8 @@ export class SupabaseStack extends FargateStack {
     const supabaseStorageAdminSecret = db.genUserPassword('supabase_storage_admin');
     /** Secret of authenticator user */
     const authenticatorSecret = db.genUserPassword('authenticator');
+    /** Secret of dashboard user  */
+    const dashboardUserSecret = db.genUserPassword('dashboard_user');
     /** Secret of postgres user */
     const postgresSecret = db.genUserPassword('postgres');
 
@@ -638,20 +640,12 @@ export class SupabaseStack extends FargateStack {
     });
 
     /** Supabase Studio */
-    const studio = new AmplifyHosting(this, 'Studio', {
-      sourceRepo: 'https://github.com/supabase/supabase.git',
+    const studio = new SupabaseStudio(this, 'Studio', {
       sourceBranch: studioBranch.valueAsString,
-      appRoot: 'studio',
-      environment: {
-        STUDIO_PG_META_URL: `${apiExternalUrl}/pg`,
-        POSTGRES_PASSWORD: supabaseAdminSecret.secretValueFromJson('password').toString(),
-        //DEFAULT_ORGANIZATION: 'Default Organization',
-        //DEFAULT_PROJECT: 'Default Project',
-        SUPABASE_URL: `${apiExternalUrl}`,
-        SUPABASE_PUBLIC_URL: `${apiExternalUrl}`,
-        SUPABASE_ANON_KEY: anonKey.value,
-        SUPABASE_SERVICE_KEY: serviceRoleKey.value,
-      },
+      supabaseUrl: apiExternalUrl,
+      dbSecret: dashboardUserSecret,
+      anonKey: anonKey.ssmParameter,
+      serviceRoleKey: serviceRoleKey.ssmParameter,
     });
 
     new cdk.CfnOutput(this, 'SupabaseUrl', {

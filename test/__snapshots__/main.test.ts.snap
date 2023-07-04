@@ -4427,6 +4427,53 @@ Object {
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
     },
+    "DatabasedashboarduserBEF03EEC": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "SecretId": Object {
+          "Ref": "DatabasedashboarduserSecret102D2F3B",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseUserPasswordProviderframeworkonEventB02AAC24",
+            "Arn",
+          ],
+        },
+        "Username": "dashboard_user",
+      },
+      "Type": "Custom::DatabaseUserPassword",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DatabasedashboarduserSecret102D2F3B": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "Description": "Supabase - Database User dashboard_user",
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+          "GenerateStringKey": "password",
+          "SecretStringTemplate": "{\\"username\\":\\"dashboard_user\\"}",
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-Database-dashboard_user",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
     "DatabasepostgresDCE7DA96": Object {
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
@@ -9298,11 +9345,14 @@ applications:
       phases:
         preBuild:
           commands:
-            - env | grep -e STUDIO_PG_META_URL -e POSTGRES_PASSWORD -e SUPABASE_URL -e SUPABASE_PUBLIC_URL -e SUPABASE_ANON_KEY -e SUPABASE_SERVICE_KEY >> .env.production
+            - echo POSTGRES_PASSWORD=$(aws secretsmanager get-secret-value --secret-id $DB_SECRET_ARN --query SecretString | jq -r . | jq -r .password) >> .env.production
+            - echo SUPABASE_ANON_KEY=$(aws ssm get-parameter --region $SSM_REGION --name $ANON_KEY_NAME --query Parameter.Value) >> .env.production
+            - echo SUPABASE_SERVICE_KEY=$(aws ssm get-parameter --region $SSM_REGION --name $SERVICE_KEY_NAME --query Parameter.Value) >> .env.production
+            - env | grep -e STUDIO_PG_META_URL >> .env.production
+            - env | grep -e SUPABASE_ >> .env.production
             - env | grep -e NEXT_PUBLIC_ >> .env.production
-            - yum install -y rsync
             - cd ../
-            - npx turbo@1.7.0 prune --scope=studio
+            - npx turbo@1.10.3 prune --scope=studio
             - npm clean-install
         build:
           commands:
@@ -9358,6 +9408,22 @@ applications:
         ],
         "EnvironmentVariables": Array [
           Object {
+            "Name": "NODE_OPTIONS",
+            "Value": "--max-old-space-size=4096",
+          },
+          Object {
+            "Name": "AMPLIFY_MONOREPO_APP_ROOT",
+            "Value": "studio",
+          },
+          Object {
+            "Name": "AMPLIFY_DIFF_DEPLOY",
+            "Value": "false",
+          },
+          Object {
+            "Name": "_CUSTOM_IMAGE",
+            "Value": "public.ecr.aws/sam/build-nodejs18.x:latest",
+          },
+          Object {
             "Name": "STUDIO_PG_META_URL",
             "Value": Object {
               "Fn::Join": Array [
@@ -9371,21 +9437,6 @@ applications:
                     ],
                   },
                   "/pg",
-                ],
-              ],
-            },
-          },
-          Object {
-            "Name": "POSTGRES_PASSWORD",
-            "Value": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "{{resolve:secretsmanager:",
-                  Object {
-                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
-                  },
-                  ":SecretString:password::}}",
                 ],
               ],
             },
@@ -9425,38 +9476,28 @@ applications:
             },
           },
           Object {
-            "Name": "SUPABASE_ANON_KEY",
+            "Name": "DB_SECRET_ARN",
             "Value": Object {
-              "Fn::GetAtt": Array [
-                "JwtSecretAnonKey63F37A1E",
-                "Value",
-              ],
+              "Ref": "DatabasedashboarduserSecret102D2F3B",
             },
           },
           Object {
-            "Name": "SUPABASE_SERVICE_KEY",
+            "Name": "SSM_REGION",
             "Value": Object {
-              "Fn::GetAtt": Array [
-                "JwtSecretServiceRoleKeyF0F6C193",
-                "Value",
-              ],
+              "Ref": "AWS::Region",
             },
           },
           Object {
-            "Name": "NODE_OPTIONS",
-            "Value": "--max-old-space-size=4096",
+            "Name": "ANON_KEY_NAME",
+            "Value": Object {
+              "Ref": "JwtSecretAnonKeyParameter532DCC06",
+            },
           },
           Object {
-            "Name": "AMPLIFY_MONOREPO_APP_ROOT",
-            "Value": "studio",
-          },
-          Object {
-            "Name": "AMPLIFY_DIFF_DEPLOY",
-            "Value": "false",
-          },
-          Object {
-            "Name": "_CUSTOM_IMAGE",
-            "Value": "public.ecr.aws/sam/build-nodejs18.x:latest",
+            "Name": "SERVICE_KEY_NAME",
+            "Value": Object {
+              "Ref": "JwtSecretServiceRoleKeyParameterB65536EB",
+            },
           },
         ],
         "IAMServiceRole": Object {
@@ -9795,6 +9836,80 @@ applications:
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "DatabasedashboarduserSecret102D2F3B",
+              },
+            },
+            Object {
+              "Action": Array [
+                "ssm:DescribeParameters",
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+                "ssm:GetParameterHistory",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter",
+                    Object {
+                      "Ref": "JwtSecretAnonKeyParameter532DCC06",
+                    },
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "ssm:DescribeParameters",
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+                "ssm:GetParameterHistory",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter",
+                    Object {
+                      "Ref": "JwtSecretServiceRoleKeyParameterB65536EB",
+                    },
+                  ],
+                ],
+              },
+            },
             Object {
               "Action": "codecommit:GitPull",
               "Effect": "Allow",
