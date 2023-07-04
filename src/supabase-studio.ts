@@ -4,19 +4,21 @@ import { BuildSpec } from 'aws-cdk-lib/aws-codebuild';
 import * as codecommit from 'aws-cdk-lib/aws-codecommit';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
-interface AmplifyHostingProps {
-  sourceRepo: string;
-  sourceBranch: string;
-  appRoot: string;
-  environment?: {
-    [name: string]: string;
-  };
+interface SupabaseStudioProps {
+  sourceBranch?: string;
+  appRoot?: string;
+  supabaseUrl: string;
+  dbSecret: ISecret;
+  anonKey: StringParameter;
+  serviceRoleKey: StringParameter;
 }
 
-export class AmplifyHosting extends Construct {
+export class SupabaseStudio extends Construct {
   /** App in Amplify Hosting. It is a collection of branches. */
   readonly app: amplify.App;
   /** Production branch */
@@ -24,11 +26,15 @@ export class AmplifyHosting extends Construct {
   /** URL of production branch */
   readonly prodBranchUrl: string;
 
-  /** Next.js App Hosting */
-  constructor(scope: Construct, id: string, props: AmplifyHostingProps) {
+  /** Next.js app on Amplify Hosting */
+  constructor(scope: Construct, id: string, props: SupabaseStudioProps) {
     super(scope, id);
 
-    const { sourceRepo, sourceBranch, appRoot, environment = {} } = props;
+    const buildImage = 'public.ecr.aws/sam/build-nodejs18.x:latest';
+    const sourceRepo = 'https://github.com/supabase/supabase.git';
+    const sourceBranch = props.sourceBranch ?? 'master';
+    const appRoot = props.appRoot ?? 'studio';
+    const { supabaseUrl, dbSecret, anonKey, serviceRoleKey } = props;
 
     /** CodeCommit - Source Repository for Amplify Hosting */
     const repository = new Repository(this, 'Repository', {
@@ -46,8 +52,10 @@ export class AmplifyHosting extends Construct {
       assumedBy: new iam.ServicePrincipal('amplify.amazonaws.com'),
     });
 
-    /** Keys of environment variables */
-    const envKeys = Object.keys(environment);
+    // Allow the role to access Secret and Parameter
+    dbSecret.grantRead(role);
+    anonKey.grantRead(role);
+    serviceRoleKey.grantRead(role);
 
     /** BuildSpec for Amplify Hosting */
     const buildSpec = BuildSpec.fromObjectToYaml({
@@ -58,11 +66,14 @@ export class AmplifyHosting extends Construct {
           phases: {
             preBuild: {
               commands: [
-                `env | grep ${envKeys.map(key => `-e ${key}`).join(' ')} >> .env.production`,
+                'echo POSTGRES_PASSWORD=$(aws secretsmanager get-secret-value --secret-id $DB_SECRET_ARN --query SecretString | jq -r . | jq -r .password) >> .env.production',
+                'echo SUPABASE_ANON_KEY=$(aws ssm get-parameter --region $SSM_REGION --name $ANON_KEY_NAME --query Parameter.Value) >> .env.production',
+                'echo SUPABASE_SERVICE_KEY=$(aws ssm get-parameter --region $SSM_REGION --name $SERVICE_KEY_NAME --query Parameter.Value) >> .env.production',
+                'env | grep -e STUDIO_PG_META_URL >> .env.production',
+                'env | grep -e SUPABASE_ >> .env.production',
                 'env | grep -e NEXT_PUBLIC_ >> .env.production',
-                'yum install -y rsync',
                 'cd ../',
-                'npx turbo@1.7.0 prune --scope=studio',
+                'npx turbo@1.10.3 prune --scope=studio',
                 'npm clean-install',
               ],
             },
@@ -104,19 +115,27 @@ export class AmplifyHosting extends Construct {
       sourceCodeProvider: new amplify.CodeCommitSourceCodeProvider({ repository }),
       buildSpec,
       environmentVariables: {
-        ...environment,
+        // for Amplify Hosting Build
         NODE_OPTIONS: '--max-old-space-size=4096',
         AMPLIFY_MONOREPO_APP_ROOT: appRoot,
         AMPLIFY_DIFF_DEPLOY: 'false',
+        _CUSTOM_IMAGE: buildImage,
+        // for Supabase
+        STUDIO_PG_META_URL: `${supabaseUrl}/pg`,
+        SUPABASE_URL: `${supabaseUrl}`,
+        SUPABASE_PUBLIC_URL: `${supabaseUrl}`,
+        DB_SECRET_ARN: dbSecret.secretArn,
+        SSM_REGION: anonKey.env.region,
+        ANON_KEY_NAME: anonKey.parameterName,
+        SERVICE_KEY_NAME: serviceRoleKey.parameterName,
       },
+      customRules: [
+        { source: '/<*>', target: '/index.html', status: amplify.RedirectStatus.NOT_FOUND_REWRITE },
+      ],
     });
+
+    /** SSR v2 */
     (this.app.node.defaultChild as cdk.CfnResource).addPropertyOverride('Platform', 'WEB_COMPUTE');
-
-    this.app.addEnvironment('NODE_OPTIONS', '--max-old-space-size=4096');
-    this.app.addEnvironment('AMPLIFY_MONOREPO_APP_ROOT', appRoot);
-    this.app.addEnvironment('AMPLIFY_DIFF_DEPLOY', 'false');
-
-    this.app.addCustomRule({ source: '/<*>', target: '/index.html', status: amplify.RedirectStatus.NOT_FOUND_REWRITE });
 
     this.prodBranch = this.app.addBranch('ProdBranch', {
       branchName: 'main',
