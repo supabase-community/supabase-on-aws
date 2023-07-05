@@ -648,11 +648,17 @@ export class SupabaseStack extends FargateStack {
       serviceRoleKey: serviceRoleKey.ssmParameter,
     });
 
+    new cdk.CfnOutput(this, 'StudioUrl', {
+      value: studio.prodBranchUrl,
+      description: 'The dashboard for Supabase projects.',
+    });
+
     new cdk.CfnOutput(this, 'SupabaseUrl', {
       value: apiExternalUrl,
       description: 'A RESTful endpoint for querying and managing your database.',
       exportName: `${cdk.Aws.STACK_NAME}Url`,
     });
+
     new cdk.CfnOutput(this, 'SupabasAnonKey', {
       value: anonKey.value,
       description: 'This key is safe to use in a browser if you have enabled Row Level Security for your tables and configured policies.',

@@ -67,8 +67,8 @@ export class SupabaseStudio extends Construct {
             preBuild: {
               commands: [
                 'echo POSTGRES_PASSWORD=$(aws secretsmanager get-secret-value --secret-id $DB_SECRET_ARN --query SecretString | jq -r . | jq -r .password) >> .env.production',
-                'echo SUPABASE_ANON_KEY=$(aws ssm get-parameter --region $SSM_REGION --name $ANON_KEY_NAME --query Parameter.Value) >> .env.production',
-                'echo SUPABASE_SERVICE_KEY=$(aws ssm get-parameter --region $SSM_REGION --name $SERVICE_KEY_NAME --query Parameter.Value) >> .env.production',
+                'echo SUPABASE_ANON_KEY=$(aws ssm get-parameter --region $SUPABASE_REGION --name $ANON_KEY_NAME --query Parameter.Value) >> .env.production',
+                'echo SUPABASE_SERVICE_KEY=$(aws ssm get-parameter --region $SUPABASE_REGION --name $SERVICE_KEY_NAME --query Parameter.Value) >> .env.production',
                 'env | grep -e STUDIO_PG_META_URL >> .env.production',
                 'env | grep -e SUPABASE_ >> .env.production',
                 'env | grep -e NEXT_PUBLIC_ >> .env.production',
@@ -124,8 +124,8 @@ export class SupabaseStudio extends Construct {
         STUDIO_PG_META_URL: `${supabaseUrl}/pg`,
         SUPABASE_URL: `${supabaseUrl}`,
         SUPABASE_PUBLIC_URL: `${supabaseUrl}`,
+        SUPABASE_REGION: serviceRoleKey.env.region,
         DB_SECRET_ARN: dbSecret.secretArn,
-        SSM_REGION: anonKey.env.region,
         ANON_KEY_NAME: anonKey.parameterName,
         SERVICE_KEY_NAME: serviceRoleKey.parameterName,
       },
@@ -173,8 +173,6 @@ export class SupabaseStudio extends Construct {
     amplifySSRLoggingPolicy.attachToRole(role);
 
     this.prodBranchUrl = `https://${this.prodBranch.branchName}.${this.app.defaultDomain}`;
-
-    new cdk.CfnOutput(this, 'Url', { value: this.prodBranchUrl });
   }
 
 }
