@@ -699,7 +699,8 @@ Object {
     },
   },
   "Outputs": Object {
-    "StudioUrlAE70A83E": Object {
+    "StudioUrl": Object {
+      "Description": "The dashboard for Supabase projects.",
       "Value": Object {
         "Fn::Join": Array [
           "",
@@ -9346,8 +9347,8 @@ applications:
         preBuild:
           commands:
             - echo POSTGRES_PASSWORD=$(aws secretsmanager get-secret-value --secret-id $DB_SECRET_ARN --query SecretString | jq -r . | jq -r .password) >> .env.production
-            - echo SUPABASE_ANON_KEY=$(aws ssm get-parameter --region $SSM_REGION --name $ANON_KEY_NAME --query Parameter.Value) >> .env.production
-            - echo SUPABASE_SERVICE_KEY=$(aws ssm get-parameter --region $SSM_REGION --name $SERVICE_KEY_NAME --query Parameter.Value) >> .env.production
+            - echo SUPABASE_ANON_KEY=$(aws ssm get-parameter --region $SUPABASE_REGION --name $ANON_KEY_NAME --query Parameter.Value) >> .env.production
+            - echo SUPABASE_SERVICE_KEY=$(aws ssm get-parameter --region $SUPABASE_REGION --name $SERVICE_KEY_NAME --query Parameter.Value) >> .env.production
             - env | grep -e STUDIO_PG_META_URL >> .env.production
             - env | grep -e SUPABASE_ >> .env.production
             - env | grep -e NEXT_PUBLIC_ >> .env.production
@@ -9476,15 +9477,15 @@ applications:
             },
           },
           Object {
-            "Name": "DB_SECRET_ARN",
+            "Name": "SUPABASE_REGION",
             "Value": Object {
-              "Ref": "DatabasedashboarduserSecret102D2F3B",
+              "Ref": "AWS::Region",
             },
           },
           Object {
-            "Name": "SSM_REGION",
+            "Name": "DB_SECRET_ARN",
             "Value": Object {
-              "Ref": "AWS::Region",
+              "Ref": "DatabasedashboarduserSecret102D2F3B",
             },
           },
           Object {
