@@ -9573,7 +9573,7 @@ applications:
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "cacf47d179251c214c8728ecc90ed5906d9426afd63b1f1ee6992e03197368bc.zip",
+          "S3Key": "5c51be0641b6947a546a4837d3a851cf3e3b67f9b8a02fa6770621de03a50c45.zip",
         },
         "Description": "Clone to CodeCommit from remote repo (You can execute this function manually.)",
         "Environment": Object {
