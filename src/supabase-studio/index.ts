@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as amplify from '@aws-cdk/aws-amplify-alpha';
 import * as cdk from 'aws-cdk-lib';
 import { BuildSpec } from 'aws-cdk-lib/aws-codebuild';
@@ -188,7 +189,7 @@ export class Repository extends codecommit.Repository {
     this.importFunction = new lambda.Function(this, 'ImportFunction', {
       description: 'Clone to CodeCommit from remote repo (You can execute this function manually.)',
       runtime: lambda.Runtime.PYTHON_3_9,
-      code: lambda.Code.fromAsset('./src/functions/copy-git-repo', {
+      code: lambda.Code.fromAsset(path.resolve(__dirname, 'cr-import-repo'), {
         bundling: {
           image: cdk.DockerImage.fromRegistry('public.ecr.aws/sam/build-python3.9:latest-x86_64'),
           command: [

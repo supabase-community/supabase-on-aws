@@ -86,7 +86,7 @@ export class Organization extends Construct {
 
     const checkOrgFunction = new NodejsFunction(this, 'CheckOrgFunction', {
       description: 'Supabase - Check state WorkMail Org Function',
-      entry: './src/functions/check-workmail-org.ts',
+      entry: path.resolve(__dirname, 'check-workmail-org.ts'),
       runtime: lambda.Runtime.NODEJS_18_X,
       initialPolicy: [
         new iam.PolicyStatement({
