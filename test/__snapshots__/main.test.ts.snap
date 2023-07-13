@@ -530,15 +530,6 @@ Object {
         },
         Object {
           "Label": Object {
-            "default": "Infrastructure Settings - Database",
-          },
-          "Parameters": Array [
-            "MinACU",
-            "MaxACU",
-          ],
-        },
-        Object {
-          "Label": Object {
             "default": "Infrastructure Settings - Containers",
           },
           "Parameters": Array [
@@ -644,14 +635,8 @@ Object {
         "KongTaskSize93C195E9": Object {
           "default": "Task Size - Kong",
         },
-        "MaxACU": Object {
-          "default": "Maximum ACUs",
-        },
         "MetaTaskSize556D36D9": Object {
           "default": "Task Size - postgres-meta",
-        },
-        "MinACU": Object {
-          "default": "Minimum ACUs",
         },
         "PasswordMinLength": Object {
           "default": "Min password length",
@@ -998,13 +983,6 @@ Object {
       "Description": "Fargare task size",
       "Type": "String",
     },
-    "MaxACU": Object {
-      "Default": 32,
-      "Description": "The maximum number of Aurora capacity units (ACU) for a DB instance in an Aurora Serverless v2 cluster.",
-      "MaxValue": 128,
-      "MinValue": 0.5,
-      "Type": "Number",
-    },
     "MetaTaskSize556D36D9": Object {
       "AllowedValues": Array [
         "none",
@@ -1019,13 +997,6 @@ Object {
       "Default": "medium",
       "Description": "Fargare task size",
       "Type": "String",
-    },
-    "MinACU": Object {
-      "Default": 0.5,
-      "Description": "The minimum number of Aurora capacity units (ACU) for a DB instance in an Aurora Serverless v2 cluster.",
-      "MaxValue": 128,
-      "MinValue": 0.5,
-      "Type": "Number",
     },
     "PasswordMinLength": Object {
       "Default": "8",
@@ -3418,108 +3389,71 @@ Object {
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
     },
-    "DatabaseCluster5B53A178": Object {
+    "DatabaseInstanceAA8A5FDE": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
+        "AllocatedStorage": "20",
         "CopyTagsToSnapshot": true,
-        "DBClusterParameterGroupName": Object {
+        "DBInstanceClass": "db.t4g.micro",
+        "DBName": "postgres",
+        "DBParameterGroupName": Object {
           "Ref": "DatabaseParameterGroup2A921026",
         },
         "DBSubnetGroupName": Object {
-          "Ref": "DatabaseClusterSubnets5540150D",
+          "Ref": "DatabaseInstanceSubnetGroupDE121BB6",
         },
-        "DatabaseName": "postgres",
-        "Engine": "aurora-postgresql",
-        "EngineVersion": "15.2",
+        "Engine": "postgres",
+        "EngineVersion": "15",
         "MasterUserPassword": Object {
           "Fn::Join": Array [
             "",
             Array [
               "{{resolve:secretsmanager:",
               Object {
-                "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD3fdaad7efa858a3daf9490cf0a702aeb",
+                "Ref": "SupabaseDatabaseInstanceSecret90E6F38D3fdaad7efa858a3daf9490cf0a702aeb",
               },
               ":SecretString:password::}}",
             ],
           ],
         },
         "MasterUsername": "supabase_admin",
-        "Port": 5432,
-        "ServerlessV2ScalingConfiguration": Object {
-          "MaxCapacity": Object {
-            "Ref": "MaxACU",
-          },
-          "MinCapacity": Object {
-            "Ref": "MinACU",
-          },
+        "MaxAllocatedStorage": 200,
+        "MultiAZ": Object {
+          "Fn::If": Array [
+            "HighAvailability",
+            true,
+            false,
+          ],
         },
         "StorageEncrypted": true,
-        "VpcSecurityGroupIds": Array [
+        "StorageType": "gp3",
+        "VPCSecurityGroups": Array [
           Object {
             "Fn::GetAtt": Array [
-              "DatabaseClusterSecurityGroupFEF1426A",
+              "DatabaseInstanceSecurityGroupDDFAC9BB",
               "GroupId",
             ],
           },
         ],
       },
-      "Type": "AWS::RDS::DBCluster",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterInstance1E154D1E9": Object {
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": "db.serverless",
-        "Engine": "aurora-postgresql",
-        "PromotionTier": 0,
-      },
       "Type": "AWS::RDS::DBInstance",
       "UpdateReplacePolicy": "Delete",
     },
-    "DatabaseClusterInstance2D6BCD1AC": Object {
-      "Condition": "HighAvailability",
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "VPCPrivateSubnet1DefaultRouteAE1D6490",
-        "VPCPrivateSubnet1RouteTableAssociation347902D1",
-        "VPCPrivateSubnet2DefaultRouteF4F5CFD2",
-        "VPCPrivateSubnet2RouteTableAssociation0C73D413",
-      ],
-      "Properties": Object {
-        "DBClusterIdentifier": Object {
-          "Ref": "DatabaseCluster5B53A178",
-        },
-        "DBInstanceClass": "db.serverless",
-        "Engine": "aurora-postgresql",
-        "PromotionTier": 1,
-      },
-      "Type": "AWS::RDS::DBInstance",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DatabaseClusterSecretAttachmentDC8466C0": Object {
+    "DatabaseInstanceSecretAttachmentFCA06D38": Object {
       "Properties": Object {
         "SecretId": Object {
-          "Ref": "SupabaseDatabaseClusterSecret2AA4A5CD3fdaad7efa858a3daf9490cf0a702aeb",
+          "Ref": "SupabaseDatabaseInstanceSecret90E6F38D3fdaad7efa858a3daf9490cf0a702aeb",
         },
         "TargetId": Object {
-          "Ref": "DatabaseCluster5B53A178",
+          "Ref": "DatabaseInstanceAA8A5FDE",
         },
-        "TargetType": "AWS::RDS::DBCluster",
+        "TargetType": "AWS::RDS::DBInstance",
       },
       "Type": "AWS::SecretsManager::SecretTargetAttachment",
     },
-    "DatabaseClusterSecurityGroupFEF1426A": Object {
+    "DatabaseInstanceSecurityGroupDDFAC9BB": Object {
       "Properties": Object {
-        "GroupDescription": "RDS security group",
+        "GroupDescription": "Security group for Instance database",
         "SecurityGroupEgress": Array [
           Object {
             "CidrIp": "0.0.0.0/0",
@@ -3533,18 +3467,18 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseAuthServiceSecurityGroupC0652D23IndirectPort316A82A5": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseAuthServiceSecurityGroupC0652D23IndirectPort78D64D5F": Object {
       "Properties": Object {
         "Description": "from SupabaseAuthServiceSecurityGroupC0652D23:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -3557,25 +3491,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseDatabaseMigrationFunctionSecurityGroup2273CFF4IndirectPort7EBF4AAA": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseDatabaseMigrationFunctionSecurityGroup2273CFF4IndirectPortC0730BF5": Object {
       "Properties": Object {
         "Description": "from SupabaseDatabaseMigrationFunctionSecurityGroup2273CFF4:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -3588,25 +3522,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseDatabaseUserPasswordFunctionSecurityGroup71503A07IndirectPort8134897C": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseDatabaseUserPasswordFunctionSecurityGroup71503A07IndirectPort7E13B60D": Object {
       "Properties": Object {
         "Description": "from SupabaseDatabaseUserPasswordFunctionSecurityGroup71503A07:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -3619,25 +3553,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseGraphQLServiceSecurityGroup270E856EIndirectPort858A8D36": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseGraphQLServiceSecurityGroup270E856EIndirectPort442F302B": Object {
       "Properties": Object {
         "Description": "from SupabaseGraphQLServiceSecurityGroup270E856E:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -3650,25 +3584,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseMetaServiceSecurityGroup8C22DD35IndirectPort496372C3": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseMetaServiceSecurityGroup8C22DD35IndirectPort236FD27A": Object {
       "Properties": Object {
         "Description": "from SupabaseMetaServiceSecurityGroup8C22DD35:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -3681,25 +3615,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseRealtimeServiceSecurityGroup570992FEIndirectPort1FAA9E4F": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseRealtimeServiceSecurityGroup570992FEIndirectPort89754FC0": Object {
       "Properties": Object {
         "Description": "from SupabaseRealtimeServiceSecurityGroup570992FE:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -3712,25 +3646,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseRestServiceSecurityGroupC3243DF3IndirectPort2D0B0423": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseRestServiceSecurityGroupC3243DF3IndirectPortC4BE363C": Object {
       "Properties": Object {
         "Description": "from SupabaseRestServiceSecurityGroupC3243DF3:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -3743,25 +3677,25 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseStorageServiceSecurityGroupADF822D4IndirectPort3CE1B682": Object {
+    "DatabaseInstanceSecurityGroupfromSupabaseStorageServiceSecurityGroupADF822D4IndirectPortA23D8F96": Object {
       "Properties": Object {
         "Description": "from SupabaseStorageServiceSecurityGroupADF822D4:{IndirectPort}",
         "FromPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
+            "DatabaseInstanceSecurityGroupDDFAC9BB",
             "GroupId",
           ],
         },
@@ -3774,16 +3708,16 @@ Object {
         },
         "ToPort": Object {
           "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
+            "DatabaseInstanceAA8A5FDE",
             "Endpoint.Port",
           ],
         },
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSubnets5540150D": Object {
+    "DatabaseInstanceSubnetGroupDE121BB6": Object {
       "Properties": Object {
-        "DBSubnetGroupDescription": "Subnets for Cluster database",
+        "DBSubnetGroupDescription": "Subnet group for Instance database",
         "SubnetIds": Array [
           Object {
             "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
@@ -3798,7 +3732,7 @@ Object {
     "DatabaseMigration993F5B9C": Object {
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
-        "DatabaseClusterInstance1E154D1E9",
+        "DatabaseInstanceAA8A5FDE",
       ],
       "Properties": Object {
         "Fingerprint": "3588f4b3167a4650ea4dfd3aea3e53facfba6a2fe38d749488dcb1623202b110",
@@ -3833,7 +3767,7 @@ Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "DB_SECRET_ARN": Object {
-              "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+              "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
             },
           },
         },
@@ -3906,7 +3840,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
               },
             },
           ],
@@ -4081,15 +4015,15 @@ Object {
     "DatabaseParameterGroup2A921026": Object {
       "Properties": Object {
         "Description": "Parameter group for Supabase",
-        "Family": "aurora-postgresql15",
+        "Family": "postgres15",
         "Parameters": Object {
           "max_slot_wal_keep_size": "1024",
           "rds.force_ssl": "0",
           "rds.logical_replication": "1",
-          "shared_preload_libraries": "pg_tle, pg_stat_statements, pgaudit, pg_cron",
+          "shared_preload_libraries": "pg_tle, plrust, pg_stat_statements, pgaudit, pg_cron",
         },
       },
-      "Type": "AWS::RDS::DBClusterParameterGroup",
+      "Type": "AWS::RDS::DBParameterGroup",
     },
     "DatabaseUserPasswordFunctionAFAC7436": Object {
       "DependsOn": Array [
@@ -4112,7 +4046,7 @@ Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "DB_SECRET_ARN": Object {
-              "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+              "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
             },
           },
         },
@@ -4258,7 +4192,7 @@ Object {
               "Effect": "Allow",
               "NotAction": "secretsmanager:PutSecretValue",
               "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
               },
             },
           ],
@@ -6950,7 +6884,7 @@ Object {
                 "Name": "PG_META_DB_HOST",
                 "Value": Object {
                   "Fn::GetAtt": Array [
-                    "DatabaseCluster5B53A178",
+                    "DatabaseInstanceAA8A5FDE",
                     "Endpoint.Address",
                   ],
                 },
@@ -6959,7 +6893,7 @@ Object {
                 "Name": "PG_META_DB_PORT",
                 "Value": Object {
                   "Fn::GetAtt": Array [
-                    "DatabaseCluster5B53A178",
+                    "DatabaseInstanceAA8A5FDE",
                     "Endpoint.Port",
                   ],
                 },
@@ -6997,7 +6931,7 @@ Object {
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":dbname::",
                     ],
@@ -7011,7 +6945,7 @@ Object {
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":username::",
                     ],
@@ -7025,7 +6959,7 @@ Object {
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":password::",
                     ],
@@ -7125,7 +7059,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
               },
             },
           ],
@@ -7457,7 +7391,7 @@ Object {
                 "Name": "DB_HOST",
                 "Value": Object {
                   "Fn::GetAtt": Array [
-                    "DatabaseCluster5B53A178",
+                    "DatabaseInstanceAA8A5FDE",
                     "Endpoint.Address",
                   ],
                 },
@@ -7466,7 +7400,7 @@ Object {
                 "Name": "DB_PORT",
                 "Value": Object {
                   "Fn::GetAtt": Array [
-                    "DatabaseCluster5B53A178",
+                    "DatabaseInstanceAA8A5FDE",
                     "Endpoint.Port",
                   ],
                 },
@@ -7532,7 +7466,7 @@ Object {
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":username::",
                     ],
@@ -7546,7 +7480,7 @@ Object {
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":password::",
                     ],
@@ -7560,7 +7494,7 @@ Object {
                     "",
                     Array [
                       Object {
-                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                        "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
                       },
                       ":dbname::",
                     ],
@@ -7672,7 +7606,7 @@ Object {
               ],
               "Effect": "Allow",
               "Resource": Object {
-                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                "Ref": "DatabaseInstanceSecretAttachmentFCA06D38",
               },
             },
             Object {
@@ -9933,7 +9867,7 @@ applications:
       },
       "Type": "AWS::IAM::Policy",
     },
-    "SupabaseDatabaseClusterSecret2AA4A5CD3fdaad7efa858a3daf9490cf0a702aeb": Object {
+    "SupabaseDatabaseInstanceSecret90E6F38D3fdaad7efa858a3daf9490cf0a702aeb": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Description": Object {

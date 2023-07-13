@@ -143,24 +143,6 @@ export class SupabaseStack extends FargateStack {
       allowedPattern: '^arn:aws:wafv2:us-east-1:[0-9]{12}:global/webacl/[\\w-]+/[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$|',
     });
 
-    /** The minimum number of aurora capacity units */
-    const minACU = new cdk.CfnParameter(this, 'MinACU', {
-      description: 'The minimum number of Aurora capacity units (ACU) for a DB instance in an Aurora Serverless v2 cluster.',
-      type: 'Number',
-      default: 0.5,
-      minValue: 0.5,
-      maxValue: 128,
-    });
-
-    /** The maximum number of aurora capacity units */
-    const maxACU = new cdk.CfnParameter(this, 'MaxACU', {
-      description: 'The maximum number of Aurora capacity units (ACU) for a DB instance in an Aurora Serverless v2 cluster.',
-      type: 'Number',
-      default: 32,
-      minValue: 0.5,
-      maxValue: 128,
-    });
-
     /** The region name for Amazon SES */
     const sesRegion = new cdk.CfnParameter(this, 'SesRegion', {
       description: 'Amazon SES used for SMTP server. If you want to use Amazon WorkMail, need to set us-east-1, us-west-2 or eu-west-1.',
@@ -192,7 +174,7 @@ export class SupabaseStack extends FargateStack {
     const vpc = new Vpc(this, 'VPC', { natGateways: 1 });
 
     /** Namespace name for CloudMap and ECS Service Connect */
-    const namespaceName = 'supabase.internal';
+    const namespaceName = id.toLocaleLowerCase() + '.internal';
 
     /** ECS Cluster for Supabase components */
     const cluster = new ecs.Cluster(this, 'Cluster', {
@@ -218,14 +200,8 @@ export class SupabaseStack extends FargateStack {
       workMailEnabled: workMailEnabled,
     });
 
-    // Overwrite ACU
-    (db.cluster.node.defaultChild as rds.CfnDBCluster).serverlessV2ScalingConfiguration = {
-      minCapacity: minACU.valueAsNumber,
-      maxCapacity: maxACU.valueAsNumber,
-    };
-
     /** Secret of supabase_admin user */
-    const supabaseAdminSecret = db.cluster.secret!;
+    const supabaseAdminSecret = db.instance.secret!;
     /** Secret of supabase_auth_admin user */
     const supabaseAuthAdminSecret = db.genUserPassword('supabase_auth_admin');
     /** Secret of supabase_storage_admin user */
@@ -453,8 +429,8 @@ export class SupabaseStack extends FargateStack {
         containerPort: 4000,
         environment: {
           PORT: '4000',
-          DB_HOST: db.cluster.clusterEndpoint.hostname,
-          DB_PORT: db.cluster.clusterEndpoint.port.toString(),
+          DB_HOST: db.instance.dbInstanceEndpointAddress,
+          DB_PORT: db.instance.dbInstanceEndpointPort,
           DB_AFTER_CONNECT_QUERY: 'SET search_path TO realtime',
           DB_ENC_KEY: 'supabaserealtime',
           FLY_ALLOC_ID: 'fly123',
@@ -568,8 +544,8 @@ export class SupabaseStack extends FargateStack {
         containerPort: 8080,
         environment: {
           PG_META_PORT: '8080',
-          PG_META_DB_HOST: db.cluster.clusterEndpoint.hostname,
-          PG_META_DB_PORT: db.cluster.clusterEndpoint.port.toString(),
+          PG_META_DB_HOST: db.instance.dbInstanceEndpointAddress,
+          PG_META_DB_PORT: db.instance.dbInstanceEndpointPort,
         },
         secrets: {
           PG_META_DB_NAME: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'dbname'),
@@ -604,12 +580,12 @@ export class SupabaseStack extends FargateStack {
     storage.connections.allowToDefaultPort(imgproxy);
 
     // Allow some services to connect the database
-    auth.connections.allowToDefaultPort(db.cluster);
-    rest.connections.allowToDefaultPort(db.cluster);
-    gql.connections.allowToDefaultPort(db.cluster);
-    realtime.connections.allowToDefaultPort(db.cluster);
-    storage.connections.allowToDefaultPort(db.cluster);
-    meta.connections.allowToDefaultPort(db.cluster);
+    auth.connections.allowToDefaultPort(db.instance);
+    rest.connections.allowToDefaultPort(db.instance);
+    gql.connections.allowToDefaultPort(db.instance);
+    realtime.connections.allowToDefaultPort(db.instance);
+    storage.connections.allowToDefaultPort(db.instance);
+    meta.connections.allowToDefaultPort(db.instance);
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
     // for DB secret rotation
@@ -710,13 +686,6 @@ export class SupabaseStack extends FargateStack {
           ],
         },
         {
-          Label: { default: 'Infrastructure Settings - Database' },
-          Parameters: [
-            minACU.logicalId,
-            maxACU.logicalId,
-          ],
-        },
-        {
           Label: { default: 'Infrastructure Settings - Containers' },
           Parameters: [
             kong.taskSize.logicalId,
@@ -750,9 +719,6 @@ export class SupabaseStack extends FargateStack {
 
         [enableHighAvailability.logicalId]: { default: 'High Availability (HA)' },
         [webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
-
-        [minACU.logicalId]: { default: 'Minimum ACUs' },
-        [maxACU.logicalId]: { default: 'Maximum ACUs' },
 
         [kong.taskSize.logicalId]: { default: 'Task Size - Kong' },
         [auth.taskSize.logicalId]: { default: 'Task Size - GoTrue' },
