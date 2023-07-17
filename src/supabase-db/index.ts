@@ -20,11 +20,12 @@ interface SupabaseDatabaseProps {
 }
 
 export class SupabaseDatabase extends Construct {
-  //instance: rds.DatabaseInstance;
   /** Aurora Cluster */
   cluster: rds.DatabaseCluster;
+
   /** Database migration */
   migration: cdk.CustomResource;
+
   /** Custom resource provider to generate user password */
   userPasswordProvider: cr.Provider;
 
@@ -35,7 +36,6 @@ export class SupabaseDatabase extends Construct {
     const { vpc, highAvailability } = props;
 
     /** Database Engine */
-    //const engine = rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_15 });
     const engine = rds.DatabaseClusterEngine.auroraPostgres({ version: rds.AuroraPostgresEngineVersion.VER_15_2 });
 
     /** Parameter Group */
@@ -72,26 +72,6 @@ export class SupabaseDatabase extends Construct {
     if (typeof highAvailability !== 'undefined') {
       instance2.cfnOptions.condition = highAvailability;
     }
-
-    //this.instance = new rds.DatabaseInstance(this, 'Instance', {
-    //  engine,
-    //  parameterGroup,
-    //  vpc,
-    //  multiAz: true,
-    //  instanceType: ec2.InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.MICRO),
-    //  storageType: rds.StorageType.GP3,
-    //  allocatedStorage: 20,
-    //  maxAllocatedStorage: 200,
-    //  credentials: rds.Credentials.fromGeneratedSecret('supabase_admin', {
-    //    secretName: `${cdk.Aws.STACK_NAME}-${id}-supabase_admin`,
-    //  }),
-    //  databaseName: 'postgres',
-    //  storageEncrypted: true,
-    //});
-
-    /** CFn resource for overwrite */
-    //const dbInstance = this.instance.node.defaultChild! as rds.CfnDBInstance;
-
 
     /** Custom resource handler for database migration */
     const migrationFunction = new NodejsFunction(this, 'MigrationFunction', {
