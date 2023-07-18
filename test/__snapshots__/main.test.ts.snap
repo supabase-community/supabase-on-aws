@@ -242,107 +242,6 @@ Object {
   },
   "Description": "Self-hosted Supabase",
   "Mappings": Object {
-    "DefaultCrNodeVersionMap": Object {
-      "af-south-1": Object {
-        "value": "nodejs16.x",
-      },
-      "ap-east-1": Object {
-        "value": "nodejs16.x",
-      },
-      "ap-northeast-1": Object {
-        "value": "nodejs16.x",
-      },
-      "ap-northeast-2": Object {
-        "value": "nodejs16.x",
-      },
-      "ap-northeast-3": Object {
-        "value": "nodejs16.x",
-      },
-      "ap-south-1": Object {
-        "value": "nodejs16.x",
-      },
-      "ap-south-2": Object {
-        "value": "nodejs16.x",
-      },
-      "ap-southeast-1": Object {
-        "value": "nodejs16.x",
-      },
-      "ap-southeast-2": Object {
-        "value": "nodejs16.x",
-      },
-      "ap-southeast-3": Object {
-        "value": "nodejs16.x",
-      },
-      "ca-central-1": Object {
-        "value": "nodejs16.x",
-      },
-      "cn-north-1": Object {
-        "value": "nodejs16.x",
-      },
-      "cn-northwest-1": Object {
-        "value": "nodejs16.x",
-      },
-      "eu-central-1": Object {
-        "value": "nodejs16.x",
-      },
-      "eu-central-2": Object {
-        "value": "nodejs16.x",
-      },
-      "eu-north-1": Object {
-        "value": "nodejs16.x",
-      },
-      "eu-south-1": Object {
-        "value": "nodejs16.x",
-      },
-      "eu-south-2": Object {
-        "value": "nodejs16.x",
-      },
-      "eu-west-1": Object {
-        "value": "nodejs16.x",
-      },
-      "eu-west-2": Object {
-        "value": "nodejs16.x",
-      },
-      "eu-west-3": Object {
-        "value": "nodejs16.x",
-      },
-      "me-central-1": Object {
-        "value": "nodejs16.x",
-      },
-      "me-south-1": Object {
-        "value": "nodejs16.x",
-      },
-      "sa-east-1": Object {
-        "value": "nodejs16.x",
-      },
-      "us-east-1": Object {
-        "value": "nodejs16.x",
-      },
-      "us-east-2": Object {
-        "value": "nodejs16.x",
-      },
-      "us-gov-east-1": Object {
-        "value": "nodejs16.x",
-      },
-      "us-gov-west-1": Object {
-        "value": "nodejs16.x",
-      },
-      "us-iso-east-1": Object {
-        "value": "nodejs14.x",
-      },
-      "us-iso-west-1": Object {
-        "value": "nodejs14.x",
-      },
-      "us-isob-east-1": Object {
-        "value": "nodejs14.x",
-      },
-      "us-west-1": Object {
-        "value": "nodejs16.x",
-      },
-      "us-west-2": Object {
-        "value": "nodejs16.x",
-      },
-    },
     "ServiceprincipalMap": Object {
       "af-south-1": Object {
         "states": "states.af-south-1.amazonaws.com",
@@ -1160,7 +1059,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f9346b940b724b094a16ca051c017799995fa93df6da38a0539bf7c000fee50a.zip",
+          "S3Key": "d62cd506a0f4ef6a29d7a97e2a02d80bc8248142ce428543cfbf0d84b3c116a2.zip",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -1169,15 +1068,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": Object {
-          "Fn::FindInMap": Array [
-            "DefaultCrNodeVersionMap",
-            Object {
-              "Ref": "AWS::Region",
-            },
-            "value",
-          ],
-        },
+        "Runtime": "nodejs18.x",
         "Timeout": 120,
       },
       "Type": "AWS::Lambda::Function",
@@ -1512,11 +1403,19 @@ Object {
       "Type": "AWS::SSM::Parameter",
     },
     "AuthServiceBA690728": Object {
+      "DependsOn": Array [
+        "AuthTaskDefTaskRole8CE224AF",
+      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
         },
         "DeploymentConfiguration": Object {
+          "Alarms": Object {
+            "AlarmNames": Array [],
+            "Enable": false,
+            "Rollback": false,
+          },
           "DeploymentCircuitBreaker": Object {
             "Enable": true,
             "Rollback": true,
@@ -1606,6 +1505,9 @@ Object {
       "Type": "AWS::ECS::Service",
     },
     "AuthServiceCloudmapService57D92A65": Object {
+      "DependsOn": Array [
+        "AuthTaskDefTaskRole8CE224AF",
+      ],
       "Properties": Object {
         "DnsConfig": Object {
           "DnsRecords": Array [
@@ -1640,6 +1542,9 @@ Object {
       "Type": "AWS::ServiceDiscovery::Service",
     },
     "AuthServiceSecurityGroup6440464F": Object {
+      "DependsOn": Array [
+        "AuthTaskDefTaskRole8CE224AF",
+      ],
       "Properties": Object {
         "GroupDescription": "Supabase/Auth/Service/SecurityGroup",
         "SecurityGroupEgress": Array [
@@ -1656,6 +1561,9 @@ Object {
       "Type": "AWS::EC2::SecurityGroup",
     },
     "AuthServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F99999367C437": Object {
+      "DependsOn": Array [
+        "AuthTaskDefTaskRole8CE224AF",
+      ],
       "Properties": Object {
         "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:9999",
         "FromPort": 9999,
@@ -1678,6 +1586,9 @@ Object {
     },
     "AuthServiceTaskCountTarget07A8CCD2": Object {
       "Condition": "AuthAutoScalingEnabled0CD7354E",
+      "DependsOn": Array [
+        "AuthTaskDefTaskRole8CE224AF",
+      ],
       "Properties": Object {
         "MaxCapacity": 20,
         "MinCapacity": 2,
@@ -1722,6 +1633,9 @@ Object {
     },
     "AuthServiceTaskCountTargetScaleOnCpu0847ACEC": Object {
       "Condition": "AuthAutoScalingEnabled0CD7354E",
+      "DependsOn": Array [
+        "AuthTaskDefTaskRole8CE224AF",
+      ],
       "Properties": Object {
         "PolicyName": "SupabaseAuthServiceTaskCountTargetScaleOnCpu253117F9",
         "PolicyType": "TargetTrackingScaling",
@@ -3179,7 +3093,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/e80cb6c3c32610200a4d46711e67c7e759a066534a83f2cc6d493c51fceecfd4.json",
+              "/23e806ea694e05e992f2bb6b817be2c62220a37a66afa50ab055037256a956da.json",
             ],
           ],
         },
@@ -3390,7 +3304,12 @@ Object {
           },
         ],
         "ServiceConnectDefaults": Object {
-          "Namespace": "supabase.internal",
+          "Namespace": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Arn",
+            ],
+          },
         },
       },
       "Type": "AWS::ECS::Cluster",
@@ -3430,7 +3349,7 @@ Object {
         },
         "DatabaseName": "postgres",
         "Engine": "aurora-postgresql",
-        "EngineVersion": "15.2",
+        "EngineVersion": "15.3",
         "MasterUserPassword": Object {
           "Fn::Join": Array [
             "",
@@ -3980,7 +3899,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
+          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/MigrationProvider)",
         "Environment": Object {
@@ -4000,7 +3919,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -4081,7 +4000,7 @@ Object {
     "DatabaseParameterGroup2A921026": Object {
       "Properties": Object {
         "Description": "Parameter group for Supabase",
-        "Family": "aurora-postgresql15",
+        "Family": "aurora-postgresql15.3",
         "Parameters": Object {
           "max_slot_wal_keep_size": "1024",
           "rds.force_ssl": "0",
@@ -4283,7 +4202,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
+          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/UserPasswordProvider)",
         "Environment": Object {
@@ -4303,7 +4222,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -4780,11 +4699,19 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "GraphQLServiceAFEB0D4A": Object {
+      "DependsOn": Array [
+        "GraphQLTaskDefTaskRoleD651EBE2",
+      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
         },
         "DeploymentConfiguration": Object {
+          "Alarms": Object {
+            "AlarmNames": Array [],
+            "Enable": false,
+            "Rollback": false,
+          },
           "DeploymentCircuitBreaker": Object {
             "Enable": true,
             "Rollback": true,
@@ -4874,6 +4801,9 @@ Object {
       "Type": "AWS::ECS::Service",
     },
     "GraphQLServiceCloudmapService68643605": Object {
+      "DependsOn": Array [
+        "GraphQLTaskDefTaskRoleD651EBE2",
+      ],
       "Properties": Object {
         "DnsConfig": Object {
           "DnsRecords": Array [
@@ -4908,6 +4838,9 @@ Object {
       "Type": "AWS::ServiceDiscovery::Service",
     },
     "GraphQLServiceSecurityGroupBF0E344A": Object {
+      "DependsOn": Array [
+        "GraphQLTaskDefTaskRoleD651EBE2",
+      ],
       "Properties": Object {
         "GroupDescription": "Supabase/GraphQL/Service/SecurityGroup",
         "SecurityGroupEgress": Array [
@@ -4924,6 +4857,9 @@ Object {
       "Type": "AWS::EC2::SecurityGroup",
     },
     "GraphQLServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F5000EA605FE7": Object {
+      "DependsOn": Array [
+        "GraphQLTaskDefTaskRoleD651EBE2",
+      ],
       "Properties": Object {
         "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:5000",
         "FromPort": 5000,
@@ -4946,6 +4882,9 @@ Object {
     },
     "GraphQLServiceTaskCountTargetD74EBB91": Object {
       "Condition": "GraphQLAutoScalingEnabled686BA277",
+      "DependsOn": Array [
+        "GraphQLTaskDefTaskRoleD651EBE2",
+      ],
       "Properties": Object {
         "MaxCapacity": 20,
         "MinCapacity": 2,
@@ -4990,6 +4929,9 @@ Object {
     },
     "GraphQLServiceTaskCountTargetScaleOnCpu65C9F8E9": Object {
       "Condition": "GraphQLAutoScalingEnabled686BA277",
+      "DependsOn": Array [
+        "GraphQLTaskDefTaskRoleD651EBE2",
+      ],
       "Properties": Object {
         "PolicyName": "SupabaseGraphQLServiceTaskCountTargetScaleOnCpuE8FC1CFC",
         "PolicyType": "TargetTrackingScaling",
@@ -5225,11 +5167,19 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "ImgproxyServiceC5851888": Object {
+      "DependsOn": Array [
+        "ImgproxyTaskDefTaskRoleB88D5B6D",
+      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
         },
         "DeploymentConfiguration": Object {
+          "Alarms": Object {
+            "AlarmNames": Array [],
+            "Enable": false,
+            "Rollback": false,
+          },
           "DeploymentCircuitBreaker": Object {
             "Enable": true,
             "Rollback": true,
@@ -5319,6 +5269,9 @@ Object {
       "Type": "AWS::ECS::Service",
     },
     "ImgproxyServiceCloudmapService9C9565A1": Object {
+      "DependsOn": Array [
+        "ImgproxyTaskDefTaskRoleB88D5B6D",
+      ],
       "Properties": Object {
         "DnsConfig": Object {
           "DnsRecords": Array [
@@ -5353,6 +5306,9 @@ Object {
       "Type": "AWS::ServiceDiscovery::Service",
     },
     "ImgproxyServiceSecurityGroupDD73DE99": Object {
+      "DependsOn": Array [
+        "ImgproxyTaskDefTaskRoleB88D5B6D",
+      ],
       "Properties": Object {
         "GroupDescription": "Supabase/Imgproxy/Service/SecurityGroup",
         "SecurityGroupEgress": Array [
@@ -5369,6 +5325,9 @@ Object {
       "Type": "AWS::EC2::SecurityGroup",
     },
     "ImgproxyServiceSecurityGroupfromSupabaseStorageServiceSecurityGroupADF822D450011E6FA973": Object {
+      "DependsOn": Array [
+        "ImgproxyTaskDefTaskRoleB88D5B6D",
+      ],
       "Properties": Object {
         "Description": "from SupabaseStorageServiceSecurityGroupADF822D4:5001",
         "FromPort": 5001,
@@ -5391,6 +5350,9 @@ Object {
     },
     "ImgproxyServiceTaskCountTargetC19355BF": Object {
       "Condition": "ImgproxyAutoScalingEnabled44E9E87F",
+      "DependsOn": Array [
+        "ImgproxyTaskDefTaskRoleB88D5B6D",
+      ],
       "Properties": Object {
         "MaxCapacity": 20,
         "MinCapacity": 2,
@@ -5435,6 +5397,9 @@ Object {
     },
     "ImgproxyServiceTaskCountTargetScaleOnCpuADE19FC6": Object {
       "Condition": "ImgproxyAutoScalingEnabled44E9E87F",
+      "DependsOn": Array [
+        "ImgproxyTaskDefTaskRoleB88D5B6D",
+      ],
       "Properties": Object {
         "PolicyName": "SupabaseImgproxyServiceTaskCountTargetScaleOnCpu2F1B6C7E",
         "PolicyType": "TargetTrackingScaling",
@@ -5707,7 +5672,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
+          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/JwtSecret/GenerateTokenProvider)",
         "Environment": Object {
@@ -5727,7 +5692,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -5967,6 +5932,7 @@ Object {
     },
     "KongService33127C91": Object {
       "DependsOn": Array [
+        "KongTaskDefTaskRole62A71DDF",
         "LoadBalancerListenerE1A099B9",
       ],
       "Properties": Object {
@@ -5974,6 +5940,11 @@ Object {
           "Ref": "ClusterEB0386A7",
         },
         "DeploymentConfiguration": Object {
+          "Alarms": Object {
+            "AlarmNames": Array [],
+            "Enable": false,
+            "Rollback": false,
+          },
           "DeploymentCircuitBreaker": Object {
             "Enable": true,
             "Rollback": true,
@@ -6073,6 +6044,9 @@ Object {
       "Type": "AWS::ECS::Service",
     },
     "KongServiceCloudmapService59ECFE3A": Object {
+      "DependsOn": Array [
+        "KongTaskDefTaskRole62A71DDF",
+      ],
       "Properties": Object {
         "DnsConfig": Object {
           "DnsRecords": Array [
@@ -6107,6 +6081,9 @@ Object {
       "Type": "AWS::ServiceDiscovery::Service",
     },
     "KongServiceSecurityGroupE199EE6C": Object {
+      "DependsOn": Array [
+        "KongTaskDefTaskRole62A71DDF",
+      ],
       "Properties": Object {
         "GroupDescription": "Supabase/Kong/Service/SecurityGroup",
         "SecurityGroupEgress": Array [
@@ -6123,6 +6100,9 @@ Object {
       "Type": "AWS::EC2::SecurityGroup",
     },
     "KongServiceSecurityGroupfromSupabaseLoadBalancerSecurityGroupADDF6EB880000F4CA2E4": Object {
+      "DependsOn": Array [
+        "KongTaskDefTaskRole62A71DDF",
+      ],
       "Properties": Object {
         "Description": "Load balancer to target",
         "FromPort": 8000,
@@ -6144,6 +6124,9 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "KongServiceSecurityGroupfromSupabaseLoadBalancerSecurityGroupADDF6EB881008D65C13D": Object {
+      "DependsOn": Array [
+        "KongTaskDefTaskRole62A71DDF",
+      ],
       "Properties": Object {
         "Description": "ALB healthcheck",
         "FromPort": 8100,
@@ -6166,6 +6149,9 @@ Object {
     },
     "KongServiceTaskCountTarget5CD21EEB": Object {
       "Condition": "KongAutoScalingEnabled41DC2F80",
+      "DependsOn": Array [
+        "KongTaskDefTaskRole62A71DDF",
+      ],
       "Properties": Object {
         "MaxCapacity": 20,
         "MinCapacity": 2,
@@ -6210,6 +6196,9 @@ Object {
     },
     "KongServiceTaskCountTargetScaleOnCpuE9FBE5E2": Object {
       "Condition": "KongAutoScalingEnabled41DC2F80",
+      "DependsOn": Array [
+        "KongTaskDefTaskRole62A71DDF",
+      ],
       "Properties": Object {
         "PolicyName": "SupabaseKongServiceTaskCountTargetScaleOnCpu7C47F3C3",
         "PolicyType": "TargetTrackingScaling",
@@ -6694,12 +6683,18 @@ Object {
     "MetaService2BE3A4CF": Object {
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "MetaTaskDefTaskRoleC662B431",
       ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
         },
         "DeploymentConfiguration": Object {
+          "Alarms": Object {
+            "AlarmNames": Array [],
+            "Enable": false,
+            "Rollback": false,
+          },
           "DeploymentCircuitBreaker": Object {
             "Enable": true,
             "Rollback": true,
@@ -6791,6 +6786,7 @@ Object {
     "MetaServiceCloudmapService638956CC": Object {
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "MetaTaskDefTaskRoleC662B431",
       ],
       "Properties": Object {
         "DnsConfig": Object {
@@ -6828,6 +6824,7 @@ Object {
     "MetaServiceSecurityGroup0E39DF35": Object {
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "MetaTaskDefTaskRoleC662B431",
       ],
       "Properties": Object {
         "GroupDescription": "Supabase/Meta/Service/SecurityGroup",
@@ -6847,6 +6844,7 @@ Object {
     "MetaServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F80805AD2C559": Object {
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "MetaTaskDefTaskRoleC662B431",
       ],
       "Properties": Object {
         "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:8080",
@@ -6872,6 +6870,7 @@ Object {
       "Condition": "MetaAutoScalingEnabledCF28EDB1",
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "MetaTaskDefTaskRoleC662B431",
       ],
       "Properties": Object {
         "MaxCapacity": 20,
@@ -6919,6 +6918,7 @@ Object {
       "Condition": "MetaAutoScalingEnabledCF28EDB1",
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "MetaTaskDefTaskRoleC662B431",
       ],
       "Properties": Object {
         "PolicyName": "SupabaseMetaServiceTaskCountTargetScaleOnCpuB433E25D",
@@ -7168,12 +7168,18 @@ Object {
     "RealtimeServiceA39AF596": Object {
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "RealtimeTaskDefTaskRole3682E469",
       ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
         },
         "DeploymentConfiguration": Object {
+          "Alarms": Object {
+            "AlarmNames": Array [],
+            "Enable": false,
+            "Rollback": false,
+          },
           "DeploymentCircuitBreaker": Object {
             "Enable": true,
             "Rollback": true,
@@ -7265,6 +7271,7 @@ Object {
     "RealtimeServiceCloudmapServiceBBBA4A23": Object {
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "RealtimeTaskDefTaskRole3682E469",
       ],
       "Properties": Object {
         "DnsConfig": Object {
@@ -7302,6 +7309,7 @@ Object {
     "RealtimeServiceSecurityGroup8E245E7E": Object {
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "RealtimeTaskDefTaskRole3682E469",
       ],
       "Properties": Object {
         "GroupDescription": "Supabase/Realtime/Service/SecurityGroup",
@@ -7321,6 +7329,7 @@ Object {
     "RealtimeServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F40007D995F01": Object {
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "RealtimeTaskDefTaskRole3682E469",
       ],
       "Properties": Object {
         "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:4000",
@@ -7345,6 +7354,7 @@ Object {
     "RealtimeServiceSecurityGroupfromSupabaseRealtimeServiceSecurityGroup570992FEALLTRAFFIC599B2469": Object {
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "RealtimeTaskDefTaskRole3682E469",
       ],
       "Properties": Object {
         "Description": "from SupabaseRealtimeServiceSecurityGroup570992FE:ALL TRAFFIC",
@@ -7368,6 +7378,7 @@ Object {
       "Condition": "RealtimeAutoScalingEnabled7991ED3B",
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "RealtimeTaskDefTaskRole3682E469",
       ],
       "Properties": Object {
         "MaxCapacity": 20,
@@ -7415,6 +7426,7 @@ Object {
       "Condition": "RealtimeAutoScalingEnabled7991ED3B",
       "DependsOn": Array [
         "DatabaseMigration993F5B9C",
+        "RealtimeTaskDefTaskRole3682E469",
       ],
       "Properties": Object {
         "PolicyName": "SupabaseRealtimeServiceTaskCountTargetScaleOnCpu2482C1E2",
@@ -7733,11 +7745,19 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "RestService8812C0B2": Object {
+      "DependsOn": Array [
+        "RestTaskDefTaskRole59E8D431",
+      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
         },
         "DeploymentConfiguration": Object {
+          "Alarms": Object {
+            "AlarmNames": Array [],
+            "Enable": false,
+            "Rollback": false,
+          },
           "DeploymentCircuitBreaker": Object {
             "Enable": true,
             "Rollback": true,
@@ -7827,6 +7847,9 @@ Object {
       "Type": "AWS::ECS::Service",
     },
     "RestServiceCloudmapServiceA978698C": Object {
+      "DependsOn": Array [
+        "RestTaskDefTaskRole59E8D431",
+      ],
       "Properties": Object {
         "DnsConfig": Object {
           "DnsRecords": Array [
@@ -7861,6 +7884,9 @@ Object {
       "Type": "AWS::ServiceDiscovery::Service",
     },
     "RestServiceSecurityGroup0BAEA949": Object {
+      "DependsOn": Array [
+        "RestTaskDefTaskRole59E8D431",
+      ],
       "Properties": Object {
         "GroupDescription": "Supabase/Rest/Service/SecurityGroup",
         "SecurityGroupEgress": Array [
@@ -7877,6 +7903,9 @@ Object {
       "Type": "AWS::EC2::SecurityGroup",
     },
     "RestServiceSecurityGroupfromSupabaseAuthServiceSecurityGroupC0652D2330004E9DE7F5": Object {
+      "DependsOn": Array [
+        "RestTaskDefTaskRole59E8D431",
+      ],
       "Properties": Object {
         "Description": "from SupabaseAuthServiceSecurityGroupC0652D23:3000",
         "FromPort": 3000,
@@ -7898,6 +7927,9 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "RestServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F300032126E75": Object {
+      "DependsOn": Array [
+        "RestTaskDefTaskRole59E8D431",
+      ],
       "Properties": Object {
         "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:3000",
         "FromPort": 3000,
@@ -7919,6 +7951,9 @@ Object {
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
     "RestServiceSecurityGroupfromSupabaseStorageServiceSecurityGroupADF822D430009563CF9C": Object {
+      "DependsOn": Array [
+        "RestTaskDefTaskRole59E8D431",
+      ],
       "Properties": Object {
         "Description": "from SupabaseStorageServiceSecurityGroupADF822D4:3000",
         "FromPort": 3000,
@@ -7941,6 +7976,9 @@ Object {
     },
     "RestServiceTaskCountTarget8C6E8E1E": Object {
       "Condition": "RestAutoScalingEnabled69452861",
+      "DependsOn": Array [
+        "RestTaskDefTaskRole59E8D431",
+      ],
       "Properties": Object {
         "MaxCapacity": 20,
         "MinCapacity": 2,
@@ -7985,6 +8023,9 @@ Object {
     },
     "RestServiceTaskCountTargetScaleOnCpuE9845870": Object {
       "Condition": "RestAutoScalingEnabled69452861",
+      "DependsOn": Array [
+        "RestTaskDefTaskRole59E8D431",
+      ],
       "Properties": Object {
         "PolicyName": "SupabaseRestServiceTaskCountTargetScaleOnCpuB529B263",
         "PolicyType": "TargetTrackingScaling",
@@ -8299,7 +8340,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
+          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/PasswordProvider)",
         "Environment": Object {
@@ -8319,7 +8360,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -8531,7 +8572,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/ffd2bc25d81c657ee33d09ad25406b309ec9e79c2464c1b70321b897d32ba0df.json",
+              "/5a15097efc060fd0919c810546950e247509966d556e120cd252e3489e0b79a8.json",
             ],
           ],
         },
@@ -8548,11 +8589,20 @@ Object {
       "UpdateReplacePolicy": "Delete",
     },
     "StorageService1CFF47FC": Object {
+      "DependsOn": Array [
+        "StorageTaskDefTaskRoleDefaultPolicy0587C2F8",
+        "StorageTaskDefTaskRoleFB709706",
+      ],
       "Properties": Object {
         "Cluster": Object {
           "Ref": "ClusterEB0386A7",
         },
         "DeploymentConfiguration": Object {
+          "Alarms": Object {
+            "AlarmNames": Array [],
+            "Enable": false,
+            "Rollback": false,
+          },
           "DeploymentCircuitBreaker": Object {
             "Enable": true,
             "Rollback": true,
@@ -8642,6 +8692,10 @@ Object {
       "Type": "AWS::ECS::Service",
     },
     "StorageServiceCloudmapService524EC31C": Object {
+      "DependsOn": Array [
+        "StorageTaskDefTaskRoleDefaultPolicy0587C2F8",
+        "StorageTaskDefTaskRoleFB709706",
+      ],
       "Properties": Object {
         "DnsConfig": Object {
           "DnsRecords": Array [
@@ -8676,6 +8730,10 @@ Object {
       "Type": "AWS::ServiceDiscovery::Service",
     },
     "StorageServiceSecurityGroupF6280DC0": Object {
+      "DependsOn": Array [
+        "StorageTaskDefTaskRoleDefaultPolicy0587C2F8",
+        "StorageTaskDefTaskRoleFB709706",
+      ],
       "Properties": Object {
         "GroupDescription": "Supabase/Storage/Service/SecurityGroup",
         "SecurityGroupEgress": Array [
@@ -8692,6 +8750,10 @@ Object {
       "Type": "AWS::EC2::SecurityGroup",
     },
     "StorageServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F50000996D63B": Object {
+      "DependsOn": Array [
+        "StorageTaskDefTaskRoleDefaultPolicy0587C2F8",
+        "StorageTaskDefTaskRoleFB709706",
+      ],
       "Properties": Object {
         "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:5000",
         "FromPort": 5000,
@@ -8714,6 +8776,10 @@ Object {
     },
     "StorageServiceTaskCountTargetAF72160A": Object {
       "Condition": "StorageAutoScalingEnabled4D34646B",
+      "DependsOn": Array [
+        "StorageTaskDefTaskRoleDefaultPolicy0587C2F8",
+        "StorageTaskDefTaskRoleFB709706",
+      ],
       "Properties": Object {
         "MaxCapacity": 20,
         "MinCapacity": 2,
@@ -8758,6 +8824,10 @@ Object {
     },
     "StorageServiceTaskCountTargetScaleOnCpuDB3B903C": Object {
       "Condition": "StorageAutoScalingEnabled4D34646B",
+      "DependsOn": Array [
+        "StorageTaskDefTaskRoleDefaultPolicy0587C2F8",
+        "StorageTaskDefTaskRoleFB709706",
+      ],
       "Properties": Object {
         "PolicyName": "SupabaseStorageServiceTaskCountTargetScaleOnCpuE2C72C87",
         "PolicyType": "TargetTrackingScaling",
@@ -9696,7 +9766,7 @@ applications:
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
+          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Studio/Repository/ImportProvider)",
         "Environment": Object {
@@ -9716,7 +9786,7 @@ applications:
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
