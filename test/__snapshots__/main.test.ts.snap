@@ -362,11 +362,11 @@ Object {
       },
       "micro": Object {
         "cpu": 256,
-        "memory": 1024,
+        "memory": 512,
       },
       "none": Object {
         "cpu": 256,
-        "memory": 1024,
+        "memory": 512,
       },
       "small": Object {
         "cpu": 512,
@@ -1459,33 +1459,6 @@ Object {
           },
         },
         "PropagateTags": "SERVICE",
-        "ServiceConnectConfiguration": Object {
-          "Enabled": true,
-          "LogConfiguration": Object {
-            "LogDriver": "awslogs",
-            "Options": Object {
-              "awslogs-group": Object {
-                "Ref": "AuthLogs940C0551",
-              },
-              "awslogs-region": Object {
-                "Ref": "AWS::Region",
-              },
-              "awslogs-stream-prefix": "ecs",
-            },
-          },
-          "Namespace": "supabase.internal",
-          "Services": Array [
-            Object {
-              "ClientAliases": Array [
-                Object {
-                  "Port": 9999,
-                },
-              ],
-              "DiscoveryName": "auth",
-              "PortName": "http",
-            },
-          ],
-        },
         "ServiceRegistries": Array [
           Object {
             "ContainerName": "app",
@@ -4000,7 +3973,7 @@ Object {
     "DatabaseParameterGroup2A921026": Object {
       "Properties": Object {
         "Description": "Parameter group for Supabase",
-        "Family": "aurora-postgresql15.3",
+        "Family": "aurora-postgresql15",
         "Parameters": Object {
           "max_slot_wal_keep_size": "1024",
           "rds.force_ssl": "0",
@@ -4755,33 +4728,6 @@ Object {
           },
         },
         "PropagateTags": "SERVICE",
-        "ServiceConnectConfiguration": Object {
-          "Enabled": true,
-          "LogConfiguration": Object {
-            "LogDriver": "awslogs",
-            "Options": Object {
-              "awslogs-group": Object {
-                "Ref": "GraphQLLogsAACD57ED",
-              },
-              "awslogs-region": Object {
-                "Ref": "AWS::Region",
-              },
-              "awslogs-stream-prefix": "ecs",
-            },
-          },
-          "Namespace": "supabase.internal",
-          "Services": Array [
-            Object {
-              "ClientAliases": Array [
-                Object {
-                  "Port": 5000,
-                },
-              ],
-              "DiscoveryName": "graphql",
-              "PortName": "http",
-            },
-          ],
-        },
         "ServiceRegistries": Array [
           Object {
             "ContainerName": "app",
@@ -5223,33 +5169,6 @@ Object {
           },
         },
         "PropagateTags": "SERVICE",
-        "ServiceConnectConfiguration": Object {
-          "Enabled": true,
-          "LogConfiguration": Object {
-            "LogDriver": "awslogs",
-            "Options": Object {
-              "awslogs-group": Object {
-                "Ref": "ImgproxyLogs00A67BBB",
-              },
-              "awslogs-region": Object {
-                "Ref": "AWS::Region",
-              },
-              "awslogs-stream-prefix": "ecs",
-            },
-          },
-          "Namespace": "supabase.internal",
-          "Services": Array [
-            Object {
-              "ClientAliases": Array [
-                Object {
-                  "Port": 5001,
-                },
-              ],
-              "DiscoveryName": "imgproxy",
-              "PortName": "http",
-            },
-          ],
-        },
         "ServiceRegistries": Array [
           Object {
             "ContainerName": "app",
@@ -5998,33 +5917,6 @@ Object {
           },
         },
         "PropagateTags": "SERVICE",
-        "ServiceConnectConfiguration": Object {
-          "Enabled": true,
-          "LogConfiguration": Object {
-            "LogDriver": "awslogs",
-            "Options": Object {
-              "awslogs-group": Object {
-                "Ref": "KongLogs4BD50491",
-              },
-              "awslogs-region": Object {
-                "Ref": "AWS::Region",
-              },
-              "awslogs-stream-prefix": "ecs",
-            },
-          },
-          "Namespace": "supabase.internal",
-          "Services": Array [
-            Object {
-              "ClientAliases": Array [
-                Object {
-                  "Port": 8000,
-                },
-              ],
-              "DiscoveryName": "kong",
-              "PortName": "http",
-            },
-          ],
-        },
         "ServiceRegistries": Array [
           Object {
             "ContainerName": "app",
@@ -6738,33 +6630,6 @@ Object {
           },
         },
         "PropagateTags": "SERVICE",
-        "ServiceConnectConfiguration": Object {
-          "Enabled": true,
-          "LogConfiguration": Object {
-            "LogDriver": "awslogs",
-            "Options": Object {
-              "awslogs-group": Object {
-                "Ref": "MetaLogs80FD71C7",
-              },
-              "awslogs-region": Object {
-                "Ref": "AWS::Region",
-              },
-              "awslogs-stream-prefix": "ecs",
-            },
-          },
-          "Namespace": "supabase.internal",
-          "Services": Array [
-            Object {
-              "ClientAliases": Array [
-                Object {
-                  "Port": 8080,
-                },
-              ],
-              "DiscoveryName": "meta",
-              "PortName": "http",
-            },
-          ],
-        },
         "ServiceRegistries": Array [
           Object {
             "ContainerName": "app",
@@ -7223,33 +7088,6 @@ Object {
           },
         },
         "PropagateTags": "SERVICE",
-        "ServiceConnectConfiguration": Object {
-          "Enabled": true,
-          "LogConfiguration": Object {
-            "LogDriver": "awslogs",
-            "Options": Object {
-              "awslogs-group": Object {
-                "Ref": "RealtimeLogs5C43159D",
-              },
-              "awslogs-region": Object {
-                "Ref": "AWS::Region",
-              },
-              "awslogs-stream-prefix": "ecs",
-            },
-          },
-          "Namespace": "supabase.internal",
-          "Services": Array [
-            Object {
-              "ClientAliases": Array [
-                Object {
-                  "Port": 4000,
-                },
-              ],
-              "DiscoveryName": "realtime",
-              "PortName": "http",
-            },
-          ],
-        },
         "ServiceRegistries": Array [
           Object {
             "ContainerName": "app",
@@ -7801,33 +7639,6 @@ Object {
           },
         },
         "PropagateTags": "SERVICE",
-        "ServiceConnectConfiguration": Object {
-          "Enabled": true,
-          "LogConfiguration": Object {
-            "LogDriver": "awslogs",
-            "Options": Object {
-              "awslogs-group": Object {
-                "Ref": "RestLogsE8B49088",
-              },
-              "awslogs-region": Object {
-                "Ref": "AWS::Region",
-              },
-              "awslogs-stream-prefix": "ecs",
-            },
-          },
-          "Namespace": "supabase.internal",
-          "Services": Array [
-            Object {
-              "ClientAliases": Array [
-                Object {
-                  "Port": 3000,
-                },
-              ],
-              "DiscoveryName": "rest",
-              "PortName": "http",
-            },
-          ],
-        },
         "ServiceRegistries": Array [
           Object {
             "ContainerName": "app",
@@ -8646,33 +8457,6 @@ Object {
           },
         },
         "PropagateTags": "SERVICE",
-        "ServiceConnectConfiguration": Object {
-          "Enabled": true,
-          "LogConfiguration": Object {
-            "LogDriver": "awslogs",
-            "Options": Object {
-              "awslogs-group": Object {
-                "Ref": "StorageLogs2A2D4D26",
-              },
-              "awslogs-region": Object {
-                "Ref": "AWS::Region",
-              },
-              "awslogs-stream-prefix": "ecs",
-            },
-          },
-          "Namespace": "supabase.internal",
-          "Services": Array [
-            Object {
-              "ClientAliases": Array [
-                Object {
-                  "Port": 5000,
-                },
-              ],
-              "DiscoveryName": "storage",
-              "PortName": "http",
-            },
-          ],
-        },
         "ServiceRegistries": Array [
           Object {
             "ContainerName": "app",

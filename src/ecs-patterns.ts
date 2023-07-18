@@ -60,7 +60,7 @@ export class BaseFargateService extends Construct {
     const { cluster, taskImageOptions } = props;
     const containerPort = taskImageOptions.containerPort;
     const cpuArchitecture = (props.cpuArchitecture == 'X86_64') ? ecs.CpuArchitecture.X86_64 : ecs.CpuArchitecture.ARM64;
-    const enableServiceConnect = (typeof props.enableServiceConnect == 'undefined') ? true : props.enableServiceConnect;
+    const enableServiceConnect = (typeof props.enableServiceConnect == 'undefined') ? false : props.enableServiceConnect;
     const enableCloudMap = (typeof props.enableCloudMap == 'undefined') ? true : props.enableCloudMap;
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
