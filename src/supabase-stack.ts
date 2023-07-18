@@ -26,8 +26,8 @@ export class FargateStack extends cdk.Stack {
 
     this.taskSizeMapping = new cdk.CfnMapping(this, 'TaskSize', {
       mapping: {
-        'none': { cpu: 256, memory: 1024 },
-        'micro': { cpu: 256, memory: 1024 },
+        'none': { cpu: 256, memory: 512 }, // Disable ECS Service
+        'micro': { cpu: 256, memory: 512 },
         'small': { cpu: 512, memory: 1024 },
         'medium': { cpu: 1024, memory: 2048 },
         'large': { cpu: 2048, memory: 4096 },

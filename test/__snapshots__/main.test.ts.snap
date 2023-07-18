@@ -362,11 +362,11 @@ Object {
       },
       "micro": Object {
         "cpu": 256,
-        "memory": 1024,
+        "memory": 512,
       },
       "none": Object {
         "cpu": 256,
-        "memory": 1024,
+        "memory": 512,
       },
       "small": Object {
         "cpu": 512,
