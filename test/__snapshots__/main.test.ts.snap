@@ -4000,7 +4000,7 @@ Object {
     "DatabaseParameterGroup2A921026": Object {
       "Properties": Object {
         "Description": "Parameter group for Supabase",
-        "Family": "aurora-postgresql15.3",
+        "Family": "aurora-postgresql15",
         "Parameters": Object {
           "max_slot_wal_keep_size": "1024",
           "rds.force_ssl": "0",
