@@ -21,6 +21,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
 | Asia Pacific (Osaka) | [View][ap-northeast-3] | [![launch][launch]][stable-ap-northeast-3] | [![launch][launch]][latest-ap-northeast-3] |
 | Asia Pacific (Singapore) | [View][ap-southeast-1] | [![launch][launch]][stable-ap-southeast-1] | [![launch][launch]][latest-ap-southeast-1] |
 | Asia Pacific (Sydney) | [View][ap-southeast-2] | [![launch][launch]][stable-ap-southeast-2] | [![launch][launch]][latest-ap-southeast-2] |
+| Asia Pacific (Mumbai) | [View][ap-south-1] | [![launch][launch]][stable-ap-south-1] | [![launch][launch]][latest-ap-south-1] |
 
 [launch]: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 
@@ -31,6 +32,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
 [ap-northeast-3]: https://supabase-on-aws-ap-northeast-3.s3.amazonaws.com/stable/Supabase.template.json
 [ap-southeast-1]: https://supabase-on-aws-ap-southeast-1.s3.amazonaws.com/stable/Supabase.template.json
 [ap-southeast-2]: https://supabase-on-aws-ap-southeast-2.s3.amazonaws.com/stable/Supabase.template.json
+[ap-south-1]: https://supabase-on-aws-ap-south-1.s3.amazonaws.com/stable/Supabase.template.json
 
 [stable-us-east-1]: https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-us-east-1.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=us-east-1
 [stable-us-west-2]: https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-us-west-2.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=us-west-2
@@ -39,6 +41,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
 [stable-ap-northeast-3]: https://ap-northeast-3.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-northeast-3.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=ap-northeast-3
 [stable-ap-southeast-1]: https://ap-southeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-1.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=ap-southeast-1
 [stable-ap-southeast-2]: https://ap-southeast-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-2.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=ap-southeast-2
+[stable-ap-south-1]: https://ap-south-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-south-1.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=ap-south-1
 
 [latest-us-east-1]: https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-us-east-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=us-east-1
 [latest-us-west-2]: https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-us-west-2.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=us-west-2
@@ -47,6 +50,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
 [latest-ap-northeast-3]: https://ap-northeast-3.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-northeast-3.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-northeast-3
 [latest-ap-southeast-1]: https://ap-southeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-southeast-1
 [latest-ap-southeast-2]: https://ap-southeast-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-2.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-southeast-2
+[latest-ap-south-1]: https://ap-south-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-south-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-south-1
 
 ### Specification and Limitation
 
