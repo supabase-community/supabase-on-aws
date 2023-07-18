@@ -59,22 +59,20 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
     - Only Storage API works on x86_64 platforms.
   - All components are configured with AutoScaling.
   - GraphQL is supported using [PostGraphile](https://www.graphile.org/postgraphile/), because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
-- Service Discovery & Service Mesh
-  - [ECS Service Connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) is used.
-    - Each component is discovered as `***.supabase.internal`.
+- Service Discovery
+  - Each component is discovered as `***.supabase.internal`.
 - Database (PostgreSQL)
   - [Amazon Aurora Serverless v2](https://aws.amazon.com/rds/aurora/serverless/) is used.
-  - If `dbdev` or `pg_graphql` is supported with RDS only, it will be changed to use RDS instead of Aurora.
-  - [ ] Todo: Add automatically password rotation.
+  - Todo: Add automatically password rotation.
 - Supabase Studio
   - It is deployed on [Amplify Hosting](https://aws.amazon.com/amplify/hosting/).
-  - [ ] Todo: Add option to deploy the studio in different regions.
+  - Todo: Add option to deploy the studio in different regions.
 
 #### Fargate Task Size
 
 | Size | vCPU | Memory |
 |:--|:--|:--|
-| micro | 256 | 1024 |
+| micro | 256 | 512 |
 | small | 512 | 1024 |
 | medium | 1024 | 2048 |
 | large | 2048 | 4096 |
