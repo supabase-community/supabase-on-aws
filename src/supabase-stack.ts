@@ -447,6 +447,7 @@ export class SupabaseStack extends FargateStack {
 
     /** Websocket API */
     const realtime = new AutoScalingFargateService(this, 'Realtime', {
+      serviceName: 'realtime-dev',
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(realtimeImageUri.valueAsString),
