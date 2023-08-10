@@ -6164,7 +6164,7 @@ Object {
               },
               Object {
                 "Name": "SUPABASE_REALTIME_URL",
-                "Value": "http://realtime.supabase.internal:4000/socket/",
+                "Value": "http://realtime-dev.supabase.internal:4000/socket/",
               },
               Object {
                 "Name": "SUPABASE_STORAGE_URL",
@@ -7134,7 +7134,7 @@ Object {
         "HealthCheckCustomConfig": Object {
           "FailureThreshold": 1,
         },
-        "Name": "realtime",
+        "Name": "realtime-dev",
         "NamespaceId": Object {
           "Fn::GetAtt": Array [
             "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
