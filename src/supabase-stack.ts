@@ -101,7 +101,7 @@ export class SupabaseStack extends FargateStack {
     });
     const restImageUri = new cdk.CfnParameter(this, 'RestImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/postgrest:v10.1.2',
+      default: 'public.ecr.aws/supabase/postgrest:v11.1.0',
       description: 'https://gallery.ecr.aws/supabase/postgrest',
     });
     const realtimeImageUri = new cdk.CfnParameter(this, 'RealtimeImageUri', {

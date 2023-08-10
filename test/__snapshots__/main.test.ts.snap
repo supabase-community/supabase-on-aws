@@ -964,7 +964,7 @@ Object {
       "Type": "String",
     },
     "RestImageUri": Object {
-      "Default": "public.ecr.aws/supabase/postgrest:v10.1.2",
+      "Default": "public.ecr.aws/supabase/postgrest:v11.1.0",
       "Description": "https://gallery.ecr.aws/supabase/postgrest",
       "Type": "String",
     },
