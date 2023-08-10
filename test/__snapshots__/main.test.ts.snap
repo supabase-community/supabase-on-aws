@@ -7347,7 +7347,7 @@ Object {
               },
               Object {
                 "Name": "DNS_NODES",
-                "Value": "realtime.supabase.internal",
+                "Value": "realtime-dev.supabase.internal",
               },
             ],
             "Essential": true,

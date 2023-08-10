@@ -462,7 +462,7 @@ export class SupabaseStack extends FargateStack {
           FLY_APP_NAME: 'realtime',
           ERL_AFLAGS: '-proto_dist inet_tcp', // IPv4
           ENABLE_TAILSCALE: 'false',
-          DNS_NODES: `realtime.${namespaceName}`,
+          DNS_NODES: `realtime-dev.${namespaceName}`,
         },
         secrets: {
           DB_USER: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'username'),
