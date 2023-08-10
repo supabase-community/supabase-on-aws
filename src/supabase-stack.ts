@@ -447,7 +447,7 @@ export class SupabaseStack extends FargateStack {
 
     /** Websocket API */
     const realtime = new AutoScalingFargateService(this, 'Realtime', {
-      serviceName: 'realtime-dev',
+      serviceName: 'realtime-dev', // The sub-domain is used as tenat_id. (<tenat_id>.supabase.internal)
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(realtimeImageUri.valueAsString),
