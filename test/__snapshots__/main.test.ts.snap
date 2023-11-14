@@ -273,6 +273,9 @@ Object {
       "ap-southeast-3": Object {
         "states": "states.ap-southeast-3.amazonaws.com",
       },
+      "ap-southeast-4": Object {
+        "states": "states.ap-southeast-4.amazonaws.com",
+      },
       "ca-central-1": Object {
         "states": "states.ca-central-1.amazonaws.com",
       },
@@ -305,6 +308,9 @@ Object {
       },
       "eu-west-3": Object {
         "states": "states.eu-west-3.amazonaws.com",
+      },
+      "il-central-1": Object {
+        "states": "states.il-central-1.amazonaws.com",
       },
       "me-central-1": Object {
         "states": "states.me-central-1.amazonaws.com",
@@ -1059,7 +1065,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "d62cd506a0f4ef6a29d7a97e2a02d80bc8248142ce428543cfbf0d84b3c116a2.zip",
+          "S3Key": "17c16a3854838fd3ff4bda08146122a6701f33b9c86ae17f415ad0dc47a97544.zip",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -2700,7 +2706,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "c5262d3e09aa048d82079fb474d2d22741a0167637c7a6ac66e07a9a2f36c9dc.zip",
+          "S3Key": "8a91672f58486c885aa9527e06ea94ef8dcbadc65b50e3e6eff95ea5f50fb0ae.zip",
         },
         "Description": "Supabase/Cdn/CacheManager/ApiFunction",
         "Environment": Object {
@@ -2724,6 +2730,20 @@ Object {
           },
         },
         "Handler": "index.handler",
+        "Layers": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:lambda:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:23",
+              ],
+            ],
+          },
+        ],
         "Role": Object {
           "Fn::GetAtt": Array [
             "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
@@ -2872,7 +2892,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "6a4515fb3dde9aa6ab2534dfa252ee7a77a26076992bcd53b5a3508447298b98.zip",
+          "S3Key": "703e21783239f1557ffe7219fab4fb09901f0ebdefca6570ebb946dd10f3085b.zip",
         },
         "Description": "Supabase/Cdn/CacheManager/QueueConsumer",
         "Environment": Object {
@@ -2884,6 +2904,20 @@ Object {
           },
         },
         "Handler": "index.handler",
+        "Layers": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:lambda:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:23",
+              ],
+            ],
+          },
+        ],
         "Role": Object {
           "Fn::GetAtt": Array [
             "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
@@ -3066,7 +3100,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/23e806ea694e05e992f2bb6b817be2c62220a37a66afa50ab055037256a956da.json",
+              "/cd4af8b95c23531a122d23d51a31409f994e4a1718b58e33e63dc3edf7e4afe5.json",
             ],
           ],
         },
@@ -3872,7 +3906,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/MigrationProvider)",
         "Environment": Object {
@@ -4175,7 +4209,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/UserPasswordProvider)",
         "Environment": Object {
@@ -5591,7 +5625,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/JwtSecret/GenerateTokenProvider)",
         "Environment": Object {
@@ -8151,7 +8185,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/PasswordProvider)",
         "Environment": Object {
@@ -8383,7 +8417,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/5a15097efc060fd0919c810546950e247509966d556e120cd252e3489e0b79a8.json",
+              "/78963a17737eefb6d1bcf5a59a35185a03c8bb74c500e5cedf547f35fdd777dc.json",
             ],
           ],
         },
@@ -9550,7 +9584,7 @@ applications:
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Studio/Repository/ImportProvider)",
         "Environment": Object {

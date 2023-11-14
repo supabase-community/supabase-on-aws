@@ -8,7 +8,7 @@ import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
@@ -149,17 +149,31 @@ class CacheManager extends Construct {
 
     const queue = new sqs.Queue(this, 'Queue');
 
-    /** API handler */
-    const apiFunction = new NodejsFunction(this, 'ApiFunction', {
-      description: `${this.node.path}/ApiFunction`,
-      entry: path.resolve(__dirname, 'cache-manager/api.ts'),
+    /** Common settings for Lambda functions */
+    const commonProps: Partial<NodejsFunctionProps> = {
       runtime: lambda.Runtime.NODEJS_18_X,
       architecture: lambda.Architecture.ARM_64,
+      tracing: lambda.Tracing.ACTIVE,
+      bundling: {
+        externalModules: [
+          '@aws-sdk/*',
+          '@aws-lambda-powertools/*',
+        ],
+      },
+      layers: [
+        lambda.LayerVersion.fromLayerVersionArn(this, 'LambdaPowertools', `arn:aws:lambda:${cdk.Aws.REGION}:094274105915:layer:AWSLambdaPowertoolsTypeScript:23`),
+      ],
+    };
+
+    /** API handler */
+    const apiFunction = new NodejsFunction(this, 'ApiFunction', {
+      ...commonProps,
+      description: `${this.node.path}/ApiFunction`,
+      entry: path.resolve(__dirname, 'cache-manager/api.ts'),
       environment: {
         QUEUE_URL: queue.queueUrl,
         API_KEY: this.apiKey.secretValue.toString(),
       },
-      tracing: lambda.Tracing.ACTIVE,
     });
 
     // Allow API function to send messages to SQS
@@ -167,10 +181,9 @@ class CacheManager extends Construct {
 
     /** SQS consumer */
     const queueConsumer = new NodejsFunction(this, 'QueueConsumer', {
+      ...commonProps,
       description: `${this.node.path}/QueueConsumer`,
       entry: path.resolve(__dirname, 'cache-manager/queue-consumer.ts'),
-      runtime: lambda.Runtime.NODEJS_18_X,
-      architecture: lambda.Architecture.ARM_64,
       environment: {
         DISTRIBUTION_ID: distribution.distributionId,
       },
@@ -183,7 +196,6 @@ class CacheManager extends Construct {
       events: [
         new SqsEventSource(queue, { batchSize: 100, maxBatchingWindow: cdk.Duration.seconds(5) }),
       ],
-      tracing: lambda.Tracing.ACTIVE,
     });
 
     /** Function URL */

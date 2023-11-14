@@ -93,10 +93,12 @@
     },
     {
       "name": "@aws-lambda-powertools/logger",
+      "version": "1.14.2",
       "type": "runtime"
     },
     {
       "name": "@aws-lambda-powertools/tracer",
+      "version": "1.14.2",
       "type": "runtime"
     },
     {
