@@ -410,30 +410,30 @@ export class SupabaseStack extends FargateStack {
     });
 
     /** GraphQL API for any PostgreSQL Database */
-    const gql = new AutoScalingFargateService(this, 'GraphQL', {
-      cluster,
-      taskImageOptions: {
-        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/postgraphile:latest'),
-        //image: ecs.ContainerImage.fromAsset('./containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
-        containerPort: 5000,
-        healthCheck: {
-          command: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:5000/health'],
-          interval: cdk.Duration.seconds(5),
-          timeout: cdk.Duration.seconds(5),
-          retries: 3,
-        },
-        environment: {
-          PG_GRAPHIQL: 'false',
-          PG_ENHANCE_GRAPHIQL: 'false',
-          PG_IGNORE_RBAC: 'false',
-        },
-        secrets: {
-          DATABASE_URL: ecs.Secret.fromSecretsManager(authenticatorSecret, 'uri'),
-          JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
-        },
-      },
-      highAvailability,
-    });
+    //const gql = new AutoScalingFargateService(this, 'GraphQL', {
+    //  cluster,
+    //  taskImageOptions: {
+    //    image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/postgraphile:latest'),
+    //    //image: ecs.ContainerImage.fromAsset('./containers/postgraphile', { platform: Platform.LINUX_ARM64 }),
+    //    containerPort: 5000,
+    //    healthCheck: {
+    //      command: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:5000/health'],
+    //      interval: cdk.Duration.seconds(5),
+    //      timeout: cdk.Duration.seconds(5),
+    //      retries: 3,
+    //    },
+    //    environment: {
+    //      PG_GRAPHIQL: 'false',
+    //      PG_ENHANCE_GRAPHIQL: 'false',
+    //      PG_IGNORE_RBAC: 'false',
+    //    },
+    //    secrets: {
+    //      DATABASE_URL: ecs.Secret.fromSecretsManager(authenticatorSecret, 'uri'),
+    //      JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
+    //    },
+    //  },
+    //  highAvailability,
+    //});
 
     /**  Secret used by the server to sign cookies. Recommended: 64 characters. */
     const cookieSigningSecret = new Secret(this, 'CookieSigningSecret', {
@@ -587,7 +587,7 @@ export class SupabaseStack extends FargateStack {
     // Add environment variables to kong-gateway
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_AUTH_URL', `${auth.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REST_URL', `${rest.endpoint}/`);
-    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_GRAPHQL_URL', `${gql.endpoint}/graphql`);
+    //kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_GRAPHQL_URL', `${gql.endpoint}/graphql`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REALTIME_URL', `${realtime.endpoint}/socket/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_STORAGE_URL', `${storage.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_META_HOST', `${meta.endpoint}/`);
@@ -595,7 +595,7 @@ export class SupabaseStack extends FargateStack {
     // Allow kong-gateway to connect other services
     kong.connections.allowToDefaultPort(auth);
     kong.connections.allowToDefaultPort(rest);
-    kong.connections.allowToDefaultPort(gql);
+    //kong.connections.allowToDefaultPort(gql);
     kong.connections.allowToDefaultPort(realtime);
     kong.connections.allowToDefaultPort(storage);
     kong.connections.allowToDefaultPort(meta);
@@ -607,7 +607,7 @@ export class SupabaseStack extends FargateStack {
     // Allow some services to connect the database
     auth.connections.allowToDefaultPort(db.cluster);
     rest.connections.allowToDefaultPort(db.cluster);
-    gql.connections.allowToDefaultPort(db.cluster);
+    //gql.connections.allowToDefaultPort(db.cluster);
     realtime.connections.allowToDefaultPort(db.cluster);
     storage.connections.allowToDefaultPort(db.cluster);
     meta.connections.allowToDefaultPort(db.cluster);
@@ -723,7 +723,7 @@ export class SupabaseStack extends FargateStack {
             kong.taskSize.logicalId,
             auth.taskSize.logicalId,
             rest.taskSize.logicalId,
-            gql.taskSize.logicalId,
+            //gql.taskSize.logicalId,
             realtime.taskSize.logicalId,
             storage.taskSize.logicalId,
             imgproxy.taskSize.logicalId,
@@ -758,7 +758,7 @@ export class SupabaseStack extends FargateStack {
         [kong.taskSize.logicalId]: { default: 'Task Size - Kong' },
         [auth.taskSize.logicalId]: { default: 'Task Size - GoTrue' },
         [rest.taskSize.logicalId]: { default: 'Task Size - PostgREST' },
-        [gql.taskSize.logicalId]: { default: 'Task Size - PostGraphile' },
+        //[gql.taskSize.logicalId]: { default: 'Task Size - PostGraphile' },
         [realtime.taskSize.logicalId]: { default: 'Task Size - Realtime' },
         [storage.taskSize.logicalId]: { default: 'Task Size - Storage' },
         [imgproxy.taskSize.logicalId]: { default: 'Task Size - imgproxy' },
