@@ -26,7 +26,7 @@ jobs:
           PATTERNS: |
             src/**/*
             .projenrc.js
-            .github/workflows/publish.yml
+            .github/workflows/cfn-publish.yml
 
       - name: node.js setup
         if: env.GIT_DIFF
