@@ -554,7 +554,6 @@ export class SupabaseStack extends FargateStack {
           WEBHOOK_API_KEY: ecs.Secret.fromSecretsManager(cacheManager.apiKey),
         },
       },
-      cpuArchitecture: 'X86_64', // storage-api does not work on ARM64
       highAvailability,
     });
 
