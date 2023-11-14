@@ -95,7 +95,7 @@ export class SupabaseDatabase extends Construct {
           },
         },
       },
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(60),
       environment: {
         DB_SECRET_ARN: this.cluster.secret!.secretArn,
@@ -131,7 +131,7 @@ export class SupabaseDatabase extends Construct {
       bundling: {
         nodeModules: ['@databases/pg'],
       },
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(10),
       environment: {
         DB_SECRET_ARN: this.cluster.secret!.secretArn,

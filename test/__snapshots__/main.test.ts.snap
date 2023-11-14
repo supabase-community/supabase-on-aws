@@ -2750,7 +2750,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "TracingConfig": Object {
           "Mode": "Active",
         },
@@ -2924,7 +2924,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "TracingConfig": Object {
           "Mode": "Active",
         },
@@ -3100,7 +3100,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/cd4af8b95c23531a122d23d51a31409f994e4a1718b58e33e63dc3edf7e4afe5.json",
+              "/69d7854cd936703111cd00830b572fc785c3355c031adcf030e8705e82d7a85b.json",
             ],
           ],
         },
@@ -3770,7 +3770,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 60,
         "VpcConfig": Object {
           "SecurityGroupIds": Array [
@@ -4049,7 +4049,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 10,
         "VpcConfig": Object {
           "SecurityGroupIds": Array [
@@ -5761,7 +5761,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
       },
       "Type": "AWS::Lambda::Function",
     },
@@ -8140,7 +8140,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
       },
       "Type": "AWS::Lambda::Function",
     },
@@ -8417,7 +8417,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/78963a17737eefb6d1bcf5a59a35185a03c8bb74c500e5cedf547f35fdd777dc.json",
+              "/7aabbee555398e67993d5375d55c680f9149283289ee61f2f6c3e17ebc2f05a9.json",
             ],
           ],
         },

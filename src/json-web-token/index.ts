@@ -26,7 +26,7 @@ export class JwtSecret extends Secret {
     const jwtFunction = new NodejsFunction(this, 'JsonWebTokenFunction', {
       description: `${cdk.Aws.STACK_NAME} - Generate token via jwt secret`,
       entry: path.resolve(__dirname, 'cr-json-web-token.ts'),
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       environment: {
         JWT_SECRET_ARN: this.secretArn,
       },

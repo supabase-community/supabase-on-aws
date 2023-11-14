@@ -151,7 +151,7 @@ class CacheManager extends Construct {
 
     /** Common settings for Lambda functions */
     const commonProps: Partial<NodejsFunctionProps> = {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
       tracing: lambda.Tracing.ACTIVE,
       bundling: {
