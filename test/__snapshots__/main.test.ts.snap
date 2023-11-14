@@ -61,7 +61,7 @@ Object {
         },
       ],
     },
-    "CdnDefaultWebAclEnabled46EA1324": Object {
+    "CdnWafDisabledF333CA7D": Object {
       "Fn::Equals": Array [
         Object {
           "Ref": "WebAclArn",
@@ -3039,34 +3039,6 @@ Object {
       },
       "Type": "AWS::CloudFront::CachePolicy",
     },
-    "CdnDefaultWebAclNestedStackDefaultWebAclNestedStackResource663284CA": Object {
-      "Condition": "CdnDefaultWebAclEnabled46EA1324",
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "TemplateURL": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "https://s3.",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ".",
-              Object {
-                "Ref": "AWS::URLSuffix",
-              },
-              "/",
-              Object {
-                "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-              },
-              "/69d7854cd936703111cd00830b572fc785c3355c031adcf030e8705e82d7a85b.json",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::CloudFormation::Stack",
-      "UpdateReplacePolicy": "Delete",
-    },
     "CdnDistribution149FA6C8": Object {
       "Properties": Object {
         "DistributionConfig": Object {
@@ -3153,12 +3125,9 @@ Object {
           ],
           "WebACLId": Object {
             "Fn::If": Array [
-              "CdnDefaultWebAclEnabled46EA1324",
+              "CdnWafDisabledF333CA7D",
               Object {
-                "Fn::GetAtt": Array [
-                  "CdnDefaultWebAclNestedStackDefaultWebAclNestedStackResource663284CA",
-                  "Outputs.SupabaseCdnDefaultWebAcl261D81EEArn",
-                ],
+                "Ref": "AWS::NoValue",
               },
               Object {
                 "Ref": "WebAclArn",

@@ -24,7 +24,7 @@ jobs:
         with:
           PATTERNS: |
             containers/kong/**/*
-            .github/workflows/publish.yml
+            .github/workflows/ecr-publish.yml
 
       - name: Set up QEMU
         if: env.GIT_DIFF
@@ -73,7 +73,7 @@ jobs:
         with:
           PATTERNS: |
             containers/postgraphile/**/*
-            .github/workflows/publish.yml
+            .github/workflows/ecr-publish.yml
 
       - name: Set up QEMU
         if: env.GIT_DIFF

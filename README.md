@@ -52,13 +52,20 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
 [latest-ap-southeast-2]: https://ap-southeast-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-2.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-southeast-2
 [latest-ap-south-1]: https://ap-south-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-south-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-south-1
 
+### Optional templates
+
+| Template | Link |
+|:--|:--|
+| AWS WAF (Web ACL) | [![launch][launch]][waf-latest] |
+
+[waf-latest]: https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=SupabaseWaf&templateURL=https://supabase-on-aws-us-east-1.s3.amazonaws.com/latest/SupabaseWaf.template.json
+
 ### Specification and Limitation
 
 - APIs
   - All containers run on ECS Fargate (Graviton2).
-    - Only Storage API works on x86_64 platforms.
   - All components are configured with AutoScaling.
-  - GraphQL is supported using [PostGraphile](https://www.graphile.org/postgraphile/), because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
+  - GraphQL is not supported, because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
 - Service Discovery
   - Each component is discovered as `***.supabase.internal`.
 - Database (PostgreSQL)
