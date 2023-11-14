@@ -12,7 +12,6 @@ import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-node
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import { WebAcl } from '../aws-waf';
 
 interface SupabaseCdnProps {
   origin: string|elb.ILoadBalancerV2;
@@ -37,14 +36,10 @@ export class SupabaseCdn extends Construct {
       ? new HttpOrigin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY })
       : new LoadBalancerV2Origin(props.origin, { protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY });
 
-    const defaultWebAclEnabled = new cdk.CfnCondition(this, 'DefaultWebAclEnabled', { expression: cdk.Fn.conditionEquals(props.webAclArn, '') });
-
-    /** Default Web ACL */
-    const defaultWebAcl = new WebAcl(this, 'DefaultWebAcl', { description: 'Default Web ACL' });
-    (defaultWebAcl.node.defaultChild as cdk.CfnStack).cfnOptions.condition = defaultWebAclEnabled;
+    const wafDisabled = new cdk.CfnCondition(this, 'WafDisabled', { expression: cdk.Fn.conditionEquals(props.webAclArn, '') });
 
     /** Web ACL ID */
-    const webAclId = cdk.Fn.conditionIf(defaultWebAclEnabled.logicalId, defaultWebAcl.webAclArn, props.webAclArn.valueAsString);
+    const webAclId = cdk.Fn.conditionIf(wafDisabled.logicalId, cdk.Aws.NO_VALUE, props.webAclArn.valueAsString);
 
     const cachePolicy = new cf.CachePolicy(this, 'CachePolicy', {
       cachePolicyName: `${cdk.Aws.STACK_NAME}-CachePolicy-${cdk.Aws.REGION}`,
