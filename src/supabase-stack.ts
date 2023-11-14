@@ -96,22 +96,22 @@ export class SupabaseStack extends FargateStack {
 
     const authImageUri = new cdk.CfnParameter(this, 'AuthImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/gotrue:v2.69.2',
+      default: 'public.ecr.aws/supabase/gotrue:v2.110.0',
       description: 'https://gallery.ecr.aws/supabase/gotrue',
     });
     const restImageUri = new cdk.CfnParameter(this, 'RestImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/postgrest:v11.1.0',
+      default: 'public.ecr.aws/supabase/postgrest:v11.2.0',
       description: 'https://gallery.ecr.aws/supabase/postgrest',
     });
     const realtimeImageUri = new cdk.CfnParameter(this, 'RealtimeImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/realtime:v2.15.0',
+      default: 'public.ecr.aws/supabase/realtime:v2.25.27',
       description: 'https://gallery.ecr.aws/supabase/realtime',
     });
     const storageImageUri = new cdk.CfnParameter(this, 'StorageImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/storage-api:v0.40.1',
+      default: 'public.ecr.aws/supabase/storage-api:v0.43.11',
       description: 'https://gallery.ecr.aws/supabase/storage-api',
     });
     const imgproxyImageUri = new cdk.CfnParameter(this, 'ImgproxyImageUri', {
@@ -121,7 +121,7 @@ export class SupabaseStack extends FargateStack {
     });
     const postgresMetaImageUri = new cdk.CfnParameter(this, 'PostgresMetaImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/postgres-meta:v0.66.0',
+      default: 'public.ecr.aws/supabase/postgres-meta:v0.74.2',
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
@@ -636,7 +636,7 @@ export class SupabaseStack extends FargateStack {
     /** Supabase Studio Version */
     const studioBranch = new cdk.CfnParameter(this, 'StudioBranch', {
       type: 'String',
-      default: 'v0.23.04',
+      default: 'v0.23.09',
       description: 'Branch or tag - https://github.com/supabase/supabase/tags',
     });
 

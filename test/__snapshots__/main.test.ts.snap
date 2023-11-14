@@ -657,7 +657,7 @@ Object {
   },
   "Parameters": Object {
     "AuthImageUri": Object {
-      "Default": "public.ecr.aws/supabase/gotrue:v2.69.2",
+      "Default": "public.ecr.aws/supabase/gotrue:v2.110.0",
       "Description": "https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
     },
@@ -899,12 +899,12 @@ Object {
       "Type": "Number",
     },
     "PostgresMetaImageUri": Object {
-      "Default": "public.ecr.aws/supabase/postgres-meta:v0.66.0",
+      "Default": "public.ecr.aws/supabase/postgres-meta:v0.74.2",
       "Description": "https://gallery.ecr.aws/supabase/postgres-meta",
       "Type": "String",
     },
     "RealtimeImageUri": Object {
-      "Default": "public.ecr.aws/supabase/realtime:v2.15.0",
+      "Default": "public.ecr.aws/supabase/realtime:v2.25.27",
       "Description": "https://gallery.ecr.aws/supabase/realtime",
       "Type": "String",
     },
@@ -929,7 +929,7 @@ Object {
       "Type": "String",
     },
     "RestImageUri": Object {
-      "Default": "public.ecr.aws/supabase/postgrest:v11.1.0",
+      "Default": "public.ecr.aws/supabase/postgrest:v11.2.0",
       "Description": "https://gallery.ecr.aws/supabase/postgrest",
       "Type": "String",
     },
@@ -983,7 +983,7 @@ Object {
       "Type": "String",
     },
     "StorageImageUri": Object {
-      "Default": "public.ecr.aws/supabase/storage-api:v0.40.1",
+      "Default": "public.ecr.aws/supabase/storage-api:v0.43.11",
       "Description": "https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
     },
@@ -1003,7 +1003,7 @@ Object {
       "Type": "String",
     },
     "StudioBranch": Object {
-      "Default": "v0.23.04",
+      "Default": "v0.23.09",
       "Description": "Branch or tag - https://github.com/supabase/supabase/tags",
       "Type": "String",
     },
