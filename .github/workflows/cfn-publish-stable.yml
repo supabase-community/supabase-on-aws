@@ -16,13 +16,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get the version tag
         run: echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
       - name: node.js setup
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
@@ -30,7 +30,7 @@ jobs:
         run: yarn install --check-files
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.CDK_PUBLISHING_ROLE }}
           aws-region: us-west-2
@@ -59,13 +59,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get the version tag
         run: echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
       - name: node.js setup
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
@@ -73,7 +73,7 @@ jobs:
         run: yarn install --check-files
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.CDK_PUBLISHING_ROLE }}
           aws-region: us-west-2

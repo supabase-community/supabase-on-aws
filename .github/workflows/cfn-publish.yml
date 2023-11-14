@@ -19,7 +19,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - uses: technote-space/get-diff-action@v6
         with:
@@ -30,7 +30,7 @@ jobs:
 
       - name: node.js setup
         if: env.GIT_DIFF
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
@@ -40,7 +40,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: env.GIT_DIFF
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.CDK_PUBLISHING_ROLE }}
           aws-region: us-west-2
