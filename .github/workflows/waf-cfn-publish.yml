@@ -1,0 +1,49 @@
+name: waf-cfn-publish
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+jobs:
+  latest:
+    name: Latest Cfn templates
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # needed to interact with GitHub's OIDC Token endpoint.
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: technote-space/get-diff-action@v6
+        with:
+          PATTERNS: |
+            src/supabase-waf-stack.ts
+            .projenrc.js
+            .github/workflows/waf-cfn-publish.yml
+
+      - name: node.js setup
+        if: env.GIT_DIFF
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        if: env.GIT_DIFF
+        run: yarn install --check-files
+
+      - name: Configure AWS credentials
+        if: env.GIT_DIFF
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CDK_PUBLISHING_ROLE }}
+          aws-region: us-west-2
+
+      - name: cdk synth
+        if: env.GIT_DIFF
+        run: npx projen synth --name SupabaseWaf --no-version-reporting
+
+      - name: Publish assets
+        if: env.GIT_DIFF
+        run: aws s3 cp cdk.out/SupabaseWaf.template.json s3://supabase-on-aws-us-east-1/latest/SupabaseWaf.template.json
