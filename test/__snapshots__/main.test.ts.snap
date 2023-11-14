@@ -3284,7 +3284,7 @@ Object {
         },
         "DatabaseName": "postgres",
         "Engine": "aurora-postgresql",
-        "EngineVersion": "15.3",
+        "EngineVersion": "15.4",
         "MasterUserPassword": Object {
           "Fn::Join": Array [
             "",
