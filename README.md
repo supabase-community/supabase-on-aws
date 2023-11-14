@@ -56,9 +56,8 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
 
 - APIs
   - All containers run on ECS Fargate (Graviton2).
-    - Only Storage API works on x86_64 platforms.
   - All components are configured with AutoScaling.
-  - GraphQL is supported using [PostGraphile](https://www.graphile.org/postgraphile/), because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
+  - GraphQL is not supported, because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
 - Service Discovery
   - Each component is discovered as `***.supabase.internal`.
 - Database (PostgreSQL)
