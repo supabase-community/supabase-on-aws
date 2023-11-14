@@ -52,7 +52,7 @@ export class Organization extends Construct {
     const createOrgFunction = new NodejsFunction(this, 'CreateOrgFunction', {
       description: 'Supabase - Create WorkMail Org Function',
       entry: path.resolve(__dirname, 'cr-workmail-org.ts'),
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(10),
       initialPolicy: [
         new iam.PolicyStatement({
@@ -120,7 +120,7 @@ export class Organization extends Construct {
     const createUserFunction = new NodejsFunction(this, 'CreateUserFunction', {
       description: 'Supabase - Create WorkMail User Function',
       entry: path.resolve(__dirname, 'cr-workmail-user.ts'),
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(10),
       initialPolicy: [
         new iam.PolicyStatement({

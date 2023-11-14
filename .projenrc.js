@@ -1,16 +1,19 @@
 const { awscdk } = require('projen');
 const project = new awscdk.AwsCdkTypeScriptApp({
   projenVersion: '0.70.5',
-  cdkVersion: '2.87.0',
+  cdkVersion: '2.108.0',
   defaultReleaseBranch: 'main',
   name: 'supabase-on-aws',
   description: 'Self-hosted Supabase on AWS',
   deps: [
+    // AWS CDK
     '@aws-cdk/aws-amplify-alpha',
     '@aws-cdk/aws-apigatewayv2-alpha',
     '@aws-cdk/aws-apigatewayv2-integrations-alpha',
-    '@aws-lambda-powertools/logger',
-    '@aws-lambda-powertools/tracer',
+    // Lambda Powertools
+    '@aws-lambda-powertools/logger@1.14.2',
+    '@aws-lambda-powertools/tracer@1.14.2',
+    // AWS SDK
     '@aws-sdk/client-cloudfront',
     '@aws-sdk/client-ecs',
     '@aws-sdk/client-secrets-manager',
@@ -20,6 +23,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     '@aws-sdk/client-wafv2',
     '@aws-sdk/client-workmail',
     '@aws-sdk/util-utf8-node',
+    // Others
     '@databases/pg',
     '@types/aws-lambda',
     'cdk-bootstrapless-synthesizer@^2.2.2',

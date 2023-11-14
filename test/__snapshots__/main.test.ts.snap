@@ -69,28 +69,6 @@ Object {
         "",
       ],
     },
-    "GraphQLAutoScalingEnabled686BA277": Object {
-      "Fn::And": Array [
-        Object {
-          "Condition": "GraphQLServiceEnabledC2BD6E3B",
-        },
-        Object {
-          "Condition": "HighAvailability",
-        },
-      ],
-    },
-    "GraphQLServiceEnabledC2BD6E3B": Object {
-      "Fn::Not": Array [
-        Object {
-          "Fn::Equals": Array [
-            Object {
-              "Ref": "GraphQLTaskSize228AD0D2",
-            },
-            "none",
-          ],
-        },
-      ],
-    },
     "HighAvailability": Object {
       "Fn::Equals": Array [
         Object {
@@ -273,6 +251,9 @@ Object {
       "ap-southeast-3": Object {
         "states": "states.ap-southeast-3.amazonaws.com",
       },
+      "ap-southeast-4": Object {
+        "states": "states.ap-southeast-4.amazonaws.com",
+      },
       "ca-central-1": Object {
         "states": "states.ca-central-1.amazonaws.com",
       },
@@ -305,6 +286,9 @@ Object {
       },
       "eu-west-3": Object {
         "states": "states.eu-west-3.amazonaws.com",
+      },
+      "il-central-1": Object {
+        "states": "states.il-central-1.amazonaws.com",
       },
       "me-central-1": Object {
         "states": "states.me-central-1.amazonaws.com",
@@ -444,7 +428,6 @@ Object {
             "KongTaskSize93C195E9",
             "AuthTaskSize9895C206",
             "RestTaskSize14E11A14",
-            "GraphQLTaskSize228AD0D2",
             "RealtimeTaskSize6077FE1F",
             "StorageTaskSizeB82D9CFB",
             "ImgproxyTaskSize5D0DD9F6",
@@ -527,9 +510,6 @@ Object {
         },
         "EnableWorkMail": Object {
           "default": "Enable Test E-mail Domain (via Amazon WorkMail)",
-        },
-        "GraphQLTaskSize228AD0D2": Object {
-          "default": "Task Size - PostGraphile",
         },
         "ImgproxyImageUri": Object {
           "default": "Image URI - imgproxy",
@@ -677,7 +657,7 @@ Object {
   },
   "Parameters": Object {
     "AuthImageUri": Object {
-      "Default": "public.ecr.aws/supabase/gotrue:v2.69.2",
+      "Default": "public.ecr.aws/supabase/gotrue:v2.110.0",
       "Description": "https://gallery.ecr.aws/supabase/gotrue",
       "Type": "String",
     },
@@ -840,21 +820,6 @@ Object {
       "Description": "Enable test e-mail domain \\"xxx.awsapps.com\\" with Amazon WorkMail.",
       "Type": "String",
     },
-    "GraphQLTaskSize228AD0D2": Object {
-      "AllowedValues": Array [
-        "none",
-        "micro",
-        "small",
-        "medium",
-        "large",
-        "xlarge",
-        "2xlarge",
-        "4xlarge",
-      ],
-      "Default": "medium",
-      "Description": "Fargare task size",
-      "Type": "String",
-    },
     "ImgproxyImageUri": Object {
       "Default": "public.ecr.aws/supabase/imgproxy:v1.2.0",
       "Description": "https://gallery.ecr.aws/supabase/imgproxy",
@@ -934,12 +899,12 @@ Object {
       "Type": "Number",
     },
     "PostgresMetaImageUri": Object {
-      "Default": "public.ecr.aws/supabase/postgres-meta:v0.66.0",
+      "Default": "public.ecr.aws/supabase/postgres-meta:v0.74.2",
       "Description": "https://gallery.ecr.aws/supabase/postgres-meta",
       "Type": "String",
     },
     "RealtimeImageUri": Object {
-      "Default": "public.ecr.aws/supabase/realtime:v2.15.0",
+      "Default": "public.ecr.aws/supabase/realtime:v2.25.27",
       "Description": "https://gallery.ecr.aws/supabase/realtime",
       "Type": "String",
     },
@@ -964,7 +929,7 @@ Object {
       "Type": "String",
     },
     "RestImageUri": Object {
-      "Default": "public.ecr.aws/supabase/postgrest:v11.1.0",
+      "Default": "public.ecr.aws/supabase/postgrest:v11.2.0",
       "Description": "https://gallery.ecr.aws/supabase/postgrest",
       "Type": "String",
     },
@@ -1018,7 +983,7 @@ Object {
       "Type": "String",
     },
     "StorageImageUri": Object {
-      "Default": "public.ecr.aws/supabase/storage-api:v0.40.1",
+      "Default": "public.ecr.aws/supabase/storage-api:v0.43.11",
       "Description": "https://gallery.ecr.aws/supabase/storage-api",
       "Type": "String",
     },
@@ -1038,7 +1003,7 @@ Object {
       "Type": "String",
     },
     "StudioBranch": Object {
-      "Default": "v0.23.04",
+      "Default": "v0.23.09",
       "Description": "Branch or tag - https://github.com/supabase/supabase/tags",
       "Type": "String",
     },
@@ -1059,7 +1024,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "d62cd506a0f4ef6a29d7a97e2a02d80bc8248142ce428543cfbf0d84b3c116a2.zip",
+          "S3Key": "17c16a3854838fd3ff4bda08146122a6701f33b9c86ae17f415ad0dc47a97544.zip",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -2700,7 +2665,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "c5262d3e09aa048d82079fb474d2d22741a0167637c7a6ac66e07a9a2f36c9dc.zip",
+          "S3Key": "8a91672f58486c885aa9527e06ea94ef8dcbadc65b50e3e6eff95ea5f50fb0ae.zip",
         },
         "Description": "Supabase/Cdn/CacheManager/ApiFunction",
         "Environment": Object {
@@ -2724,13 +2689,27 @@ Object {
           },
         },
         "Handler": "index.handler",
+        "Layers": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:lambda:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:23",
+              ],
+            ],
+          },
+        ],
         "Role": Object {
           "Fn::GetAtt": Array [
             "CdnCacheManagerApiFunctionServiceRoleA4D8F8DB",
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "TracingConfig": Object {
           "Mode": "Active",
         },
@@ -2872,7 +2851,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "6a4515fb3dde9aa6ab2534dfa252ee7a77a26076992bcd53b5a3508447298b98.zip",
+          "S3Key": "703e21783239f1557ffe7219fab4fb09901f0ebdefca6570ebb946dd10f3085b.zip",
         },
         "Description": "Supabase/Cdn/CacheManager/QueueConsumer",
         "Environment": Object {
@@ -2884,13 +2863,27 @@ Object {
           },
         },
         "Handler": "index.handler",
+        "Layers": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:lambda:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:23",
+              ],
+            ],
+          },
+        ],
         "Role": Object {
           "Fn::GetAtt": Array [
             "CdnCacheManagerQueueConsumerServiceRole273BAAFA",
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "TracingConfig": Object {
           "Mode": "Active",
         },
@@ -3066,7 +3059,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/23e806ea694e05e992f2bb6b817be2c62220a37a66afa50ab055037256a956da.json",
+              "/69d7854cd936703111cd00830b572fc785c3355c031adcf030e8705e82d7a85b.json",
             ],
           ],
         },
@@ -3518,37 +3511,6 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "DatabaseClusterSecurityGroupfromSupabaseGraphQLServiceSecurityGroup270E856EIndirectPort858A8D36": Object {
-      "Properties": Object {
-        "Description": "from SupabaseGraphQLServiceSecurityGroup270E856E:{IndirectPort}",
-        "FromPort": Object {
-          "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
-            "Endpoint.Port",
-          ],
-        },
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "DatabaseClusterSecurityGroupFEF1426A",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "GraphQLServiceSecurityGroupBF0E344A",
-            "GroupId",
-          ],
-        },
-        "ToPort": Object {
-          "Fn::GetAtt": Array [
-            "DatabaseCluster5B53A178",
-            "Endpoint.Port",
-          ],
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
     "DatabaseClusterSecurityGroupfromSupabaseMetaServiceSecurityGroup8C22DD35IndirectPort496372C3": Object {
       "Properties": Object {
         "Description": "from SupabaseMetaServiceSecurityGroup8C22DD35:{IndirectPort}",
@@ -3736,7 +3698,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 60,
         "VpcConfig": Object {
           "SecurityGroupIds": Array [
@@ -3872,7 +3834,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/MigrationProvider)",
         "Environment": Object {
@@ -4015,7 +3977,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 10,
         "VpcConfig": Object {
           "SecurityGroupIds": Array [
@@ -4175,7 +4137,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Database/UserPasswordProvider)",
         "Environment": Object {
@@ -4662,447 +4624,6 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
-    },
-    "GraphQLLogsAACD57ED": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "RetentionInDays": 30,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "GraphQLServiceAFEB0D4A": Object {
-      "DependsOn": Array [
-        "GraphQLTaskDefTaskRoleD651EBE2",
-      ],
-      "Properties": Object {
-        "Cluster": Object {
-          "Ref": "ClusterEB0386A7",
-        },
-        "DeploymentConfiguration": Object {
-          "Alarms": Object {
-            "AlarmNames": Array [],
-            "Enable": false,
-            "Rollback": false,
-          },
-          "DeploymentCircuitBreaker": Object {
-            "Enable": true,
-            "Rollback": true,
-          },
-          "MaximumPercent": 200,
-          "MinimumHealthyPercent": 50,
-        },
-        "DeploymentController": Object {
-          "Type": "ECS",
-        },
-        "DesiredCount": Object {
-          "Fn::If": Array [
-            "GraphQLServiceEnabledC2BD6E3B",
-            Object {
-              "Ref": "AWS::NoValue",
-            },
-            0,
-          ],
-        },
-        "EnableECSManagedTags": true,
-        "LaunchType": "FARGATE",
-        "NetworkConfiguration": Object {
-          "AwsvpcConfiguration": Object {
-            "AssignPublicIp": "DISABLED",
-            "SecurityGroups": Array [
-              Object {
-                "Fn::GetAtt": Array [
-                  "GraphQLServiceSecurityGroupBF0E344A",
-                  "GroupId",
-                ],
-              },
-            ],
-            "Subnets": Array [
-              Object {
-                "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
-              },
-              Object {
-                "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A",
-              },
-            ],
-          },
-        },
-        "PropagateTags": "SERVICE",
-        "ServiceRegistries": Array [
-          Object {
-            "ContainerName": "app",
-            "ContainerPort": 5000,
-            "RegistryArn": Object {
-              "Fn::GetAtt": Array [
-                "GraphQLServiceCloudmapService68643605",
-                "Arn",
-              ],
-            },
-          },
-        ],
-        "TaskDefinition": Object {
-          "Ref": "GraphQLTaskDefA9ADD420",
-        },
-      },
-      "Type": "AWS::ECS::Service",
-    },
-    "GraphQLServiceCloudmapService68643605": Object {
-      "DependsOn": Array [
-        "GraphQLTaskDefTaskRoleD651EBE2",
-      ],
-      "Properties": Object {
-        "DnsConfig": Object {
-          "DnsRecords": Array [
-            Object {
-              "TTL": 10,
-              "Type": "SRV",
-            },
-            Object {
-              "TTL": 10,
-              "Type": "A",
-            },
-          ],
-          "NamespaceId": Object {
-            "Fn::GetAtt": Array [
-              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-              "Id",
-            ],
-          },
-          "RoutingPolicy": "MULTIVALUE",
-        },
-        "HealthCheckCustomConfig": Object {
-          "FailureThreshold": 1,
-        },
-        "Name": "graphql",
-        "NamespaceId": Object {
-          "Fn::GetAtt": Array [
-            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
-            "Id",
-          ],
-        },
-      },
-      "Type": "AWS::ServiceDiscovery::Service",
-    },
-    "GraphQLServiceSecurityGroupBF0E344A": Object {
-      "DependsOn": Array [
-        "GraphQLTaskDefTaskRoleD651EBE2",
-      ],
-      "Properties": Object {
-        "GroupDescription": "Supabase/GraphQL/Service/SecurityGroup",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VPCB9E5F0B4",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "GraphQLServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F5000EA605FE7": Object {
-      "DependsOn": Array [
-        "GraphQLTaskDefTaskRoleD651EBE2",
-      ],
-      "Properties": Object {
-        "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:5000",
-        "FromPort": 5000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "GraphQLServiceSecurityGroupBF0E344A",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "KongServiceSecurityGroupE199EE6C",
-            "GroupId",
-          ],
-        },
-        "ToPort": 5000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "GraphQLServiceTaskCountTargetD74EBB91": Object {
-      "Condition": "GraphQLAutoScalingEnabled686BA277",
-      "DependsOn": Array [
-        "GraphQLTaskDefTaskRoleD651EBE2",
-      ],
-      "Properties": Object {
-        "MaxCapacity": 20,
-        "MinCapacity": 2,
-        "ResourceId": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "service/",
-              Object {
-                "Ref": "ClusterEB0386A7",
-              },
-              "/",
-              Object {
-                "Fn::GetAtt": Array [
-                  "GraphQLServiceAFEB0D4A",
-                  "Name",
-                ],
-              },
-            ],
-          ],
-        },
-        "RoleARN": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":iam::",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
-            ],
-          ],
-        },
-        "ScalableDimension": "ecs:service:DesiredCount",
-        "ServiceNamespace": "ecs",
-      },
-      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
-    },
-    "GraphQLServiceTaskCountTargetScaleOnCpu65C9F8E9": Object {
-      "Condition": "GraphQLAutoScalingEnabled686BA277",
-      "DependsOn": Array [
-        "GraphQLTaskDefTaskRoleD651EBE2",
-      ],
-      "Properties": Object {
-        "PolicyName": "SupabaseGraphQLServiceTaskCountTargetScaleOnCpuE8FC1CFC",
-        "PolicyType": "TargetTrackingScaling",
-        "ScalingTargetId": Object {
-          "Ref": "GraphQLServiceTaskCountTargetD74EBB91",
-        },
-        "TargetTrackingScalingPolicyConfiguration": Object {
-          "PredefinedMetricSpecification": Object {
-            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
-          },
-          "ScaleInCooldown": 60,
-          "ScaleOutCooldown": 60,
-          "TargetValue": 50,
-        },
-      },
-      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-    },
-    "GraphQLTaskDefA9ADD420": Object {
-      "Properties": Object {
-        "ContainerDefinitions": Array [
-          Object {
-            "Environment": Array [
-              Object {
-                "Name": "PG_GRAPHIQL",
-                "Value": "false",
-              },
-              Object {
-                "Name": "PG_ENHANCE_GRAPHIQL",
-                "Value": "false",
-              },
-              Object {
-                "Name": "PG_IGNORE_RBAC",
-                "Value": "false",
-              },
-            ],
-            "Essential": true,
-            "HealthCheck": Object {
-              "Command": Array [
-                "CMD",
-                "wget",
-                "--no-verbose",
-                "--tries=1",
-                "--spider",
-                "http://localhost:5000/health",
-              ],
-              "Interval": 5,
-              "Retries": 3,
-              "Timeout": 5,
-            },
-            "Image": "public.ecr.aws/u3p7q2r8/postgraphile:latest",
-            "LogConfiguration": Object {
-              "LogDriver": "awslogs",
-              "Options": Object {
-                "awslogs-group": Object {
-                  "Ref": "GraphQLLogsAACD57ED",
-                },
-                "awslogs-region": Object {
-                  "Ref": "AWS::Region",
-                },
-                "awslogs-stream-prefix": "ecs",
-              },
-            },
-            "Name": "app",
-            "PortMappings": Array [
-              Object {
-                "ContainerPort": 5000,
-                "Name": "http",
-                "Protocol": "tcp",
-              },
-            ],
-            "Secrets": Array [
-              Object {
-                "Name": "DATABASE_URL",
-                "ValueFrom": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Ref": "DatabaseauthenticatorSecret69FA14DE",
-                      },
-                      ":uri::",
-                    ],
-                  ],
-                },
-              },
-              Object {
-                "Name": "JWT_SECRET",
-                "ValueFrom": Object {
-                  "Ref": "JwtSecretB8834B39",
-                },
-              },
-            ],
-            "Ulimits": Array [
-              Object {
-                "HardLimit": 65536,
-                "Name": "nofile",
-                "SoftLimit": 65536,
-              },
-            ],
-          },
-        ],
-        "Cpu": Object {
-          "Fn::FindInMap": Array [
-            "TaskSize",
-            Object {
-              "Ref": "GraphQLTaskSize228AD0D2",
-            },
-            "cpu",
-          ],
-        },
-        "ExecutionRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "GraphQLTaskDefExecutionRoleEE62EE99",
-            "Arn",
-          ],
-        },
-        "Family": "SupabaseGraphQLTaskDefC72C1187",
-        "Memory": Object {
-          "Fn::FindInMap": Array [
-            "TaskSize",
-            Object {
-              "Ref": "GraphQLTaskSize228AD0D2",
-            },
-            "memory",
-          ],
-        },
-        "NetworkMode": "awsvpc",
-        "RequiresCompatibilities": Array [
-          "FARGATE",
-        ],
-        "RuntimePlatform": Object {
-          "CpuArchitecture": "ARM64",
-          "OperatingSystemFamily": "LINUX",
-        },
-        "TaskRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "GraphQLTaskDefTaskRoleD651EBE2",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::ECS::TaskDefinition",
-    },
-    "GraphQLTaskDefExecutionRoleDefaultPolicy5B2AEBA2": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "GraphQLLogsAACD57ED",
-                  "Arn",
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:DescribeSecret",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Ref": "DatabaseauthenticatorSecret69FA14DE",
-              },
-            },
-            Object {
-              "Action": Array [
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:DescribeSecret",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Ref": "JwtSecretB8834B39",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "GraphQLTaskDefExecutionRoleDefaultPolicy5B2AEBA2",
-        "Roles": Array [
-          Object {
-            "Ref": "GraphQLTaskDefExecutionRoleEE62EE99",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "GraphQLTaskDefExecutionRoleEE62EE99": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "ecs-tasks.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "GraphQLTaskDefTaskRoleD651EBE2": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "ecs-tasks.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-      },
-      "Type": "AWS::IAM::Role",
     },
     "ImgproxyLogs00A67BBB": Object {
       "DeletionPolicy": "Delete",
@@ -5591,7 +5112,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/JwtSecret/GenerateTokenProvider)",
         "Environment": Object {
@@ -5727,7 +5248,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
       },
       "Type": "AWS::Lambda::Function",
     },
@@ -6157,10 +5678,6 @@ Object {
               Object {
                 "Name": "SUPABASE_REST_URL",
                 "Value": "http://rest.supabase.internal:3000/",
-              },
-              Object {
-                "Name": "SUPABASE_GRAPHQL_URL",
-                "Value": "http://graphql.supabase.internal:5000/graphql",
               },
               Object {
                 "Name": "SUPABASE_REALTIME_URL",
@@ -8106,7 +7623,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
       },
       "Type": "AWS::Lambda::Function",
     },
@@ -8151,7 +7668,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Smtp/PasswordProvider)",
         "Environment": Object {
@@ -8383,7 +7900,7 @@ Object {
               Object {
                 "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
               },
-              "/5a15097efc060fd0919c810546950e247509966d556e120cd252e3489e0b79a8.json",
+              "/7aabbee555398e67993d5375d55c680f9149283289ee61f2f6c3e17ebc2f05a9.json",
             ],
           ],
         },
@@ -8848,7 +8365,7 @@ Object {
           "FARGATE",
         ],
         "RuntimePlatform": Object {
-          "CpuArchitecture": "X86_64",
+          "CpuArchitecture": "ARM64",
           "OperatingSystemFamily": "LINUX",
         },
         "TaskRoleArn": Object {
@@ -9550,7 +9067,7 @@ applications:
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (Supabase/Studio/Repository/ImportProvider)",
         "Environment": Object {

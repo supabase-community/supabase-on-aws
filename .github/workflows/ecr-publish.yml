@@ -18,7 +18,7 @@ jobs:
       IMAGE_NAME: kong
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - uses: technote-space/get-diff-action@v6
         with:
@@ -28,15 +28,15 @@ jobs:
 
       - name: Set up QEMU
         if: env.GIT_DIFF
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         if: env.GIT_DIFF
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Configure AWS credentials
         if: env.GIT_DIFF
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.ECR_PUBLIC_ROLE }}
           aws-region: us-east-1
@@ -44,13 +44,13 @@ jobs:
       - name: Login to Amazon ECR Public
         id: login-ecr-public
         if: env.GIT_DIFF
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
         with:
           registry-type: public
 
       - name: Build and push
         if: env.GIT_DIFF
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: ./containers/kong
           file: ./containers/kong/Dockerfile
@@ -67,7 +67,7 @@ jobs:
       IMAGE_NAME: postgraphile
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - uses: technote-space/get-diff-action@v6
         with:
@@ -77,15 +77,15 @@ jobs:
 
       - name: Set up QEMU
         if: env.GIT_DIFF
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         if: env.GIT_DIFF
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Configure AWS credentials
         if: env.GIT_DIFF
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.ECR_PUBLIC_ROLE }}
           aws-region: us-east-1
@@ -93,13 +93,13 @@ jobs:
       - name: Login to Amazon ECR Public
         id: login-ecr-public
         if: env.GIT_DIFF
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
         with:
           registry-type: public
 
       - name: Build and push
         if: env.GIT_DIFF
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: ./containers/postgraphile
           file: ./containers/postgraphile/Dockerfile

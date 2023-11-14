@@ -46,7 +46,7 @@ export class SesSmtp extends Construct {
     const passwordFunction = new NodejsFunction(this, 'PasswordFunction', {
       description: 'Supabase - Generate SMTP Password Function',
       entry: path.resolve(__dirname, 'cr-smtp-password.ts'),
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
     });
 
     /** Custom resource provider to generate a SMTP password */

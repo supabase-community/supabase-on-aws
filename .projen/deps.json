@@ -29,7 +29,7 @@
     },
     {
       "name": "aws-cdk",
-      "version": "^2.87.0",
+      "version": "^2.108.0",
       "type": "build"
     },
     {
@@ -93,10 +93,12 @@
     },
     {
       "name": "@aws-lambda-powertools/logger",
+      "version": "1.14.2",
       "type": "runtime"
     },
     {
       "name": "@aws-lambda-powertools/tracer",
+      "version": "1.14.2",
       "type": "runtime"
     },
     {
@@ -145,7 +147,7 @@
     },
     {
       "name": "aws-cdk-lib",
-      "version": "^2.87.0",
+      "version": "^2.108.0",
       "type": "runtime"
     },
     {

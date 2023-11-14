@@ -17,7 +17,7 @@ export class WebAcl extends cdk.NestedStack {
     const crFunction = new NodejsFunction(this, 'Function', {
       description: `Supabase - Create Web ACL Function (${this.node.path}/Function)`,
       entry: path.resolve(__dirname, 'cr-web-acl.ts'),
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(15),
       initialPolicy: [
         new iam.PolicyStatement({
