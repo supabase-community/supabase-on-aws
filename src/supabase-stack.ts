@@ -295,15 +295,19 @@ export class SupabaseStack extends FargateStack {
         },
         environment: {
           KONG_DNS_ORDER: 'LAST,A,CNAME',
-          KONG_PLUGINS: 'request-transformer,cors,key-auth,acl,opentelemetry',
+          KONG_PLUGINS: 'request-transformer,cors,key-auth,acl,basic-auth,opentelemetry',
+          KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: '160k',
+          KONG_NGINX_PROXY_PROXY_BUFFERS: '64 160k',
+          // for HealthCheck
           KONG_STATUS_LISTEN: '0.0.0.0:8100',
+          // for OpenTelemetry
           //KONG_OPENTELEMETRY_ENABLED: 'true',
           //KONG_OPENTELEMETRY_TRACING: 'all',
           //KONG_OPENTELEMETRY_TRACING_SAMPLING_RATE: '1.0',
         },
         secrets: {
-          ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
-          SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
+          SUPABASE_ANON_KEY: ecs.Secret.fromSsmParameter(anonKey.ssmParameter),
+          SUPABASE_SERVICE_KEY: ecs.Secret.fromSsmParameter(serviceRoleKey.ssmParameter),
         },
       },
       highAvailability,
