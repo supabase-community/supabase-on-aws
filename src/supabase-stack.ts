@@ -346,42 +346,44 @@ export class SupabaseStack extends FargateStack {
           retries: 3,
         },
         environment: {
-          // Top-Level - https://github.com/supabase/gotrue#top-level
-          GOTRUE_SITE_URL: siteUrl.valueAsString,
-          GOTRUE_URI_ALLOW_LIST: redirectUrls.valueAsString,
-          GOTRUE_DISABLE_SIGNUP: disableSignup.valueAsString,
-          GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
-          GOTRUE_EXTERNAL_PHONE_ENABLED: 'false', // Amazon SNS not supported
-          GOTRUE_RATE_LIMIT_EMAIL_SENT: '3600', // SES Limit: 1msg/s
-          GOTRUE_PASSWORD_MIN_LENGTH: passwordMinLength.valueAsString,
-          // API - https://github.com/supabase/gotrue#api
           GOTRUE_API_HOST: '0.0.0.0',
           GOTRUE_API_PORT: '9999',
           API_EXTERNAL_URL: apiExternalUrl,
-          // Database - https://github.com/supabase/gotrue#database
+
           GOTRUE_DB_DRIVER: 'postgres',
-          // Observability
-          //GOTRUE_TRACING_ENABLED: 'true',
-          //OTEL_SERVICE_NAME: 'gotrue',
-          //OTEL_EXPORTER_OTLP_PROTOCOL: 'grpc',
-          //OTEL_EXPORTER_OTLP_ENDPOINT: `http://${jaeger.dnsName}:4317`,
-          // JWT - https://github.com/supabase/gotrue#json-web-tokens-jwt
-          GOTRUE_JWT_EXP: jwtExpiryLimit.valueAsString,
-          GOTRUE_JWT_AUD: 'authenticated',
+
+          GOTRUE_SITE_URL: siteUrl.valueAsString,
+          GOTRUE_URI_ALLOW_LIST: redirectUrls.valueAsString,
+          GOTRUE_DISABLE_SIGNUP: disableSignup.valueAsString,
+
           GOTRUE_JWT_ADMIN_ROLES: 'service_role',
+          GOTRUE_JWT_AUD: 'authenticated',
           GOTRUE_JWT_DEFAULT_GROUP_NAME: 'authenticated',
-          // E-Mail - https://github.com/supabase/gotrue#e-mail
+          GOTRUE_JWT_EXP: jwtExpiryLimit.valueAsString,
+
+          GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
+          GOTRUE_MAILER_AUTOCONFIRM: 'false',
+          //GOTRUE_MAILER_SECURE_EMAIL_CHANGE_ENABLED: 'true',
+          //GOTRUE_SMTP_MAX_FREQUENCY: '1s',
           GOTRUE_SMTP_ADMIN_EMAIL: smtp.email,
           GOTRUE_SMTP_HOST: smtp.host,
           GOTRUE_SMTP_PORT: smtp.port.toString(),
           GOTRUE_SMTP_SENDER_NAME: senderName.valueAsString,
-          GOTRUE_MAILER_AUTOCONFIRM: 'false',
           GOTRUE_MAILER_URLPATHS_INVITE: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_RECOVERY: '/auth/v1/verify',
           GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: '/auth/v1/verify',
-          // Phone Auth - https://github.com/supabase/gotrue#phone-auth
+
+          GOTRUE_EXTERNAL_PHONE_ENABLED: 'false', // Amazon SNS not supported
           GOTRUE_SMS_AUTOCONFIRM: 'true',
+
+          GOTRUE_RATE_LIMIT_EMAIL_SENT: '3600', // SES Limit: 1msg/s
+          GOTRUE_PASSWORD_MIN_LENGTH: passwordMinLength.valueAsString,
+
+          //GOTRUE_TRACING_ENABLED: 'true',
+          //OTEL_SERVICE_NAME: 'gotrue',
+          //OTEL_EXPORTER_OTLP_PROTOCOL: 'grpc',
+          //OTEL_EXPORTER_OTLP_ENDPOINT: `http://${jaeger.dnsName}:4317`,
         },
         secrets: {
           GOTRUE_DB_DATABASE_URL: ecs.Secret.fromSecretsManager(supabaseAuthAdminSecret, 'uri'),
@@ -404,10 +406,12 @@ export class SupabaseStack extends FargateStack {
           PGRST_DB_SCHEMAS: 'public,storage,graphql_public',
           PGRST_DB_ANON_ROLE: 'anon',
           PGRST_DB_USE_LEGACY_GUCS: 'false',
+          PGRST_APP_SETTINGS_JWT_EXP: jwtExpiryLimit.valueAsString,
         },
         secrets: {
           PGRST_DB_URI: ecs.Secret.fromSecretsManager(authenticatorSecret, 'uri'),
           PGRST_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
+          PGRST_APP_SETTINGS_JWT_SECRET: ecs.Secret.fromSecretsManager(jwtSecret),
         },
       },
       highAvailability,
@@ -535,15 +539,12 @@ export class SupabaseStack extends FargateStack {
           POSTGREST_URL: `${rest.endpoint}`,
           PGOPTIONS: '-c search_path=storage,public',
           FILE_SIZE_LIMIT: '52428800',
-          TENANT_ID: 'stub',
-          // Multitenant
-          IS_MULTITENANT: 'false',
-          // Storage Backend
           STORAGE_BACKEND: 's3',
-          GLOBAL_S3_BUCKET: bucket.bucketName,
-          // S3 Configuration
+          TENANT_ID: 'stub',
+          IS_MULTITENANT: 'false',
+          // TODO: https://github.com/supabase/storage-api/issues/55
           REGION: cdk.Aws.REGION,
-          // Image Transformation
+          GLOBAL_S3_BUCKET: bucket.bucketName,
           ENABLE_IMAGE_TRANSFORMATION: 'true',
           IMGPROXY_URL: imgproxy.endpoint,
           // Smart CDN Caching

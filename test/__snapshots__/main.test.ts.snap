@@ -1597,42 +1597,6 @@ Object {
           Object {
             "Environment": Array [
               Object {
-                "Name": "GOTRUE_SITE_URL",
-                "Value": Object {
-                  "Ref": "SiteUrl",
-                },
-              },
-              Object {
-                "Name": "GOTRUE_URI_ALLOW_LIST",
-                "Value": Object {
-                  "Ref": "RedirectUrls",
-                },
-              },
-              Object {
-                "Name": "GOTRUE_DISABLE_SIGNUP",
-                "Value": Object {
-                  "Ref": "DisableSignup",
-                },
-              },
-              Object {
-                "Name": "GOTRUE_EXTERNAL_EMAIL_ENABLED",
-                "Value": "true",
-              },
-              Object {
-                "Name": "GOTRUE_EXTERNAL_PHONE_ENABLED",
-                "Value": "false",
-              },
-              Object {
-                "Name": "GOTRUE_RATE_LIMIT_EMAIL_SENT",
-                "Value": "3600",
-              },
-              Object {
-                "Name": "GOTRUE_PASSWORD_MIN_LENGTH",
-                "Value": Object {
-                  "Ref": "PasswordMinLength",
-                },
-              },
-              Object {
                 "Name": "GOTRUE_API_HOST",
                 "Value": "0.0.0.0",
               },
@@ -1662,22 +1626,48 @@ Object {
                 "Value": "postgres",
               },
               Object {
-                "Name": "GOTRUE_JWT_EXP",
+                "Name": "GOTRUE_SITE_URL",
                 "Value": Object {
-                  "Ref": "JwtExpiryLimit",
+                  "Ref": "SiteUrl",
                 },
               },
               Object {
-                "Name": "GOTRUE_JWT_AUD",
-                "Value": "authenticated",
+                "Name": "GOTRUE_URI_ALLOW_LIST",
+                "Value": Object {
+                  "Ref": "RedirectUrls",
+                },
+              },
+              Object {
+                "Name": "GOTRUE_DISABLE_SIGNUP",
+                "Value": Object {
+                  "Ref": "DisableSignup",
+                },
               },
               Object {
                 "Name": "GOTRUE_JWT_ADMIN_ROLES",
                 "Value": "service_role",
               },
               Object {
+                "Name": "GOTRUE_JWT_AUD",
+                "Value": "authenticated",
+              },
+              Object {
                 "Name": "GOTRUE_JWT_DEFAULT_GROUP_NAME",
                 "Value": "authenticated",
+              },
+              Object {
+                "Name": "GOTRUE_JWT_EXP",
+                "Value": Object {
+                  "Ref": "JwtExpiryLimit",
+                },
+              },
+              Object {
+                "Name": "GOTRUE_EXTERNAL_EMAIL_ENABLED",
+                "Value": "true",
+              },
+              Object {
+                "Name": "GOTRUE_MAILER_AUTOCONFIRM",
+                "Value": "false",
               },
               Object {
                 "Name": "GOTRUE_SMTP_ADMIN_EMAIL",
@@ -1739,10 +1729,6 @@ Object {
                 },
               },
               Object {
-                "Name": "GOTRUE_MAILER_AUTOCONFIRM",
-                "Value": "false",
-              },
-              Object {
                 "Name": "GOTRUE_MAILER_URLPATHS_INVITE",
                 "Value": "/auth/v1/verify",
               },
@@ -1759,8 +1745,22 @@ Object {
                 "Value": "/auth/v1/verify",
               },
               Object {
+                "Name": "GOTRUE_EXTERNAL_PHONE_ENABLED",
+                "Value": "false",
+              },
+              Object {
                 "Name": "GOTRUE_SMS_AUTOCONFIRM",
                 "Value": "true",
+              },
+              Object {
+                "Name": "GOTRUE_RATE_LIMIT_EMAIL_SENT",
+                "Value": "3600",
+              },
+              Object {
+                "Name": "GOTRUE_PASSWORD_MIN_LENGTH",
+                "Value": Object {
+                  "Ref": "PasswordMinLength",
+                },
               },
               Object {
                 "Name": Object {
@@ -7365,6 +7365,12 @@ Object {
                 "Name": "PGRST_DB_USE_LEGACY_GUCS",
                 "Value": "false",
               },
+              Object {
+                "Name": "PGRST_APP_SETTINGS_JWT_EXP",
+                "Value": Object {
+                  "Ref": "JwtExpiryLimit",
+                },
+              },
             ],
             "Essential": true,
             "Image": Object {
@@ -7407,6 +7413,12 @@ Object {
               },
               Object {
                 "Name": "PGRST_JWT_SECRET",
+                "ValueFrom": Object {
+                  "Ref": "JwtSecretB8834B39",
+                },
+              },
+              Object {
+                "Name": "PGRST_APP_SETTINGS_JWT_SECRET",
                 "ValueFrom": Object {
                   "Ref": "JwtSecretB8834B39",
                 },
@@ -8141,6 +8153,10 @@ Object {
                 "Value": "52428800",
               },
               Object {
+                "Name": "STORAGE_BACKEND",
+                "Value": "s3",
+              },
+              Object {
                 "Name": "TENANT_ID",
                 "Value": "stub",
               },
@@ -8149,19 +8165,15 @@ Object {
                 "Value": "false",
               },
               Object {
-                "Name": "STORAGE_BACKEND",
-                "Value": "s3",
+                "Name": "REGION",
+                "Value": Object {
+                  "Ref": "AWS::Region",
+                },
               },
               Object {
                 "Name": "GLOBAL_S3_BUCKET",
                 "Value": Object {
                   "Ref": "Bucket83908E77",
-                },
-              },
-              Object {
-                "Name": "REGION",
-                "Value": Object {
-                  "Ref": "AWS::Region",
                 },
               },
               Object {
