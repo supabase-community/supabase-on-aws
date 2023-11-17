@@ -110,6 +110,7 @@ GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
 
 -- Supabase super admin
 CREATE USER supabase_auth_admin NOINHERIT CREATEROLE LOGIN NOREPLICATION;
+grant supabase_auth_admin to postgres; -- RDS
 GRANT ALL PRIVILEGES ON SCHEMA auth TO supabase_auth_admin;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO supabase_auth_admin;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO supabase_auth_admin;
