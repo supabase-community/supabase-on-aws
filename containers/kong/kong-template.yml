@@ -1,4 +1,5 @@
-_format_version: "1.1"
+_format_version: "2.1"
+_transform: true
 
 ###
 ### OpenTelemetry
@@ -13,12 +14,13 @@ plugins:
 ### Consumers / Users
 ###
 consumers:
+  - username: DASHBOARD
   - username: anon
     keyauth_credentials:
-      - key: ${ANON_KEY}
+      - key: $SUPABASE_ANON_KEY
   - username: service_role
     keyauth_credentials:
-      - key: ${SERVICE_KEY}
+      - key: $SUPABASE_SERVICE_KEY
 
 ###
 ### Access Control List
@@ -33,6 +35,7 @@ acls:
 ### API Routes
 ###
 services:
+
   ## Open Auth routes
   - name: auth-v1-open
     url: ${SUPABASE_AUTH_URL:=http://auth:9999/}verify
@@ -64,7 +67,7 @@ services:
 
   ## Secure Auth routes
   - name: auth-v1
-    _comment: "GoTrue: /auth/v1/* -> http://auth:9999/*"
+    _comment: 'GoTrue: /auth/v1/* -> http://auth:9999/*'
     url: ${SUPABASE_AUTH_URL:=http://auth:9999/}
     routes:
       - name: auth-v1-all
@@ -85,7 +88,7 @@ services:
 
   ## Secure REST routes
   - name: rest-v1
-    _comment: "PostgREST: /rest/v1/* -> http://rest:3000/*"
+    _comment: 'PostgREST: /rest/v1/* -> http://rest:3000/*'
     url: ${SUPABASE_REST_URL:=http://rest:3000/}
     routes:
       - name: rest-v1-all
@@ -106,7 +109,7 @@ services:
 
   ## Secure GraphQL routes
   - name: graphql-v1
-    _comment: "PostgREST: /graphql/v1/* -> http://rest:3000/rpc/graphql"
+    _comment: 'PostgREST: /graphql/v1/* -> http://rest:3000/rpc/graphql'
     url: ${SUPABASE_GRAPHQL_URL:=http://rest:3000/rpc/graphql}
     routes:
       - name: graphql-v1-all
@@ -132,7 +135,7 @@ services:
 
   ## Secure Realtime routes
   - name: realtime-v1
-    _comment: "Realtime: /realtime/v1/* -> ws://realtime:4000/socket/*"
+    _comment: 'Realtime: /realtime/v1/* -> ws://realtime:4000/socket/*'
     url: ${SUPABASE_REALTIME_URL:=http://realtime:4000/socket/}
     routes:
       - name: realtime-v1-all
@@ -153,7 +156,7 @@ services:
 
   ## Storage routes: the storage server manages its own auth
   - name: storage-v1
-    _comment: "Storage: /storage/v1/* -> http://storage:5000/*"
+    _comment: 'Storage: /storage/v1/* -> http://storage:5000/*'
     url: ${SUPABASE_STORAGE_URL:=http://storage:5000/}
     routes:
       - name: storage-v1-all
@@ -163,9 +166,31 @@ services:
     plugins:
       - name: cors
 
+  ## Edge Functions routes
+  - name: functions-v1
+    _comment: 'Edge Functions: /functions/v1/* -> http://functions:9000/*'
+    url: ${SUPABASE_FUNCTIONS_URL:=http://functions:9000/}
+    routes:
+      - name: functions-v1-all
+        strip_path: true
+        paths:
+          - /functions/v1/
+    plugins:
+      - name: cors
+
+  ## Analytics routes
+  - name: analytics-v1
+    _comment: 'Analytics: /analytics/v1/* -> http://logflare:4000/*'
+    url: ${SUPABASE_ANALYTICS_URL:=http://analytics:4000/}
+    routes:
+      - name: analytics-v1-all
+        strip_path: true
+        paths:
+          - /analytics/v1/
+
   ## Secure Database routes
   - name: meta
-    _comment: "pg-meta: /pg/* -> http://pg-meta:8080/*"
+    _comment: 'pg-meta: /pg/* -> http://pg-meta:8080/*'
     url: ${SUPABASE_META_HOST:=http://meta:8080/}
     routes:
       - name: meta-all

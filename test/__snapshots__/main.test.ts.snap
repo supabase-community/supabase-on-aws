@@ -5634,7 +5634,15 @@ Object {
               },
               Object {
                 "Name": "KONG_PLUGINS",
-                "Value": "request-transformer,cors,key-auth,acl,opentelemetry",
+                "Value": "request-transformer,cors,key-auth,acl,basic-auth,opentelemetry",
+              },
+              Object {
+                "Name": "KONG_NGINX_PROXY_PROXY_BUFFER_SIZE",
+                "Value": "160k",
+              },
+              Object {
+                "Name": "KONG_NGINX_PROXY_PROXY_BUFFERS",
+                "Value": "64 160k",
               },
               Object {
                 "Name": "KONG_STATUS_LISTEN",
@@ -5695,7 +5703,7 @@ Object {
             ],
             "Secrets": Array [
               Object {
-                "Name": "ANON_KEY",
+                "Name": "SUPABASE_ANON_KEY",
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
@@ -5721,7 +5729,7 @@ Object {
                 },
               },
               Object {
-                "Name": "SERVICE_KEY",
+                "Name": "SUPABASE_SERVICE_KEY",
                 "ValueFrom": Object {
                   "Fn::Join": Array [
                     "",
