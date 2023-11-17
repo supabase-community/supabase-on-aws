@@ -224,10 +224,8 @@ export class SupabaseStack extends FargateStack {
       maxCapacity: maxACU.valueAsNumber,
     };
 
-    /** Secret of postgres user */
-    const dbSecret = db.cluster.secret!;
     /** Secret of supabase_admin user */
-    const supabaseAdminSecret = db.genUserPassword('supabase_admin');
+    const supabaseAdminSecret = db.cluster.secret!;
     /** Secret of supabase_auth_admin user */
     const supabaseAuthAdminSecret = db.genUserPassword('supabase_auth_admin');
     /** Secret of supabase_storage_admin user */
