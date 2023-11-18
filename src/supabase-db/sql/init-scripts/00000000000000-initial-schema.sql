@@ -5,8 +5,9 @@
 create publication supabase_realtime;
 
 -- Supabase super admin
--- create user supabase_admin;
--- alter user  supabase_admin with superuser createdb createrole replication bypassrls;
+-- create user supabase_admin; -- supabase_admin is rds_superuser.
+alter user supabase_admin with createdb createrole bypassrls;
+grant rds_replication to supabase_admin; -- for RDS
 
 -- Supabase replication user
 create user supabase_replication_admin with login;
