@@ -100,25 +100,25 @@
     "@aws-sdk/util-utf8-browser" "^3.0.0"
     tslib "^1.11.1"
 
-"@aws-lambda-powertools/commons@^1.14.2":
-  version "1.14.2"
-  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/commons/-/commons-1.14.2.tgz#930dbf80443afcd7bba1603b79bce416ce2f2b89"
-  integrity sha512-pGW2RSeOEbU1e+mj+MlMkaiM4njO289glFjJA1V+H8bmjvHJXaItroH7lutZ8Gde1Iq+5WoRVQN8M/xmMNSxIA==
+"@aws-lambda-powertools/commons@^1.16.0":
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/commons/-/commons-1.16.0.tgz#a2388bfda8adadb645119e7e8b7e39db962cef64"
+  integrity sha512-NWCQapc7zbF0dHW469607l16pFIzm6EQNL/uBdY7bDhJ2t98VFpErO7lj0gbqtTtSL28Ev1TMLtP3PYQeq2BLw==
 
-"@aws-lambda-powertools/logger@1.14.2":
-  version "1.14.2"
-  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/logger/-/logger-1.14.2.tgz#0b511eb574407183d28c1a0a172c4deac3e04cbe"
-  integrity sha512-eUu1qF/8S3H7SquaKjmIj/go/3UDYwsfiJ3My1gtqd9eKRlUPKpvktAeF/+yghcO0BmuA5q1i2hKr8rsJ+2lGg==
+"@aws-lambda-powertools/logger@1.16.0":
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/logger/-/logger-1.16.0.tgz#f1a707f3522e1773e641c6a762be9afbe03483d3"
+  integrity sha512-uuLEM6dnYZK6Qi5RFH/420dRHZxPd8pwH/nPOTmgz/TEyVPy+nyiUkCxUMiNK1UVd/tJOXzp72wLKYlAFAQM8Q==
   dependencies:
-    "@aws-lambda-powertools/commons" "^1.14.2"
+    "@aws-lambda-powertools/commons" "^1.16.0"
     lodash.merge "^4.6.2"
 
-"@aws-lambda-powertools/tracer@1.14.2":
-  version "1.14.2"
-  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/tracer/-/tracer-1.14.2.tgz#0ade48674c395f0c07a2cf56c75f5fc33dffa294"
-  integrity sha512-wJqTr7IWQNfVRMpWhn5JFg1Syh9xG+JyqfTsHvQ8USLIzjG5qa5LJKaPVAcugRVN05qzEHYpWKVdrRTEvf663g==
+"@aws-lambda-powertools/tracer@1.16.0":
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/tracer/-/tracer-1.16.0.tgz#b85fb818445f6a43fecdc6d35f0fe31104e283df"
+  integrity sha512-oJvjSZTvCAb2PDV0yKpAViLgl3aePe2DqCLX0ZWCXGVyoLq7y7KVX5zquDFzntx/LMDA9ZwDQtHYn2hsO9b4dA==
   dependencies:
-    "@aws-lambda-powertools/commons" "^1.14.2"
+    "@aws-lambda-powertools/commons" "^1.16.0"
     aws-xray-sdk-core "^3.5.3"
 
 "@aws-sdk/abort-controller@3.127.0":

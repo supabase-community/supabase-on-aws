@@ -11,8 +11,8 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     '@aws-cdk/aws-apigatewayv2-alpha',
     '@aws-cdk/aws-apigatewayv2-integrations-alpha',
     // Lambda Powertools
-    '@aws-lambda-powertools/logger@1.14.2',
-    '@aws-lambda-powertools/tracer@1.14.2',
+    '@aws-lambda-powertools/logger@1.16.0',
+    '@aws-lambda-powertools/tracer@1.16.0',
     // AWS SDK
     '@aws-sdk/client-cloudfront',
     '@aws-sdk/client-ecs',
