@@ -188,10 +188,10 @@ export class Repository extends codecommit.Repository {
 
     this.importFunction = new lambda.Function(this, 'ImportFunction', {
       description: 'Clone to CodeCommit from remote repo (You can execute this function manually.)',
-      runtime: lambda.Runtime.PYTHON_3_9,
+      runtime: lambda.Runtime.PYTHON_3_12,
       code: lambda.Code.fromAsset(path.resolve(__dirname, 'cr-import-repo'), {
         bundling: {
-          image: cdk.DockerImage.fromRegistry('public.ecr.aws/sam/build-python3.9:latest-x86_64'),
+          image: cdk.DockerImage.fromRegistry('public.ecr.aws/sam/build-python3.12:latest-x86_64'),
           command: [
             '/bin/bash', '-c', [
               'mkdir -p /var/task/local/{bin,lib}',
@@ -208,9 +208,9 @@ export class Repository extends codecommit.Repository {
         },
       }),
       handler: 'index.handler',
-      memorySize: 3072,
+      memorySize: 4096,
       ephemeralStorageSize: cdk.Size.gibibytes(3),
-      timeout: cdk.Duration.minutes(5),
+      timeout: cdk.Duration.minutes(15),
       environment: {
         TARGET_REPO: this.repositoryCloneUrlGrc,
       },
