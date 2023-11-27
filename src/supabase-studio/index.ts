@@ -71,8 +71,8 @@ export class SupabaseStudio extends Construct {
                 'echo SUPABASE_ANON_KEY=$(aws ssm get-parameter --region $SUPABASE_REGION --name $ANON_KEY_NAME --query Parameter.Value) >> .env.production',
                 'echo SUPABASE_SERVICE_KEY=$(aws ssm get-parameter --region $SUPABASE_REGION --name $SERVICE_KEY_NAME --query Parameter.Value) >> .env.production',
                 'env | grep -e STUDIO_PG_META_URL >> .env.production',
-                'env | grep -e SUPABASE_ >> .env.production',
-                'env | grep -e NEXT_PUBLIC_ >> .env.production',
+                'env | grep -e SUPABASE_ -e LOGFLARE_ >> .env.production',
+                'env | grep -e NEXT_PUBLIC_ -e NEXT_ANALYTICS_ >> .env.production',
                 'cd ../',
                 'npx turbo@1.10.3 prune --scope=studio',
                 'npm clean-install',
@@ -121,14 +121,23 @@ export class SupabaseStudio extends Construct {
         AMPLIFY_MONOREPO_APP_ROOT: appRoot,
         AMPLIFY_DIFF_DEPLOY: 'false',
         _CUSTOM_IMAGE: buildImage,
-        // for Supabase
+
         STUDIO_PG_META_URL: `${supabaseUrl}/pg`,
+        DB_SECRET_ARN: dbSecret.secretArn,
+
+        DEFAULT_ORGANIZATION_NAME: 'Default Organization',
+        DEFAULT_PROJECT_NAME: 'Default Project',
+
         SUPABASE_URL: `${supabaseUrl}`,
         SUPABASE_PUBLIC_URL: `${supabaseUrl}`,
-        SUPABASE_REGION: serviceRoleKey.env.region,
-        DB_SECRET_ARN: dbSecret.secretArn,
         ANON_KEY_NAME: anonKey.parameterName,
         SERVICE_KEY_NAME: serviceRoleKey.parameterName,
+        SUPABASE_REGION: serviceRoleKey.env.region, // Secrets Manager Region
+
+        LOGFLARE_API_KEY: 'your-super-secret-and-long-logflare-key',
+        LOGFLARE_URL: `${supabaseUrl}/analytics/v1`,
+        NEXT_PUBLIC_ENABLE_LOGS: 'true',
+        NEXT_ANALYTICS_BACKEND_PROVIDER: 'postgres',
       },
       customRules: [
         { source: '/<*>', target: '/index.html', status: amplify.RedirectStatus.NOT_FOUND_REWRITE },

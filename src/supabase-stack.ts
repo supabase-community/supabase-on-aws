@@ -124,6 +124,11 @@ export class SupabaseStack extends FargateStack {
       default: 'public.ecr.aws/supabase/postgres-meta:v0.74.2',
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
+    const analyticsImageUri = new cdk.CfnParameter(this, 'AnalyticsImageUri', {
+      type: 'String',
+      default: 'public.ecr.aws/supabase/logflare:1.4.0',
+      description: 'https://gallery.ecr.aws/supabase/logflare',
+    });
 
     /** The flag for High Availability */
     const enableHighAvailability = new cdk.CfnParameter(this, 'EnableHighAvailability', {
@@ -224,15 +229,15 @@ export class SupabaseStack extends FargateStack {
       maxCapacity: maxACU.valueAsNumber,
     };
 
-    /** Secret of supabase_admin user */
+    /** Secret of supabase_admin */
     const supabaseAdminSecret = db.cluster.secret!;
-    /** Secret of supabase_auth_admin user */
+    /** Secret of supabase_auth_admin */
     const supabaseAuthAdminSecret = db.genUserPassword('supabase_auth_admin');
-    /** Secret of supabase_storage_admin user */
+    /** Secret of supabase_storage_admin */
     const supabaseStorageAdminSecret = db.genUserPassword('supabase_storage_admin');
-    /** Secret of authenticator user */
+    /** Secret of authenticator */
     const authenticatorSecret = db.genUserPassword('authenticator');
-    /** Secret of dashboard user  */
+    /** Secret of dashboard_user  */
     const dashboardUserSecret = db.genUserPassword('dashboard_user');
     /** Secret of postgres user */
     const postgresSecret = db.genUserPassword('postgres');
@@ -588,6 +593,40 @@ export class SupabaseStack extends FargateStack {
     // Wait until the database migration is complete.
     meta.service.node.addDependency(db.migration.node.defaultChild!);
 
+    /** Logflare */
+    const analytics = new AutoScalingFargateService(this, 'Analytics', {
+      cluster,
+      taskImageOptions: {
+        image: ecs.ContainerImage.fromRegistry(analyticsImageUri.valueAsString),
+        entryPoint: ['sh', '-c', './logflare eval Logflare.Release.migrate && ./logflare start --sname logflare'],
+        containerPort: 4000,
+        environment: {
+          LOGFLARE_NODE_HOST: '127.0.0.1',
+          DB_HOSTNAME: db.cluster.clusterEndpoint.hostname,
+          DB_PORT: db.cluster.clusterEndpoint.port.toString(),
+          DB_SCHEMA: '_analytics',
+          LOGFLARE_API_KEY: 'your-super-secret-and-long-logflare-key',
+          LOGFLARE_SINGLE_TENANT: 'true',
+          LOGFLARE_SUPABASE_MODE: 'true',
+          LOGFLARE_MIN_CLUSTER_SIZE: '1',
+          RELEASE_COOKIE: 'cookie',
+          // PostgreSQL Backend
+          POSTGRES_BACKEND_URL: `postgresql://${supabaseAdminSecret.secretValueFromJson('username').unsafeUnwrap()}:${supabaseAdminSecret.secretValueFromJson('password').unsafeUnwrap()}@${db.cluster.clusterEndpoint.socketAddress}/${supabaseAdminSecret.secretValueFromJson('dbname').unsafeUnwrap()}`,
+          POSTGRES_BACKEND_SCHEMA: '_analytics',
+          LOGFLARE_FEATURE_FLAG_OVERRIDE: 'multibackend=true',
+        },
+        secrets: {
+          DB_USERNAME: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'username'),
+          DB_PASSWORD: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'password'),
+          DB_DATABASE: ecs.Secret.fromSecretsManager(supabaseAdminSecret, 'dbname'),
+        },
+      },
+      highAvailability,
+    });
+
+    // Wait until the database migration is complete.
+    analytics.service.node.addDependency(db.migration.node.defaultChild!);
+
     // Add environment variables to kong-gateway
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_AUTH_URL', `${auth.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REST_URL', `${rest.endpoint}/`);
@@ -595,6 +634,7 @@ export class SupabaseStack extends FargateStack {
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REALTIME_URL', `${realtime.endpoint}/socket/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_STORAGE_URL', `${storage.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_META_HOST', `${meta.endpoint}/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_ANALYTICS_URL', `${analytics.endpoint}/`);
 
     // Allow kong-gateway to connect other services
     kong.connections.allowToDefaultPort(auth);
@@ -603,6 +643,7 @@ export class SupabaseStack extends FargateStack {
     kong.connections.allowToDefaultPort(realtime);
     kong.connections.allowToDefaultPort(storage);
     kong.connections.allowToDefaultPort(meta);
+    kong.connections.allowToDefaultPort(analytics);
 
     auth.connections.allowToDefaultPort(rest);
     storage.connections.allowToDefaultPort(rest);
@@ -615,6 +656,7 @@ export class SupabaseStack extends FargateStack {
     realtime.connections.allowToDefaultPort(db.cluster);
     storage.connections.allowToDefaultPort(db.cluster);
     meta.connections.allowToDefaultPort(db.cluster);
+    analytics.connections.allowToDefaultPort(db.cluster);
 
     const forceDeployJob = new ForceDeployJob(this, 'ForceDeployJob', { cluster });
     // for DB secret rotation
@@ -704,6 +746,7 @@ export class SupabaseStack extends FargateStack {
             storageImageUri.logicalId,
             imgproxyImageUri.logicalId,
             postgresMetaImageUri.logicalId,
+            analyticsImageUri.logicalId,
             studioBranch.logicalId,
           ],
         },
@@ -732,6 +775,7 @@ export class SupabaseStack extends FargateStack {
             storage.taskSize.logicalId,
             imgproxy.taskSize.logicalId,
             meta.taskSize.logicalId,
+            analytics.taskSize.logicalId,
           ],
         },
       ],
@@ -752,6 +796,7 @@ export class SupabaseStack extends FargateStack {
         [storageImageUri.logicalId]: { default: 'Image URI - Storage' },
         [imgproxyImageUri.logicalId]: { default: 'Image URI - imgproxy' },
         [postgresMetaImageUri.logicalId]: { default: 'Image URI - postgres-meta' },
+        [analyticsImageUri.logicalId]: { default: 'Image URI - Logflare' },
 
         [enableHighAvailability.logicalId]: { default: 'High Availability (HA)' },
         [webAclArn.logicalId]: { default: 'Web ACL ARN (AWS WAF)' },
@@ -767,6 +812,7 @@ export class SupabaseStack extends FargateStack {
         [storage.taskSize.logicalId]: { default: 'Task Size - Storage' },
         [imgproxy.taskSize.logicalId]: { default: 'Task Size - imgproxy' },
         [meta.taskSize.logicalId]: { default: 'Task Size - postgres-meta' },
+        [analytics.taskSize.logicalId]: { default: 'Task Size - Logflare' },
 
         [studioBranch.logicalId]: { default: 'Supabase Studio Branch' },
       },

@@ -3,6 +3,28 @@
 exports[`Snapshot 1`] = `
 Object {
   "Conditions": Object {
+    "AnalyticsAutoScalingEnabledFE570265": Object {
+      "Fn::And": Array [
+        Object {
+          "Condition": "AnalyticsServiceEnabledEEB0049E",
+        },
+        Object {
+          "Condition": "HighAvailability",
+        },
+      ],
+    },
+    "AnalyticsServiceEnabledEEB0049E": Object {
+      "Fn::Not": Array [
+        Object {
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "AnalyticsTaskSize400A6BD6",
+            },
+            "none",
+          ],
+        },
+      ],
+    },
     "AuthAutoScalingEnabled0CD7354E": Object {
       "Fn::And": Array [
         Object {
@@ -399,6 +421,7 @@ Object {
             "StorageImageUri",
             "ImgproxyImageUri",
             "PostgresMetaImageUri",
+            "AnalyticsImageUri",
             "StudioBranch",
           ],
         },
@@ -432,6 +455,7 @@ Object {
             "StorageTaskSizeB82D9CFB",
             "ImgproxyTaskSize5D0DD9F6",
             "MetaTaskSize556D36D9",
+            "AnalyticsTaskSize400A6BD6",
           ],
         },
         Object {
@@ -466,6 +490,12 @@ Object {
         },
       ],
       "ParameterLabels": Object {
+        "AnalyticsImageUri": Object {
+          "default": "Image URI - Logflare",
+        },
+        "AnalyticsTaskSize400A6BD6": Object {
+          "default": "Task Size - Logflare",
+        },
         "AuthImageUri": Object {
           "default": "Image URI - GoTrue",
         },
@@ -656,6 +686,26 @@ Object {
     },
   },
   "Parameters": Object {
+    "AnalyticsImageUri": Object {
+      "Default": "public.ecr.aws/supabase/logflare:1.4.0",
+      "Description": "https://gallery.ecr.aws/supabase/logflare",
+      "Type": "String",
+    },
+    "AnalyticsTaskSize400A6BD6": Object {
+      "AllowedValues": Array [
+        "none",
+        "micro",
+        "small",
+        "medium",
+        "large",
+        "xlarge",
+        "2xlarge",
+        "4xlarge",
+      ],
+      "Default": "medium",
+      "Description": "Fargare task size",
+      "Type": "String",
+    },
     "AuthImageUri": Object {
       "Default": "public.ecr.aws/supabase/gotrue:v2.110.0",
       "Description": "https://gallery.ecr.aws/supabase/gotrue",
@@ -1066,6 +1116,538 @@ Object {
             ],
           },
         ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "AnalyticsLogs56CCDDDA": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "RetentionInDays": 30,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "AnalyticsServiceB4F0DA70": Object {
+      "DependsOn": Array [
+        "AnalyticsTaskDefTaskRoleB2043BDB",
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "Cluster": Object {
+          "Ref": "ClusterEB0386A7",
+        },
+        "DeploymentConfiguration": Object {
+          "Alarms": Object {
+            "AlarmNames": Array [],
+            "Enable": false,
+            "Rollback": false,
+          },
+          "DeploymentCircuitBreaker": Object {
+            "Enable": true,
+            "Rollback": true,
+          },
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 50,
+        },
+        "DeploymentController": Object {
+          "Type": "ECS",
+        },
+        "DesiredCount": Object {
+          "Fn::If": Array [
+            "AnalyticsServiceEnabledEEB0049E",
+            Object {
+              "Ref": "AWS::NoValue",
+            },
+            0,
+          ],
+        },
+        "EnableECSManagedTags": true,
+        "LaunchType": "FARGATE",
+        "NetworkConfiguration": Object {
+          "AwsvpcConfiguration": Object {
+            "AssignPublicIp": "DISABLED",
+            "SecurityGroups": Array [
+              Object {
+                "Fn::GetAtt": Array [
+                  "AnalyticsServiceSecurityGroupDF3B4605",
+                  "GroupId",
+                ],
+              },
+            ],
+            "Subnets": Array [
+              Object {
+                "Ref": "VPCPrivateSubnet1Subnet8BCA10E0",
+              },
+              Object {
+                "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A",
+              },
+            ],
+          },
+        },
+        "PropagateTags": "SERVICE",
+        "ServiceRegistries": Array [
+          Object {
+            "ContainerName": "app",
+            "ContainerPort": 4000,
+            "RegistryArn": Object {
+              "Fn::GetAtt": Array [
+                "AnalyticsServiceCloudmapService385717A0",
+                "Arn",
+              ],
+            },
+          },
+        ],
+        "TaskDefinition": Object {
+          "Ref": "AnalyticsTaskDef645BC3EF",
+        },
+      },
+      "Type": "AWS::ECS::Service",
+    },
+    "AnalyticsServiceCloudmapService385717A0": Object {
+      "DependsOn": Array [
+        "AnalyticsTaskDefTaskRoleB2043BDB",
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "DnsConfig": Object {
+          "DnsRecords": Array [
+            Object {
+              "TTL": 10,
+              "Type": "SRV",
+            },
+            Object {
+              "TTL": 10,
+              "Type": "A",
+            },
+          ],
+          "NamespaceId": Object {
+            "Fn::GetAtt": Array [
+              "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+              "Id",
+            ],
+          },
+          "RoutingPolicy": "MULTIVALUE",
+        },
+        "HealthCheckCustomConfig": Object {
+          "FailureThreshold": 1,
+        },
+        "Name": "analytics",
+        "NamespaceId": Object {
+          "Fn::GetAtt": Array [
+            "ClusterDefaultServiceDiscoveryNamespaceC336F9B4",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceDiscovery::Service",
+    },
+    "AnalyticsServiceSecurityGroupDF3B4605": Object {
+      "DependsOn": Array [
+        "AnalyticsTaskDefTaskRoleB2043BDB",
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "GroupDescription": "Supabase/Analytics/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPCB9E5F0B4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "AnalyticsServiceSecurityGroupfromSupabaseKongServiceSecurityGroupB3C4AC8F4000D50C8EB0": Object {
+      "DependsOn": Array [
+        "AnalyticsTaskDefTaskRoleB2043BDB",
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "Description": "from SupabaseKongServiceSecurityGroupB3C4AC8F:4000",
+        "FromPort": 4000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "AnalyticsServiceSecurityGroupDF3B4605",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "KongServiceSecurityGroupE199EE6C",
+            "GroupId",
+          ],
+        },
+        "ToPort": 4000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "AnalyticsServiceTaskCountTargetEC8FE993": Object {
+      "Condition": "AnalyticsAutoScalingEnabledFE570265",
+      "DependsOn": Array [
+        "AnalyticsTaskDefTaskRoleB2043BDB",
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "MaxCapacity": 20,
+        "MinCapacity": 2,
+        "ResourceId": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "service/",
+              Object {
+                "Ref": "ClusterEB0386A7",
+              },
+              "/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "AnalyticsServiceB4F0DA70",
+                  "Name",
+                ],
+              },
+            ],
+          ],
+        },
+        "RoleARN": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":iam::",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            ],
+          ],
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs",
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+    },
+    "AnalyticsServiceTaskCountTargetScaleOnCpu61C187EE": Object {
+      "Condition": "AnalyticsAutoScalingEnabledFE570265",
+      "DependsOn": Array [
+        "AnalyticsTaskDefTaskRoleB2043BDB",
+        "DatabaseMigration993F5B9C",
+      ],
+      "Properties": Object {
+        "PolicyName": "SupabaseAnalyticsServiceTaskCountTargetScaleOnCpu592522CE",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": Object {
+          "Ref": "AnalyticsServiceTaskCountTargetEC8FE993",
+        },
+        "TargetTrackingScalingPolicyConfiguration": Object {
+          "PredefinedMetricSpecification": Object {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization",
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 50,
+        },
+      },
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+    },
+    "AnalyticsTaskDef645BC3EF": Object {
+      "Properties": Object {
+        "ContainerDefinitions": Array [
+          Object {
+            "EntryPoint": Array [
+              "sh",
+              "-c",
+              "./logflare eval Logflare.Release.migrate && ./logflare start --sname logflare",
+            ],
+            "Environment": Array [
+              Object {
+                "Name": "LOGFLARE_NODE_HOST",
+                "Value": "127.0.0.1",
+              },
+              Object {
+                "Name": "DB_HOSTNAME",
+                "Value": Object {
+                  "Fn::GetAtt": Array [
+                    "DatabaseCluster5B53A178",
+                    "Endpoint.Address",
+                  ],
+                },
+              },
+              Object {
+                "Name": "DB_PORT",
+                "Value": Object {
+                  "Fn::GetAtt": Array [
+                    "DatabaseCluster5B53A178",
+                    "Endpoint.Port",
+                  ],
+                },
+              },
+              Object {
+                "Name": "DB_SCHEMA",
+                "Value": "_analytics",
+              },
+              Object {
+                "Name": "LOGFLARE_API_KEY",
+                "Value": "your-super-secret-and-long-logflare-key",
+              },
+              Object {
+                "Name": "LOGFLARE_SINGLE_TENANT",
+                "Value": "true",
+              },
+              Object {
+                "Name": "LOGFLARE_SUPABASE_MODE",
+                "Value": "true",
+              },
+              Object {
+                "Name": "LOGFLARE_MIN_CLUSTER_SIZE",
+                "Value": "1",
+              },
+              Object {
+                "Name": "RELEASE_COOKIE",
+                "Value": "cookie",
+              },
+              Object {
+                "Name": "POSTGRES_BACKEND_URL",
+                "Value": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "postgresql://{{resolve:secretsmanager:",
+                      Object {
+                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                      },
+                      ":SecretString:username::}}:{{resolve:secretsmanager:",
+                      Object {
+                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                      },
+                      ":SecretString:password::}}@",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "DatabaseCluster5B53A178",
+                          "Endpoint.Address",
+                        ],
+                      },
+                      ":",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "DatabaseCluster5B53A178",
+                          "Endpoint.Port",
+                        ],
+                      },
+                      "/{{resolve:secretsmanager:",
+                      Object {
+                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                      },
+                      ":SecretString:dbname::}}",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "POSTGRES_BACKEND_SCHEMA",
+                "Value": "_analytics",
+              },
+              Object {
+                "Name": "LOGFLARE_FEATURE_FLAG_OVERRIDE",
+                "Value": "multibackend=true",
+              },
+            ],
+            "Essential": true,
+            "Image": Object {
+              "Ref": "AnalyticsImageUri",
+            },
+            "LogConfiguration": Object {
+              "LogDriver": "awslogs",
+              "Options": Object {
+                "awslogs-group": Object {
+                  "Ref": "AnalyticsLogs56CCDDDA",
+                },
+                "awslogs-region": Object {
+                  "Ref": "AWS::Region",
+                },
+                "awslogs-stream-prefix": "ecs",
+              },
+            },
+            "Name": "app",
+            "PortMappings": Array [
+              Object {
+                "ContainerPort": 4000,
+                "Name": "http",
+                "Protocol": "tcp",
+              },
+            ],
+            "Secrets": Array [
+              Object {
+                "Name": "DB_USERNAME",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                      },
+                      ":username::",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "DB_PASSWORD",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                      },
+                      ":password::",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "DB_DATABASE",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                      },
+                      ":dbname::",
+                    ],
+                  ],
+                },
+              },
+            ],
+            "Ulimits": Array [
+              Object {
+                "HardLimit": 65536,
+                "Name": "nofile",
+                "SoftLimit": 65536,
+              },
+            ],
+          },
+        ],
+        "Cpu": Object {
+          "Fn::FindInMap": Array [
+            "TaskSize",
+            Object {
+              "Ref": "AnalyticsTaskSize400A6BD6",
+            },
+            "cpu",
+          ],
+        },
+        "ExecutionRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "AnalyticsTaskDefExecutionRole56852DE1",
+            "Arn",
+          ],
+        },
+        "Family": "SupabaseAnalyticsTaskDef910F5EE4",
+        "Memory": Object {
+          "Fn::FindInMap": Array [
+            "TaskSize",
+            Object {
+              "Ref": "AnalyticsTaskSize400A6BD6",
+            },
+            "memory",
+          ],
+        },
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": Array [
+          "FARGATE",
+        ],
+        "RuntimePlatform": Object {
+          "CpuArchitecture": "ARM64",
+          "OperatingSystemFamily": "LINUX",
+        },
+        "TaskRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "AnalyticsTaskDefTaskRoleB2043BDB",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ECS::TaskDefinition",
+    },
+    "AnalyticsTaskDefExecutionRole56852DE1": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "ecs-tasks.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "AnalyticsTaskDefExecutionRoleDefaultPolicyAFFB1E2B": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "AnalyticsLogs56CCDDDA",
+                  "Arn",
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "AnalyticsTaskDefExecutionRoleDefaultPolicyAFFB1E2B",
+        "Roles": Array [
+          Object {
+            "Ref": "AnalyticsTaskDefExecutionRole56852DE1",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "AnalyticsTaskDefTaskRoleB2043BDB": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "ecs-tasks.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
       },
       "Type": "AWS::IAM::Role",
     },
@@ -2698,7 +3280,7 @@ Object {
                 Object {
                   "Ref": "AWS::Region",
                 },
-                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:23",
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:25",
               ],
             ],
           },
@@ -2872,7 +3454,7 @@ Object {
                 Object {
                   "Ref": "AWS::Region",
                 },
-                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:23",
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:25",
               ],
             ],
           },
@@ -3387,6 +3969,37 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
+    "DatabaseClusterSecurityGroupfromSupabaseAnalyticsServiceSecurityGroupC25A6BE7IndirectPort5FBE1D82": Object {
+      "Properties": Object {
+        "Description": "from SupabaseAnalyticsServiceSecurityGroupC25A6BE7:{IndirectPort}",
+        "FromPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseClusterSecurityGroupFEF1426A",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "AnalyticsServiceSecurityGroupDF3B4605",
+            "GroupId",
+          ],
+        },
+        "ToPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
     "DatabaseClusterSecurityGroupfromSupabaseAuthServiceSecurityGroupC0652D23IndirectPort316A82A5": Object {
       "Properties": Object {
         "Description": "from SupabaseAuthServiceSecurityGroupC0652D23:{IndirectPort}",
@@ -3624,7 +4237,7 @@ Object {
         "DatabaseClusterInstance1E154D1E9",
       ],
       "Properties": Object {
-        "Fingerprint": "3588f4b3167a4650ea4dfd3aea3e53facfba6a2fe38d749488dcb1623202b110",
+        "Fingerprint": "d3c1361197ab3b9a544c83eabd81b47890b3c91f9accf914cd62092f68890e82",
         "ServiceToken": Object {
           "Fn::GetAtt": Array [
             "DatabaseMigrationProviderframeworkonEvent48D76DDA",
@@ -3649,7 +4262,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "67a7f982847312f00fe63a7caafa9e6daaa88c8fb1a0a471e5a41bbf18d1aab6.zip",
+          "S3Key": "32f39e8dcb7f965a7b62ee88f2e6408c07dec6cf377042d239913582dcf6d70d.zip",
         },
         "Description": "Supabase - Database migration function",
         "Environment": Object {
@@ -5667,6 +6280,10 @@ Object {
               Object {
                 "Name": "SUPABASE_META_HOST",
                 "Value": "http://meta.supabase.internal:8080/",
+              },
+              Object {
+                "Name": "SUPABASE_ANALYTICS_URL",
+                "Value": "http://analytics.supabase.internal:4000/",
               },
             ],
             "Essential": true,
@@ -8710,8 +9327,8 @@ applications:
             - echo SUPABASE_ANON_KEY=$(aws ssm get-parameter --region $SUPABASE_REGION --name $ANON_KEY_NAME --query Parameter.Value) >> .env.production
             - echo SUPABASE_SERVICE_KEY=$(aws ssm get-parameter --region $SUPABASE_REGION --name $SERVICE_KEY_NAME --query Parameter.Value) >> .env.production
             - env | grep -e STUDIO_PG_META_URL >> .env.production
-            - env | grep -e SUPABASE_ >> .env.production
-            - env | grep -e NEXT_PUBLIC_ >> .env.production
+            - env | grep -e SUPABASE_ -e LOGFLARE_ >> .env.production
+            - env | grep -e NEXT_PUBLIC_ -e NEXT_ANALYTICS_ >> .env.production
             - cd ../
             - npx turbo@1.10.3 prune --scope=studio
             - npm clean-install
@@ -8803,6 +9420,20 @@ applications:
             },
           },
           Object {
+            "Name": "DB_SECRET_ARN",
+            "Value": Object {
+              "Ref": "DatabasedashboarduserSecret102D2F3B",
+            },
+          },
+          Object {
+            "Name": "DEFAULT_ORGANIZATION_NAME",
+            "Value": "Default Organization",
+          },
+          Object {
+            "Name": "DEFAULT_PROJECT_NAME",
+            "Value": "Default Project",
+          },
+          Object {
             "Name": "SUPABASE_URL",
             "Value": Object {
               "Fn::Join": Array [
@@ -8837,18 +9468,6 @@ applications:
             },
           },
           Object {
-            "Name": "SUPABASE_REGION",
-            "Value": Object {
-              "Ref": "AWS::Region",
-            },
-          },
-          Object {
-            "Name": "DB_SECRET_ARN",
-            "Value": Object {
-              "Ref": "DatabasedashboarduserSecret102D2F3B",
-            },
-          },
-          Object {
             "Name": "ANON_KEY_NAME",
             "Value": Object {
               "Ref": "JwtSecretAnonKeyParameter532DCC06",
@@ -8859,6 +9478,42 @@ applications:
             "Value": Object {
               "Ref": "JwtSecretServiceRoleKeyParameterB65536EB",
             },
+          },
+          Object {
+            "Name": "SUPABASE_REGION",
+            "Value": Object {
+              "Ref": "AWS::Region",
+            },
+          },
+          Object {
+            "Name": "LOGFLARE_API_KEY",
+            "Value": "your-super-secret-and-long-logflare-key",
+          },
+          Object {
+            "Name": "LOGFLARE_URL",
+            "Value": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "https://",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "CdnDistribution149FA6C8",
+                      "DomainName",
+                    ],
+                  },
+                  "/analytics/v1",
+                ],
+              ],
+            },
+          },
+          Object {
+            "Name": "NEXT_PUBLIC_ENABLE_LOGS",
+            "Value": "true",
+          },
+          Object {
+            "Name": "NEXT_ANALYTICS_BACKEND_PROVIDER",
+            "Value": "postgres",
           },
         ],
         "IAMServiceRole": Object {
@@ -8933,7 +9588,7 @@ applications:
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "5c51be0641b6947a546a4837d3a851cf3e3b67f9b8a02fa6770621de03a50c45.zip",
+          "S3Key": "9f3f18af1863bba5966d593a9787c1672fb7493177bf2897d8ffa2be2fc2b397.zip",
         },
         "Description": "Clone to CodeCommit from remote repo (You can execute this function manually.)",
         "Environment": Object {
@@ -8967,15 +9622,15 @@ applications:
           "Size": 3072,
         },
         "Handler": "index.handler",
-        "MemorySize": 3072,
+        "MemorySize": 4096,
         "Role": Object {
           "Fn::GetAtt": Array [
             "StudioRepositoryImportFunctionServiceRoleC6B8ED58",
             "Arn",
           ],
         },
-        "Runtime": "python3.9",
-        "Timeout": 300,
+        "Runtime": "python3.12",
+        "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
     },
