@@ -600,6 +600,12 @@ export class SupabaseStack extends FargateStack {
         image: ecs.ContainerImage.fromRegistry(analyticsImageUri.valueAsString),
         entryPoint: ['sh', '-c', './logflare eval Logflare.Release.migrate && ./logflare start --sname logflare'],
         containerPort: 4000,
+        healthCheck: {
+          command: ['CMD', 'curl', 'http://localhost:4000/health'],
+          interval: cdk.Duration.seconds(5),
+          timeout: cdk.Duration.seconds(5),
+          retries: 3,
+        },
         environment: {
           DB_HOSTNAME: db.cluster.clusterEndpoint.hostname,
           DB_PORT: db.cluster.clusterEndpoint.port.toString(),

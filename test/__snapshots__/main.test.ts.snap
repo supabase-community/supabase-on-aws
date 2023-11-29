@@ -1456,8 +1456,18 @@ Object {
               },
             ],
             "Essential": true,
+            "HealthCheck": Object {
+              "Command": Array [
+                "CMD",
+                "curl",
+                "http://localhost:4000/health",
+              ],
+              "Interval": 5,
+              "Retries": 3,
+              "Timeout": 5,
+            },
             "Image": Object {
-              "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:afa60907dafabdce0221e8e79d944bb31fdbad829fab1658c4a2f3fa2d0b0475",
+              "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:fb1ce4458dc058f691b1f43457b77dff662e75511e6c7cfc90ef10bf365631db",
             },
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
