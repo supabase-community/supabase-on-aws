@@ -601,7 +601,6 @@ export class SupabaseStack extends FargateStack {
         entryPoint: ['sh', '-c', './logflare eval Logflare.Release.migrate && ./logflare start --sname logflare'],
         containerPort: 4000,
         environment: {
-          LOGFLARE_NODE_HOST: '127.0.0.1',
           DB_HOSTNAME: db.cluster.clusterEndpoint.hostname,
           DB_PORT: db.cluster.clusterEndpoint.port.toString(),
           DB_SCHEMA: '_analytics',

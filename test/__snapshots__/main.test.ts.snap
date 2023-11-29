@@ -1368,10 +1368,6 @@ Object {
             ],
             "Environment": Array [
               Object {
-                "Name": "LOGFLARE_NODE_HOST",
-                "Value": "127.0.0.1",
-              },
-              Object {
                 "Name": "DB_HOSTNAME",
                 "Value": Object {
                   "Fn::GetAtt": Array [
@@ -1461,7 +1457,7 @@ Object {
             ],
             "Essential": true,
             "Image": Object {
-              "Ref": "AnalyticsImageUri",
+              "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:afa60907dafabdce0221e8e79d944bb31fdbad829fab1658c4a2f3fa2d0b0475",
             },
             "LogConfiguration": Object {
               "LogDriver": "awslogs",
@@ -1599,6 +1595,42 @@ Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
+            Object {
+              "Action": Array [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":ecr:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":repository/",
+                    Object {
+                      "Fn::Sub": "cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}",
+                    },
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": "ecr:GetAuthorizationToken",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
             Object {
               "Action": Array [
                 "logs:CreateLogStream",
@@ -4237,7 +4269,7 @@ Object {
         "DatabaseClusterInstance1E154D1E9",
       ],
       "Properties": Object {
-        "Fingerprint": "d3c1361197ab3b9a544c83eabd81b47890b3c91f9accf914cd62092f68890e82",
+        "Fingerprint": "6cd2b316f6d1ba5d10bdd5926dc57a2d8e403732aea71a8dac8d81d8dacfc668",
         "ServiceToken": Object {
           "Fn::GetAtt": Array [
             "DatabaseMigrationProviderframeworkonEvent48D76DDA",
@@ -4262,7 +4294,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "32f39e8dcb7f965a7b62ee88f2e6408c07dec6cf377042d239913582dcf6d70d.zip",
+          "S3Key": "70e03fd824a2474a246b62abc1c19edcaea4f2239932b822ddb9f8b53d842333.zip",
         },
         "Description": "Supabase - Database migration function",
         "Environment": Object {
