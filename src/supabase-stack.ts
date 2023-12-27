@@ -73,7 +73,7 @@ export class SupabaseStack extends FargateStack {
     });
 
     const passwordMinLength = new cdk.CfnParameter(this, 'PasswordMinLength', {
-      description: 'When signup is disabled the only way to create new users is through invites. Defaults to false, all signups enabled.',
+      description: 'Minimum password length. Defaults to 8 (the minimum is also 8), maximum 128 chars.',
       type: 'Number',
       default: '8',
       minValue: 8,
