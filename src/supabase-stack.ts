@@ -106,7 +106,7 @@ export class SupabaseStack extends FargateStack {
     });
     const realtimeImageUri = new cdk.CfnParameter(this, 'RealtimeImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/realtime:v2.25.27',
+      default: 'public.ecr.aws/supabase/realtime:v2.25.60',
       description: 'https://gallery.ecr.aws/supabase/realtime',
     });
     const storageImageUri = new cdk.CfnParameter(this, 'StorageImageUri', {
