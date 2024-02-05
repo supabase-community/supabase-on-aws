@@ -136,7 +136,7 @@ services:
   ## Secure Realtime routes
   - name: realtime-v1
     _comment: 'Realtime: /realtime/v1/* -> ws://realtime:4000/socket/*'
-    url: ${SUPABASE_REALTIME_URL:=http://realtime:4000/socket/}
+    url: ${SUPABASE_REALTIME_SOCKET_URL:=http://realtime:4000/socket/}
     routes:
       - name: realtime-v1-all
         strip_path: true
@@ -153,6 +153,27 @@ services:
           allow:
             - admin
             - anon
+
+  # For Realtime-API routes
+  - name: realtime-v1-api
+    _comment: 'Realtime: /realtime/v1/api/* -> ws://realtime:4000/api/*'
+    url: ${SUPABASE_REALTIME_API_URL:=http://realtime:4000/api/}
+    routes:
+      - name: realtime-v1-api-routes
+        paths:
+          - /realtime/v1/api
+    plugins:
+      - name: cors
+      - name: key-auth
+        config:
+          hide_credentials: false
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow:
+            - admin
+            - anon
+          
 
   ## Storage routes: the storage server manages its own auth
   - name: storage-v1
