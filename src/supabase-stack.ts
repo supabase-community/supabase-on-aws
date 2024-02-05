@@ -96,22 +96,22 @@ export class SupabaseStack extends FargateStack {
 
     const authImageUri = new cdk.CfnParameter(this, 'AuthImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/gotrue:v2.110.0',
+      default: 'public.ecr.aws/supabase/gotrue:v2.139.1',
       description: 'https://gallery.ecr.aws/supabase/gotrue',
     });
     const restImageUri = new cdk.CfnParameter(this, 'RestImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/postgrest:v11.2.0',
+      default: 'public.ecr.aws/supabase/postgrest:v12.0.2',
       description: 'https://gallery.ecr.aws/supabase/postgrest',
     });
     const realtimeImageUri = new cdk.CfnParameter(this, 'RealtimeImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/realtime:v2.25.60',
+      default: 'public.ecr.aws/supabase/realtime:v2.25.61',
       description: 'https://gallery.ecr.aws/supabase/realtime',
     });
     const storageImageUri = new cdk.CfnParameter(this, 'StorageImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/storage-api:v0.43.11',
+      default: 'public.ecr.aws/supabase/storage-api:v0.46.5',
       description: 'https://gallery.ecr.aws/supabase/storage-api',
     });
     const imgproxyImageUri = new cdk.CfnParameter(this, 'ImgproxyImageUri', {
@@ -121,7 +121,7 @@ export class SupabaseStack extends FargateStack {
     });
     const postgresMetaImageUri = new cdk.CfnParameter(this, 'PostgresMetaImageUri', {
       type: 'String',
-      default: 'public.ecr.aws/supabase/postgres-meta:v0.74.2',
+      default: 'public.ecr.aws/supabase/postgres-meta:v0.75.0',
       description: 'https://gallery.ecr.aws/supabase/postgres-meta',
     });
 
@@ -284,7 +284,8 @@ export class SupabaseStack extends FargateStack {
     const kong = new AutoScalingFargateService(this, 'Kong', {
       cluster,
       taskImageOptions: {
-        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/kong:latest'),
+        // image: ecs.ContainerImage.fromRegistry('public.ecr.aws/u3p7q2r8/kong:latest'),
+        image: ecs.ContainerImage.fromRegistry('public.ecr.aws/k1e4k0b3/kong:latest'), // FIX: new kong-template.yml version
         //image: ecs.ContainerImage.fromAsset('./containers/kong', { platform: Platform.LINUX_ARM64 }),
         containerPort: 8000,
         healthCheck: {
@@ -592,7 +593,8 @@ export class SupabaseStack extends FargateStack {
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_AUTH_URL', `${auth.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REST_URL', `${rest.endpoint}/`);
     //kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_GRAPHQL_URL', `${gql.endpoint}/graphql`);
-    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REALTIME_URL', `${realtime.endpoint}/socket/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REALTIME_SOCKET_URL', `${realtime.endpoint}/socket/`);
+    kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_REALTIME_API_URL', `${realtime.endpoint}/api/`);    
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_STORAGE_URL', `${storage.endpoint}/`);
     kong.service.taskDefinition.defaultContainer!.addEnvironment('SUPABASE_META_HOST', `${meta.endpoint}/`);
 
