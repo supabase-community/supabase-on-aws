@@ -119,12 +119,12 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
                 "ssm:*",
                 "states:*",
                 "rds:*",
-                "route53:*",
+                "route53:*"
             ],
             "Resource": "*"
         },
         {
-            "Sid": "supabase-cdn",
+            "Sid": "supabaseCDN",
             "Effect": "Allow",
             "Action": [
                 "cloudfront:*",
@@ -134,18 +134,18 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
             "Resource": "*"
         },
         {
-            "Sid": "cache-manager",
+            "Sid": "cacheManager",
             "Effect": "Allow",
             "Action": [
                 "apigateway:*",
                 "lambda:*",
                 "logs:*",
-                "sqs:*",
+                "sqs:*"
             ],
             "Resource": "*"
         },
         {
-            "Sid": "supabase-studio",
+            "Sid": "supabaseStudio",
             "Effect": "Allow",
             "Action": [
                 "amplify:*",
