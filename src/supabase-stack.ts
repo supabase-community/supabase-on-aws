@@ -464,7 +464,7 @@ export class SupabaseStack extends FargateStack {
           PORT: '4000',
           DB_HOST: db.cluster.clusterEndpoint.hostname,
           DB_PORT: db.cluster.clusterEndpoint.port.toString(),
-          DB_AFTER_CONNECT_QUERY: 'SET search_path TO realtime',
+          DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime',
           DB_ENC_KEY: 'supabaserealtime',
           FLY_ALLOC_ID: 'fly123',
           FLY_APP_NAME: 'realtime',
@@ -480,7 +480,28 @@ export class SupabaseStack extends FargateStack {
           SECRET_KEY_BASE: ecs.Secret.fromSecretsManager(cookieSigningSecret),
         },
         entryPoint: ['/usr/bin/tini', '-s', '-g', '--'], // ignore /app/limits.sh
-        command: ['sh', '-c', '/app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server'],
+        command: [
+          '/bin/sh',
+          '-c',
+          '/bin/sed -i -e "s/127.0.0.1/$(grep $HOSTNAME /etc/hosts | cut -f 1 -d " ")/" /app/releases/*/env.sh && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server'
+        ],
+        healthCheck: {
+          command: [
+            "CMD",
+            "curl",
+            "-sSfL",
+            "--head",
+            "-o",
+            "/dev/null",
+            "-H",
+            `Authorization: Bearer ${anonKey.value}`,
+            `http://realtime-dev.${namespaceName}:4000/api/tenants/realtime-dev/health`
+          ],
+          interval: cdk.Duration.seconds(10),
+          timeout: cdk.Duration.seconds(5),
+          retries: 3,
+          startPeriod: cdk.Duration.seconds(120),
+        },
       },
       highAvailability,
     });
