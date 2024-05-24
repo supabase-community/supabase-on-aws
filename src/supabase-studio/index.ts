@@ -208,7 +208,7 @@ export class Repository extends codecommit.Repository {
         },
       }),
       handler: 'index.handler',
-      memorySize: 4096,
+      memorySize: 2048,
       ephemeralStorageSize: cdk.Size.gibibytes(3),
       timeout: cdk.Duration.minutes(15),
       environment: {
