@@ -52,6 +52,8 @@ This repo includes a modified template of a starting Supabase stack on AWS via C
   - The read replica setup requires the replica to be instanced in more than one region , so that is why there are 2 instances in us-west instead of 1
 - AWS Backup
   - This was turned on and configured for all Supabase resources [Manually done through the dashboard]
+- Supabase Studio
+  - A modification was made in the build process for Studio that forces the version of npm that is laid down in the environment to match the required version.
 
 ## Deploy via CDK
 
@@ -68,3 +70,17 @@ yarn install
 
 cdk deploy Supabase
 ```
+
+## Upgrades via CDK
+
+The upgrade/downgrade process should consist of the execution of a CDK deploy line in the CLI that has the following format
+
+```bash
+cdk deploy Supabase --profile AdministratorAccess-500251631311 --parameters Supabase:AuthImageUri='public.ecr.aws/supabase/gotrue:v2.152.1' Supabase:RestImageUri='public.ecr.aws/supabase/postgrest:v12.1' Supabase:RealtimeImageUri='public.ecr.aws/supabase/realtime:v2.29.5' Supabase:StorageImageUri='public.ecr.aws/supabase/storage-api:v1.3.1' Supabase:public.ecr.aws/supabase/imgproxy:ImgproxyImageUri='public.ecr.aws/supabase/imgproxy:v1.2.0' Supabase:PostgresMetaImageUri='public.ecr.aws/supabase/postgres-meta:v0.81.1'
+```
+
+Through different variations of the call above, I was unable to provide parameter overrides from the CLI without directly modifying the version strings in the following block of URI definitions that can be found here in the [supabase repo](https://github.com/itsware-inc/supabase-on-aws/blob/b62a6bffc53e12be05f3be7d1d3b396a3679c6ca/src/supabase-stack.ts#L97)
+
+This upgrade methodology is brittle and , with proper modularization and a bit more research in terms of how the parameter override process works for deploying newer/older versions of the backend services for Supabase via CDK, it would be viable to simply provide the desired version of each ECR image from the Supbaase [ECR registry](https://gallery.ecr.aws/supabase)
+
+One last note about the upgrade/downgrade process - Using CloudFormation via CDK is a bit risky , since the version drift (aka diff feature) for CDK is not robust enough for targeted deploys of parts of the architecture for Supabase. This could probably be solved with more modularization of the CDK stack for Supabase. Terraform would be a great alternative that allows for more flexibility in terms of upgrade/downgrade sequences and partial deploys of newer images for pieces of the deployed architecture.
