@@ -74,7 +74,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
 - Supabase Studio
   - It is deployed on [Amplify Hosting](https://aws.amazon.com/amplify/hosting/).
   - Todo: Add option to deploy the studio in different regions.
-  - ⚠️ Warning: Supabase Studio is **open to web** and can be accessed by malicious actors. We **strongly** suggest you active ['Access control'](https://docs.aws.amazon.com/amplify/latest/userguide/access-control.html) globaly and setup a strong password and username.
+  - ⚠️ Warning: Supabase Studio is **open to web** and can be accessed by malicious actors. We **strongly** suggest you activate ['Access control'](https://docs.aws.amazon.com/amplify/latest/userguide/access-control.html) globally and setup a strong password and username.
 
 #### Fargate Task Size
 
