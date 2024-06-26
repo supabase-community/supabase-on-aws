@@ -3,11 +3,11 @@
 # These owners will be requested for review when someone opens a pull request that modifies code they own.
 
 # Assign the entire repository to the devops user
-*       @devops
+*       @devops-itsware
 
 # Assign specific directories to the devops user
-/docs/  @devops
-/src/   @devops
+/docs/  @devops-itsware
+/src/   @devops-itsware
 
 # Assign specific files to the devops user
-README.md   @devops
+README.md   @devops-itsware
