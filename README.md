@@ -1,84 +1,93 @@
-# Supabase on AWS - CloudFormation/CDK Template
+# Supabase on AWS — CDK
 
-_Launch in minutes. Scale to millions._
+_Deploy a complete, self-hosted Supabase backend on AWS using CDK._
 
-This repo includes a template of starting Supabase stack on AWS via CloudFormation/CDK. This template use managed services such as Amazon ECS and Amazon Aurora etc...
+This project deploys the latest Supabase services on **ECS Fargate (Graviton2)** into your existing VPC and Aurora PostgreSQL database. It matches the official [Supabase Docker Compose](https://github.com/supabase/supabase/tree/master/docker) stack, adapted for AWS managed services.
+
+## Services
+
+| Service | Image | Port |
+|---------|-------|------|
+| Kong (API Gateway) | `kong/kong:3.9.1` | 8000 |
+| Auth (GoTrue) | `supabase/gotrue:v2.186.0` | 9999 |
+| PostgREST | `postgrest/postgrest:v14.6` | 3000 |
+| Realtime | `supabase/realtime:v2.76.5` | 4000 |
+| Storage | `supabase/storage-api:v1.44.2` | 5000 |
+| Imgproxy | `darthsim/imgproxy:v3.30.1` | 5001 |
+| postgres-meta | `supabase/postgres-meta:v0.95.2` | 8080 |
+| Studio | `supabase/studio:2026.03.16-sha-5528817` | 3000 |
+| Edge Functions | `supabase/edge-runtime:v1.71.2` | 9000 |
+| Supavisor (Pooler) | `supabase/supavisor:2.7.4` | 4000 |
 
 ## Architecture
 
-![architecture-diagram](docs/images/architecture-diagram.png)
+- **Compute**: All 10 services run on ECS Fargate (ARM64/Graviton2) with auto-scaling
+- **Database**: Bring your own Aurora PostgreSQL — the stack initializes roles, schemas, and JWT settings via a Lambda custom resource
+- **CDN**: CloudFront distribution with smart cache invalidation for Storage
+- **Edge Functions**: EFS volume mounted at `/home/deno/functions`
+- **Studio**: Runs on ECS behind Kong with basic-auth at `/`
+- **Networking**: CloudMap service discovery (`*.supabase.internal`), ALB restricted to CloudFront via prefix list
+- **Email**: Amazon SES with optional WorkMail test domain
+- **WAF**: Optional `SupabaseWafStack` (deploy in us-east-1)
 
-![smart-cdn-caching](docs/images/smart-cdn-caching.png)
+## Prerequisites
 
-## Deploy via CloudFormation template
+You need an existing:
+1. **VPC** with private subnets and a NAT gateway
+2. **Aurora PostgreSQL** cluster (15.x recommended) with a Secrets Manager secret for the admin user
+3. **Security group** for the Aurora cluster (the stack adds ingress rules for ECS services)
 
-| Region | View | Stable | Latest |
-|:--|:--|:--|:--|
-| US East (N. Virginia) | [View][us-east-1] | [![launch][launch]][stable-us-east-1] | [![launch][launch]][latest-us-east-1] |
-| US West (Oregon) | [View][us-west-2] | [![launch][launch]][stable-us-west-2] | [![launch][launch]][latest-us-west-2] |
-| Europe (Ireland) | [View][eu-west-1] | [![launch][launch]][stable-eu-west-1] | [![launch][launch]][latest-eu-west-1] |
-| Asia Pacific (Tokyo) | [View][ap-northeast-1] | [![launch][launch]][stable-ap-northeast-1] | [![launch][launch]][latest-ap-northeast-1] |
-| Asia Pacific (Osaka) | [View][ap-northeast-3] | [![launch][launch]][stable-ap-northeast-3] | [![launch][launch]][latest-ap-northeast-3] |
-| Asia Pacific (Singapore) | [View][ap-southeast-1] | [![launch][launch]][stable-ap-southeast-1] | [![launch][launch]][latest-ap-southeast-1] |
-| Asia Pacific (Sydney) | [View][ap-southeast-2] | [![launch][launch]][stable-ap-southeast-2] | [![launch][launch]][latest-ap-southeast-2] |
-| Asia Pacific (Mumbai) | [View][ap-south-1] | [![launch][launch]][stable-ap-south-1] | [![launch][launch]][latest-ap-south-1] |
+## Deploy via CDK
 
-[launch]: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
+```bash
+git clone https://github.com/supabase-community/supabase-on-aws.git
+cd supabase-on-aws
+yarn install
 
-[us-east-1]: https://supabase-on-aws-us-east-1.s3.amazonaws.com/stable/Supabase.template.json
-[us-west-2]: https://supabase-on-aws-us-west-2.s3.amazonaws.com/stable/Supabase.template.json
-[eu-west-1]: https://supabase-on-aws-eu-west-1.s3.amazonaws.com/stable/Supabase.template.json
-[ap-northeast-1]: https://supabase-on-aws-ap-northeast-1.s3.amazonaws.com/stable/Supabase.template.json
-[ap-northeast-3]: https://supabase-on-aws-ap-northeast-3.s3.amazonaws.com/stable/Supabase.template.json
-[ap-southeast-1]: https://supabase-on-aws-ap-southeast-1.s3.amazonaws.com/stable/Supabase.template.json
-[ap-southeast-2]: https://supabase-on-aws-ap-southeast-2.s3.amazonaws.com/stable/Supabase.template.json
-[ap-south-1]: https://supabase-on-aws-ap-south-1.s3.amazonaws.com/stable/Supabase.template.json
+# Provide external resource references via CDK context
+cdk deploy Supabase \
+  -c vpcId=vpc-xxxxxxxxx \
+  -c dbHostname=my-cluster.cluster-abc.us-east-1.rds.amazonaws.com \
+  -c dbPort=5432 \
+  -c dbAdminSecretName=my-aurora-admin-secret \
+  -c dbSecurityGroupId=sg-xxxxxxxxx
+```
 
-[stable-us-east-1]: https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-us-east-1.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=us-east-1
-[stable-us-west-2]: https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-us-west-2.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=us-west-2
-[stable-eu-west-1]: https://eu-west-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-eu-west-1.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=eu-west-1
-[stable-ap-northeast-1]: https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-northeast-1.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=ap-northeast-1
-[stable-ap-northeast-3]: https://ap-northeast-3.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-northeast-3.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=ap-northeast-3
-[stable-ap-southeast-1]: https://ap-southeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-1.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=ap-southeast-1
-[stable-ap-southeast-2]: https://ap-southeast-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-2.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=ap-southeast-2
-[stable-ap-south-1]: https://ap-south-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-south-1.s3.amazonaws.com/stable/Supabase.template.json&param_SesRegion=ap-south-1
+Or pass resources as typed props in `src/main.ts`:
 
-[latest-us-east-1]: https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-us-east-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=us-east-1
-[latest-us-west-2]: https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-us-west-2.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=us-west-2
-[latest-eu-west-1]: https://eu-west-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-eu-west-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=eu-west-1
-[latest-ap-northeast-1]: https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-northeast-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-northeast-1
-[latest-ap-northeast-3]: https://ap-northeast-3.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-northeast-3.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-northeast-3
-[latest-ap-southeast-1]: https://ap-southeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-southeast-1
-[latest-ap-southeast-2]: https://ap-southeast-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-southeast-2.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-southeast-2
-[latest-ap-south-1]: https://ap-south-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=Supabase&templateURL=https://supabase-on-aws-ap-south-1.s3.amazonaws.com/latest/Supabase.template.json&param_SesRegion=ap-south-1
+```typescript
+new SupabaseStack(app, 'Supabase', {
+  vpc: ec2.Vpc.fromLookup(this, 'Vpc', { vpcId: 'vpc-xxx' }),
+  databaseEndpoint: { hostname: 'my-cluster.xxx.rds.amazonaws.com', port: 5432 },
+  databaseAdminSecret: secretsmanager.Secret.fromSecretNameV2(this, 'Secret', 'my-secret'),
+  databaseSecurityGroup: ec2.SecurityGroup.fromSecurityGroupId(this, 'DbSg', 'sg-xxx'),
+});
+```
 
-### Optional templates
+### Optional: WAF
 
-| Template | Link |
-|:--|:--|
-| AWS WAF (Web ACL) | [![launch][launch]][waf-latest] |
+```bash
+cdk deploy SupabaseWaf   # Must deploy in us-east-1
+```
 
-[waf-latest]: https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=SupabaseWaf&templateURL=https://supabase-on-aws-us-east-1.s3.amazonaws.com/latest/SupabaseWaf.template.json
+Then set the `WebAclArn` parameter on the main stack.
 
-### Specification and Limitation
+## Configuration
 
-- APIs
-  - All containers run on ECS Fargate (Graviton2).
-  - All components are configured with AutoScaling.
-  - GraphQL is not supported, because [pg_graphql](https://github.com/supabase/pg_graphql) is not supported with Amazon RDS/Aurora.
-- Service Discovery
-  - Each component is discovered as `***.supabase.internal`.
-- Database (PostgreSQL)
-  - [Amazon Aurora Serverless v2](https://aws.amazon.com/rds/aurora/serverless/) is used.
-  - Todo: Add automatically password rotation.
-- Supabase Studio
-  - It is deployed on [Amplify Hosting](https://aws.amazon.com/amplify/hosting/).
-  - Todo: Add option to deploy the studio in different regions.
-  - ⚠️ Warning: Supabase Studio is **open to web** and can be accessed by malicious actors. We **strongly** suggest you active ['Access control'](https://docs.aws.amazon.com/amplify/latest/userguide/access-control.html) globaly and setup a strong password and username.
+All services are configurable via CloudFormation parameters:
 
-#### Fargate Task Size
+| Category | Parameters |
+|----------|-----------|
+| Auth | DisableSignup, SiteUrl, RedirectUrls, JwtExpiryLimit, PasswordMinLength |
+| SMTP | Email, SenderName, SesRegion, EnableWorkMail |
+| Images | AuthImageUri, RestImageUri, RealtimeImageUri, StorageImageUri, ImgproxyImageUri, PostgresMetaImageUri, StudioImageUri, FunctionsImageUri, SupavisorImageUri |
+| Infrastructure | EnableHighAvailability, WebAclArn |
+| Task Sizes | Per-service Fargate task sizing (micro through 4xlarge) |
+| Auth Providers | Up to 3 external OAuth providers |
 
-| Size | vCPU | Memory |
+### Fargate Task Sizes
+
+| Size | vCPU | Memory (MiB) |
 |:--|:--|:--|
 | micro | 256 | 512 |
 | small | 512 | 1024 |
@@ -88,7 +97,23 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
 | 2xlarge | 8192 | 16384 |
 | 4xlarge | 16384 | 32768 |
 
-#### IAM Policy to create CloudFormation Stack
+Set any service to `none` to disable it.
+
+## Edge Functions
+
+Edge Functions use an EFS file system. To deploy functions, upload them to the EFS volume at `/home/deno/functions/`. The `main` service entrypoint is at `/home/deno/functions/main`.
+
+## Development
+
+```bash
+npm run compile         # TypeScript compilation only
+npm run test            # Run Jest snapshot tests
+npx jest --updateSnapshot  # Update snapshots after changes
+npm run synth           # Generate CloudFormation templates
+npm run eslint          # Lint
+```
+
+### IAM Policy to Deploy
 
 ```json
 {
@@ -101,12 +126,13 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
             "Resource": "*"
         },
         {
-            "Sid": "supabase",
+            "Sid": "Supabase",
             "Effect": "Allow",
             "Action": [
                 "application-autoscaling:*",
                 "ec2:*",
                 "ecs:*",
+                "elasticfilesystem:*",
                 "elasticloadbalancing:*",
                 "events:*",
                 "iam:*",
@@ -118,13 +144,12 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
                 "ses:*",
                 "ssm:*",
                 "states:*",
-                "rds:*",
                 "route53:*"
             ],
             "Resource": "*"
         },
         {
-            "Sid": "supabaseCDN",
+            "Sid": "CDN",
             "Effect": "Allow",
             "Action": [
                 "cloudfront:*",
@@ -134,7 +159,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
             "Resource": "*"
         },
         {
-            "Sid": "cacheManager",
+            "Sid": "CacheManager",
             "Effect": "Allow",
             "Action": [
                 "apigateway:*",
@@ -143,33 +168,7 @@ This repo includes a template of starting Supabase stack on AWS via CloudFormati
                 "sqs:*"
             ],
             "Resource": "*"
-        },
-        {
-            "Sid": "supabaseStudio",
-            "Effect": "Allow",
-            "Action": [
-                "amplify:*",
-                "codecommit:*",
-                "lambda:*",
-                "logs:*",
-                "sns:*"
-            ],
-            "Resource": "*"
         }
     ]
 }
-```
-
-## Deploy via CDK
-
-This cdk project has many resources for CloudFormation. **It is highly recomended to remove these resources for CloudFormation to use it as CDK**.
-
-```bash
-git clone https://github.com/mats16/supabase-on-aws.git
-
-cd supabase-on-aws
-
-yarn install
-
-cdk deploy Supabase
 ```

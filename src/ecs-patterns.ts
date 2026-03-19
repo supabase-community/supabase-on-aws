@@ -18,6 +18,17 @@ interface SupabaseTaskImageOptions extends NetworkLoadBalancedTaskImageOptions {
   command?: string[];
 }
 
+export interface EcsVolume {
+  name: string;
+  efsVolumeConfiguration: ecs.EfsVolumeConfiguration;
+}
+
+export interface EcsMountPoint {
+  containerPath: string;
+  readOnly: boolean;
+  sourceVolume: string;
+}
+
 export interface BaseFargateServiceProps {
   serviceName?: string;
   cluster: ecs.ICluster;
@@ -25,6 +36,8 @@ export interface BaseFargateServiceProps {
   cpuArchitecture?: 'X86_64'|'ARM64';
   enableServiceConnect?: boolean;
   enableCloudMap?: boolean;
+  volumes?: EcsVolume[];
+  mountPoints?: EcsMountPoint[];
 }
 
 export interface AutoScalingFargateServiceProps extends BaseFargateServiceProps {
@@ -94,6 +107,18 @@ export class BaseFargateService extends Construct {
     });
     appContainer.addUlimits({ name: ecs.UlimitName.NOFILE, softLimit: 65536, hardLimit: 65536 });
     appContainer.addPortMappings({ name: 'http', containerPort: taskImageOptions.containerPort });
+
+    // Add volumes and mount points if specified
+    if (props.volumes) {
+      for (const volume of props.volumes) {
+        taskDefinition.addVolume(volume);
+      }
+    }
+    if (props.mountPoints) {
+      for (const mountPoint of props.mountPoints) {
+        appContainer.addMountPoints(mountPoint);
+      }
+    }
 
     this.service = new ecs.FargateService(this, 'Service', {
       cluster,
